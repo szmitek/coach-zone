@@ -1,0 +1,12 @@
+{
+  "name": "coach-zone",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "install": "cd backend && npm install && cd ../frontend && npm install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/szmitek/coach-zone.git"
+  }
+}
