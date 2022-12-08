@@ -1,0 +1,1526 @@
+input TrainingItemRelateToManyInput {
+  create: [TrainingItemCreateInput]
+  connect: [TrainingItemWhereUniqueInput]
+  disconnect: [TrainingItemWhereUniqueInput]
+  disconnectAll: Boolean
+}
+
+input TeamRelateToOneInput {
+  create: TeamCreateInput
+  connect: TeamWhereUniqueInput
+  disconnect: TeamWhereUniqueInput
+  disconnectAll: Boolean
+}
+
+""" A keystone list """
+type User {
+  id: ID!
+  name: String
+  email: String
+  password_is_set: Boolean
+  training(where: TrainingItemWhereInput, search: String, sortBy: [SortTrainingItemsBy!], orderBy: String, first: Int, skip: Int): [TrainingItem!]!
+  _trainingMeta(where: TrainingItemWhereInput, search: String, sortBy: [SortTrainingItemsBy!], orderBy: String, first: Int, skip: Int): _QueryMeta
+  team: Team
+  passwordResetToken_is_set: Boolean
+  passwordResetIssuedAt: String
+  passwordResetRedeemedAt: String
+  magicAuthToken_is_set: Boolean
+  magicAuthIssuedAt: String
+  magicAuthRedeemedAt: String
+}
+
+input UserWhereInput {
+  AND: [UserWhereInput]
+  OR: [UserWhereInput]
+  id: ID
+  id_not: ID
+  id_in: [ID]
+  id_not_in: [ID]
+  name: String
+  name_not: String
+  name_contains: String
+  name_not_contains: String
+  name_starts_with: String
+  name_not_starts_with: String
+  name_ends_with: String
+  name_not_ends_with: String
+  name_i: String
+  name_not_i: String
+  name_contains_i: String
+  name_not_contains_i: String
+  name_starts_with_i: String
+  name_not_starts_with_i: String
+  name_ends_with_i: String
+  name_not_ends_with_i: String
+  name_in: [String]
+  name_not_in: [String]
+  email: String
+  email_not: String
+  email_contains: String
+  email_not_contains: String
+  email_starts_with: String
+  email_not_starts_with: String
+  email_ends_with: String
+  email_not_ends_with: String
+  email_i: String
+  email_not_i: String
+  email_contains_i: String
+  email_not_contains_i: String
+  email_starts_with_i: String
+  email_not_starts_with_i: String
+  email_ends_with_i: String
+  email_not_ends_with_i: String
+  email_in: [String]
+  email_not_in: [String]
+  password_is_set: Boolean
+
+  """ condition must be true for all nodes """
+  training_every: TrainingItemWhereInput
+
+  """ condition must be true for at least 1 node """
+  training_some: TrainingItemWhereInput
+
+  """ condition must be false for all nodes """
+  training_none: TrainingItemWhereInput
+  team: TeamWhereInput
+  team_is_null: Boolean
+  passwordResetToken_is_set: Boolean
+  passwordResetIssuedAt: String
+  passwordResetIssuedAt_not: String
+  passwordResetIssuedAt_lt: String
+  passwordResetIssuedAt_lte: String
+  passwordResetIssuedAt_gt: String
+  passwordResetIssuedAt_gte: String
+  passwordResetIssuedAt_in: [String]
+  passwordResetIssuedAt_not_in: [String]
+  passwordResetRedeemedAt: String
+  passwordResetRedeemedAt_not: String
+  passwordResetRedeemedAt_lt: String
+  passwordResetRedeemedAt_lte: String
+  passwordResetRedeemedAt_gt: String
+  passwordResetRedeemedAt_gte: String
+  passwordResetRedeemedAt_in: [String]
+  passwordResetRedeemedAt_not_in: [String]
+  magicAuthToken_is_set: Boolean
+  magicAuthIssuedAt: String
+  magicAuthIssuedAt_not: String
+  magicAuthIssuedAt_lt: String
+  magicAuthIssuedAt_lte: String
+  magicAuthIssuedAt_gt: String
+  magicAuthIssuedAt_gte: String
+  magicAuthIssuedAt_in: [String]
+  magicAuthIssuedAt_not_in: [String]
+  magicAuthRedeemedAt: String
+  magicAuthRedeemedAt_not: String
+  magicAuthRedeemedAt_lt: String
+  magicAuthRedeemedAt_lte: String
+  magicAuthRedeemedAt_gt: String
+  magicAuthRedeemedAt_gte: String
+  magicAuthRedeemedAt_in: [String]
+  magicAuthRedeemedAt_not_in: [String]
+}
+
+input UserWhereUniqueInput {
+  id: ID!
+}
+
+enum SortUsersBy {
+  id_ASC
+  id_DESC
+  name_ASC
+  name_DESC
+  email_ASC
+  email_DESC
+  training_ASC
+  training_DESC
+  team_ASC
+  team_DESC
+  passwordResetIssuedAt_ASC
+  passwordResetIssuedAt_DESC
+  passwordResetRedeemedAt_ASC
+  passwordResetRedeemedAt_DESC
+  magicAuthIssuedAt_ASC
+  magicAuthIssuedAt_DESC
+  magicAuthRedeemedAt_ASC
+  magicAuthRedeemedAt_DESC
+}
+
+input UserUpdateInput {
+  name: String
+  email: String
+  password: String
+  training: TrainingItemRelateToManyInput
+  team: TeamRelateToOneInput
+  passwordResetToken: String
+  passwordResetIssuedAt: String
+  passwordResetRedeemedAt: String
+  magicAuthToken: String
+  magicAuthIssuedAt: String
+  magicAuthRedeemedAt: String
+}
+
+input UsersUpdateInput {
+  id: ID!
+  data: UserUpdateInput
+}
+
+input UserCreateInput {
+  name: String
+  email: String
+  password: String
+  training: TrainingItemRelateToManyInput
+  team: TeamRelateToOneInput
+  passwordResetToken: String
+  passwordResetIssuedAt: String
+  passwordResetRedeemedAt: String
+  magicAuthToken: String
+  magicAuthIssuedAt: String
+  magicAuthRedeemedAt: String
+}
+
+input UsersCreateInput {
+  data: UserCreateInput
+}
+
+input ExerciseImageRelateToOneInput {
+  create: ExerciseImageCreateInput
+  connect: ExerciseImageWhereUniqueInput
+  disconnect: ExerciseImageWhereUniqueInput
+  disconnectAll: Boolean
+}
+
+""" A keystone list """
+type Exercise {
+  id: ID!
+  name: String
+  description: String
+  photo: ExerciseImage
+  position: String
+}
+
+input ExerciseWhereInput {
+  AND: [ExerciseWhereInput]
+  OR: [ExerciseWhereInput]
+  id: ID
+  id_not: ID
+  id_in: [ID]
+  id_not_in: [ID]
+  name: String
+  name_not: String
+  name_contains: String
+  name_not_contains: String
+  name_starts_with: String
+  name_not_starts_with: String
+  name_ends_with: String
+  name_not_ends_with: String
+  name_i: String
+  name_not_i: String
+  name_contains_i: String
+  name_not_contains_i: String
+  name_starts_with_i: String
+  name_not_starts_with_i: String
+  name_ends_with_i: String
+  name_not_ends_with_i: String
+  name_in: [String]
+  name_not_in: [String]
+  description: String
+  description_not: String
+  description_contains: String
+  description_not_contains: String
+  description_starts_with: String
+  description_not_starts_with: String
+  description_ends_with: String
+  description_not_ends_with: String
+  description_i: String
+  description_not_i: String
+  description_contains_i: String
+  description_not_contains_i: String
+  description_starts_with_i: String
+  description_not_starts_with_i: String
+  description_ends_with_i: String
+  description_not_ends_with_i: String
+  description_in: [String]
+  description_not_in: [String]
+  photo: ExerciseImageWhereInput
+  photo_is_null: Boolean
+  position: String
+  position_not: String
+  position_contains: String
+  position_not_contains: String
+  position_starts_with: String
+  position_not_starts_with: String
+  position_ends_with: String
+  position_not_ends_with: String
+  position_i: String
+  position_not_i: String
+  position_contains_i: String
+  position_not_contains_i: String
+  position_starts_with_i: String
+  position_not_starts_with_i: String
+  position_ends_with_i: String
+  position_not_ends_with_i: String
+  position_in: [String]
+  position_not_in: [String]
+}
+
+input ExerciseWhereUniqueInput {
+  id: ID!
+}
+
+enum SortExercisesBy {
+  id_ASC
+  id_DESC
+  name_ASC
+  name_DESC
+  description_ASC
+  description_DESC
+  photo_ASC
+  photo_DESC
+  position_ASC
+  position_DESC
+}
+
+input ExerciseUpdateInput {
+  name: String
+  description: String
+  photo: ExerciseImageRelateToOneInput
+  position: String
+}
+
+input ExercisesUpdateInput {
+  id: ID!
+  data: ExerciseUpdateInput
+}
+
+input ExerciseCreateInput {
+  name: String
+  description: String
+  photo: ExerciseImageRelateToOneInput
+  position: String
+}
+
+input ExercisesCreateInput {
+  data: ExerciseCreateInput
+}
+
+type CloudinaryImage_File {
+  id: ID
+  path: String
+  filename: String
+  originalFilename: String
+  mimetype: String
+  encoding: String
+  publicUrl: String
+  publicUrlTransformed(transformation: CloudinaryImageFormat): String
+}
+
+"""
+Mirrors the formatting options [Cloudinary provides](https://cloudinary.com/documentation/image_transformation_reference).
+All options are strings as they ultimately end up in a URL.
+"""
+input CloudinaryImageFormat {
+  """ Rewrites the filename to be this pretty string. Do not include `/` or `.` 
+  """
+  prettyName: String
+  width: String
+  height: String
+  crop: String
+  aspect_ratio: String
+  gravity: String
+  zoom: String
+  x: String
+  y: String
+  format: String
+  fetch_format: String
+  quality: String
+  radius: String
+  angle: String
+  effect: String
+  opacity: String
+  border: String
+  background: String
+  overlay: String
+  underlay: String
+  default_image: String
+  delay: String
+  color: String
+  color_space: String
+  dpr: String
+  page: String
+  density: String
+  flags: String
+  transformation: String
+}
+
+input ExerciseRelateToOneInput {
+  create: ExerciseCreateInput
+  connect: ExerciseWhereUniqueInput
+  disconnect: ExerciseWhereUniqueInput
+  disconnectAll: Boolean
+}
+
+""" A keystone list """
+type ExerciseImage {
+  id: ID!
+  image: CloudinaryImage_File
+  altText: String
+  exercise: Exercise
+}
+
+input ExerciseImageWhereInput {
+  AND: [ExerciseImageWhereInput]
+  OR: [ExerciseImageWhereInput]
+  id: ID
+  id_not: ID
+  id_in: [ID]
+  id_not_in: [ID]
+  image: String
+  image_not: String
+  image_in: [String]
+  image_not_in: [String]
+  altText: String
+  altText_not: String
+  altText_contains: String
+  altText_not_contains: String
+  altText_starts_with: String
+  altText_not_starts_with: String
+  altText_ends_with: String
+  altText_not_ends_with: String
+  altText_i: String
+  altText_not_i: String
+  altText_contains_i: String
+  altText_not_contains_i: String
+  altText_starts_with_i: String
+  altText_not_starts_with_i: String
+  altText_ends_with_i: String
+  altText_not_ends_with_i: String
+  altText_in: [String]
+  altText_not_in: [String]
+  exercise: ExerciseWhereInput
+  exercise_is_null: Boolean
+}
+
+input ExerciseImageWhereUniqueInput {
+  id: ID!
+}
+
+enum SortExerciseImagesBy {
+  id_ASC
+  id_DESC
+  altText_ASC
+  altText_DESC
+  exercise_ASC
+  exercise_DESC
+}
+
+input ExerciseImageUpdateInput {
+  image: Upload
+  altText: String
+  exercise: ExerciseRelateToOneInput
+}
+
+input ExerciseImagesUpdateInput {
+  id: ID!
+  data: ExerciseImageUpdateInput
+}
+
+input ExerciseImageCreateInput {
+  image: Upload
+  altText: String
+  exercise: ExerciseRelateToOneInput
+}
+
+input ExerciseImagesCreateInput {
+  data: ExerciseImageCreateInput
+}
+
+input PlayerImageRelateToOneInput {
+  create: PlayerImageCreateInput
+  connect: PlayerImageWhereUniqueInput
+  disconnect: PlayerImageWhereUniqueInput
+  disconnectAll: Boolean
+}
+
+""" A keystone list """
+type Player {
+  id: ID!
+  name: String
+  number: String
+  description: String
+  strengths: String
+  weaknesses: String
+  photo: PlayerImage
+  position: String
+  team: Team
+}
+
+input PlayerWhereInput {
+  AND: [PlayerWhereInput]
+  OR: [PlayerWhereInput]
+  id: ID
+  id_not: ID
+  id_in: [ID]
+  id_not_in: [ID]
+  name: String
+  name_not: String
+  name_contains: String
+  name_not_contains: String
+  name_starts_with: String
+  name_not_starts_with: String
+  name_ends_with: String
+  name_not_ends_with: String
+  name_i: String
+  name_not_i: String
+  name_contains_i: String
+  name_not_contains_i: String
+  name_starts_with_i: String
+  name_not_starts_with_i: String
+  name_ends_with_i: String
+  name_not_ends_with_i: String
+  name_in: [String]
+  name_not_in: [String]
+  number: String
+  number_not: String
+  number_contains: String
+  number_not_contains: String
+  number_starts_with: String
+  number_not_starts_with: String
+  number_ends_with: String
+  number_not_ends_with: String
+  number_i: String
+  number_not_i: String
+  number_contains_i: String
+  number_not_contains_i: String
+  number_starts_with_i: String
+  number_not_starts_with_i: String
+  number_ends_with_i: String
+  number_not_ends_with_i: String
+  number_in: [String]
+  number_not_in: [String]
+  description: String
+  description_not: String
+  description_contains: String
+  description_not_contains: String
+  description_starts_with: String
+  description_not_starts_with: String
+  description_ends_with: String
+  description_not_ends_with: String
+  description_i: String
+  description_not_i: String
+  description_contains_i: String
+  description_not_contains_i: String
+  description_starts_with_i: String
+  description_not_starts_with_i: String
+  description_ends_with_i: String
+  description_not_ends_with_i: String
+  description_in: [String]
+  description_not_in: [String]
+  strengths: String
+  strengths_not: String
+  strengths_contains: String
+  strengths_not_contains: String
+  strengths_starts_with: String
+  strengths_not_starts_with: String
+  strengths_ends_with: String
+  strengths_not_ends_with: String
+  strengths_i: String
+  strengths_not_i: String
+  strengths_contains_i: String
+  strengths_not_contains_i: String
+  strengths_starts_with_i: String
+  strengths_not_starts_with_i: String
+  strengths_ends_with_i: String
+  strengths_not_ends_with_i: String
+  strengths_in: [String]
+  strengths_not_in: [String]
+  weaknesses: String
+  weaknesses_not: String
+  weaknesses_contains: String
+  weaknesses_not_contains: String
+  weaknesses_starts_with: String
+  weaknesses_not_starts_with: String
+  weaknesses_ends_with: String
+  weaknesses_not_ends_with: String
+  weaknesses_i: String
+  weaknesses_not_i: String
+  weaknesses_contains_i: String
+  weaknesses_not_contains_i: String
+  weaknesses_starts_with_i: String
+  weaknesses_not_starts_with_i: String
+  weaknesses_ends_with_i: String
+  weaknesses_not_ends_with_i: String
+  weaknesses_in: [String]
+  weaknesses_not_in: [String]
+  photo: PlayerImageWhereInput
+  photo_is_null: Boolean
+  position: String
+  position_not: String
+  position_contains: String
+  position_not_contains: String
+  position_starts_with: String
+  position_not_starts_with: String
+  position_ends_with: String
+  position_not_ends_with: String
+  position_i: String
+  position_not_i: String
+  position_contains_i: String
+  position_not_contains_i: String
+  position_starts_with_i: String
+  position_not_starts_with_i: String
+  position_ends_with_i: String
+  position_not_ends_with_i: String
+  position_in: [String]
+  position_not_in: [String]
+  team: TeamWhereInput
+  team_is_null: Boolean
+}
+
+input PlayerWhereUniqueInput {
+  id: ID!
+}
+
+enum SortPlayersBy {
+  id_ASC
+  id_DESC
+  name_ASC
+  name_DESC
+  number_ASC
+  number_DESC
+  description_ASC
+  description_DESC
+  strengths_ASC
+  strengths_DESC
+  weaknesses_ASC
+  weaknesses_DESC
+  photo_ASC
+  photo_DESC
+  position_ASC
+  position_DESC
+  team_ASC
+  team_DESC
+}
+
+input PlayerUpdateInput {
+  name: String
+  number: String
+  description: String
+  strengths: String
+  weaknesses: String
+  photo: PlayerImageRelateToOneInput
+  position: String
+  team: TeamRelateToOneInput
+}
+
+input PlayersUpdateInput {
+  id: ID!
+  data: PlayerUpdateInput
+}
+
+input PlayerCreateInput {
+  name: String
+  number: String
+  description: String
+  strengths: String
+  weaknesses: String
+  photo: PlayerImageRelateToOneInput
+  position: String
+  team: TeamRelateToOneInput
+}
+
+input PlayersCreateInput {
+  data: PlayerCreateInput
+}
+
+input PlayerRelateToOneInput {
+  create: PlayerCreateInput
+  connect: PlayerWhereUniqueInput
+  disconnect: PlayerWhereUniqueInput
+  disconnectAll: Boolean
+}
+
+""" A keystone list """
+type PlayerImage {
+  id: ID!
+  image: CloudinaryImage_File
+  altText: String
+  player: Player
+}
+
+input PlayerImageWhereInput {
+  AND: [PlayerImageWhereInput]
+  OR: [PlayerImageWhereInput]
+  id: ID
+  id_not: ID
+  id_in: [ID]
+  id_not_in: [ID]
+  image: String
+  image_not: String
+  image_in: [String]
+  image_not_in: [String]
+  altText: String
+  altText_not: String
+  altText_contains: String
+  altText_not_contains: String
+  altText_starts_with: String
+  altText_not_starts_with: String
+  altText_ends_with: String
+  altText_not_ends_with: String
+  altText_i: String
+  altText_not_i: String
+  altText_contains_i: String
+  altText_not_contains_i: String
+  altText_starts_with_i: String
+  altText_not_starts_with_i: String
+  altText_ends_with_i: String
+  altText_not_ends_with_i: String
+  altText_in: [String]
+  altText_not_in: [String]
+  player: PlayerWhereInput
+  player_is_null: Boolean
+}
+
+input PlayerImageWhereUniqueInput {
+  id: ID!
+}
+
+enum SortPlayerImagesBy {
+  id_ASC
+  id_DESC
+  altText_ASC
+  altText_DESC
+  player_ASC
+  player_DESC
+}
+
+input PlayerImageUpdateInput {
+  image: Upload
+  altText: String
+  player: PlayerRelateToOneInput
+}
+
+input PlayerImagesUpdateInput {
+  id: ID!
+  data: PlayerImageUpdateInput
+}
+
+input PlayerImageCreateInput {
+  image: Upload
+  altText: String
+  player: PlayerRelateToOneInput
+}
+
+input PlayerImagesCreateInput {
+  data: PlayerImageCreateInput
+}
+
+input UserRelateToOneInput {
+  create: UserCreateInput
+  connect: UserWhereUniqueInput
+  disconnect: UserWhereUniqueInput
+  disconnectAll: Boolean
+}
+
+""" A keystone list """
+type TrainingItem {
+  id: ID!
+  quantity: Int
+  exercise: Exercise
+  user: User
+}
+
+input TrainingItemWhereInput {
+  AND: [TrainingItemWhereInput]
+  OR: [TrainingItemWhereInput]
+  id: ID
+  id_not: ID
+  id_in: [ID]
+  id_not_in: [ID]
+  quantity: Int
+  quantity_not: Int
+  quantity_lt: Int
+  quantity_lte: Int
+  quantity_gt: Int
+  quantity_gte: Int
+  quantity_in: [Int]
+  quantity_not_in: [Int]
+  exercise: ExerciseWhereInput
+  exercise_is_null: Boolean
+  user: UserWhereInput
+  user_is_null: Boolean
+}
+
+input TrainingItemWhereUniqueInput {
+  id: ID!
+}
+
+enum SortTrainingItemsBy {
+  id_ASC
+  id_DESC
+  quantity_ASC
+  quantity_DESC
+  exercise_ASC
+  exercise_DESC
+  user_ASC
+  user_DESC
+}
+
+input TrainingItemUpdateInput {
+  quantity: Int
+  exercise: ExerciseRelateToOneInput
+  user: UserRelateToOneInput
+}
+
+input TrainingItemsUpdateInput {
+  id: ID!
+  data: TrainingItemUpdateInput
+}
+
+input TrainingItemCreateInput {
+  quantity: Int
+  exercise: ExerciseRelateToOneInput
+  user: UserRelateToOneInput
+}
+
+input TrainingItemsCreateInput {
+  data: TrainingItemCreateInput
+}
+
+input PlayerRelateToManyInput {
+  create: [PlayerCreateInput]
+  connect: [PlayerWhereUniqueInput]
+  disconnect: [PlayerWhereUniqueInput]
+  disconnectAll: Boolean
+}
+
+""" A keystone list """
+type Team {
+  id: ID!
+  user: User
+  players(where: PlayerWhereInput, search: String, sortBy: [SortPlayersBy!], orderBy: String, first: Int, skip: Int): [Player!]!
+  _playersMeta(where: PlayerWhereInput, search: String, sortBy: [SortPlayersBy!], orderBy: String, first: Int, skip: Int): _QueryMeta
+}
+
+input TeamWhereInput {
+  AND: [TeamWhereInput]
+  OR: [TeamWhereInput]
+  id: ID
+  id_not: ID
+  id_in: [ID]
+  id_not_in: [ID]
+  user: UserWhereInput
+  user_is_null: Boolean
+
+  """ condition must be true for all nodes """
+  players_every: PlayerWhereInput
+
+  """ condition must be true for at least 1 node """
+  players_some: PlayerWhereInput
+
+  """ condition must be false for all nodes """
+  players_none: PlayerWhereInput
+}
+
+input TeamWhereUniqueInput {
+  id: ID!
+}
+
+enum SortTeamsBy {
+  id_ASC
+  id_DESC
+  user_ASC
+  user_DESC
+  players_ASC
+  players_DESC
+}
+
+input TeamUpdateInput {
+  user: UserRelateToOneInput
+  players: PlayerRelateToManyInput
+}
+
+input TeamsUpdateInput {
+  id: ID!
+  data: TeamUpdateInput
+}
+
+input TeamCreateInput {
+  user: UserRelateToOneInput
+  players: PlayerRelateToManyInput
+}
+
+input TeamsCreateInput {
+  data: TeamCreateInput
+}
+
+""" A keystone list """
+type EventsListItem {
+  id: ID!
+  title: String
+  startdate: String
+  enddate: String
+}
+
+input EventsListItemWhereInput {
+  AND: [EventsListItemWhereInput]
+  OR: [EventsListItemWhereInput]
+  id: ID
+  id_not: ID
+  id_in: [ID]
+  id_not_in: [ID]
+  title: String
+  title_not: String
+  title_contains: String
+  title_not_contains: String
+  title_starts_with: String
+  title_not_starts_with: String
+  title_ends_with: String
+  title_not_ends_with: String
+  title_i: String
+  title_not_i: String
+  title_contains_i: String
+  title_not_contains_i: String
+  title_starts_with_i: String
+  title_not_starts_with_i: String
+  title_ends_with_i: String
+  title_not_ends_with_i: String
+  title_in: [String]
+  title_not_in: [String]
+  startdate: String
+  startdate_not: String
+  startdate_lt: String
+  startdate_lte: String
+  startdate_gt: String
+  startdate_gte: String
+  startdate_in: [String]
+  startdate_not_in: [String]
+  enddate: String
+  enddate_not: String
+  enddate_lt: String
+  enddate_lte: String
+  enddate_gt: String
+  enddate_gte: String
+  enddate_in: [String]
+  enddate_not_in: [String]
+}
+
+input EventsListItemWhereUniqueInput {
+  id: ID!
+}
+
+enum SortEventsListItemsBy {
+  id_ASC
+  id_DESC
+  title_ASC
+  title_DESC
+  startdate_ASC
+  startdate_DESC
+  enddate_ASC
+  enddate_DESC
+}
+
+input EventsListItemUpdateInput {
+  title: String
+  startdate: String
+  enddate: String
+}
+
+input EventsListItemsUpdateInput {
+  id: ID!
+  data: EventsListItemUpdateInput
+}
+
+input EventsListItemCreateInput {
+  title: String
+  startdate: String
+  enddate: String
+}
+
+input EventsListItemsCreateInput {
+  data: EventsListItemCreateInput
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
+
+type _ListAccess {
+  """
+  Access Control settings for the currently logged in (or anonymous)
+  user when performing 'create' operations.
+  NOTE: 'create' can only return a Boolean.
+  It is not possible to specify a declarative Where clause for this
+  operation
+  """
+  create: Boolean
+
+  """
+  Access Control settings for the currently logged in (or anonymous)
+  user when performing 'read' operations.
+  """
+  read: JSON
+
+  """
+  Access Control settings for the currently logged in (or anonymous)
+  user when performing 'update' operations.
+  """
+  update: JSON
+
+  """
+  Access Control settings for the currently logged in (or anonymous)
+  user when performing 'delete' operations.
+  """
+  delete: JSON
+
+  """
+  Access Control settings for the currently logged in (or anonymous)
+  user when performing 'auth' operations.
+  """
+  auth: JSON
+}
+
+type _ListQueries {
+  """Single-item query name"""
+  item: String
+
+  """All-items query name"""
+  list: String
+
+  """List metadata query name"""
+  meta: String
+}
+
+type _ListMutations {
+  """Create mutation name"""
+  create: String
+
+  """Create many mutation name"""
+  createMany: String
+
+  """Update mutation name"""
+  update: String
+
+  """Update many mutation name"""
+  updateMany: String
+
+  """Delete mutation name"""
+  delete: String
+
+  """Delete many mutation name"""
+  deleteMany: String
+}
+
+type _ListInputTypes {
+  """Input type for matching multiple items"""
+  whereInput: String
+
+  """Input type for matching a unique item"""
+  whereUniqueInput: String
+
+  """Create mutation input type name"""
+  createInput: String
+
+  """Create many mutation input type name"""
+  createManyInput: String
+
+  """Update mutation name input"""
+  updateInput: String
+
+  """Update many mutation name input"""
+  updateManyInput: String
+}
+
+type _ListSchemaFields {
+  """The path of the field in its list"""
+  path: String
+
+  """The name of the field in its list"""
+  name: String @deprecated(reason: "Use `path` instead")
+
+  """The field type (ie, Checkbox, Text, etc)"""
+  type: String
+}
+
+type _ListSchemaRelatedFields {
+  """The typename as used in GraphQL queries"""
+  type: String
+
+  """A list of GraphQL field names"""
+  fields: [String]
+}
+
+type _ListSchema {
+  """The typename as used in GraphQL queries"""
+  type: String
+
+  """
+  Top level GraphQL query names which either return this type, or
+  provide aggregate information about this type
+  """
+  queries: _ListQueries
+
+  """Top-level GraphQL mutation names"""
+  mutations: _ListMutations
+
+  """Top-level GraphQL input types"""
+  inputTypes: _ListInputTypes
+
+  """Information about fields defined on this list"""
+  fields(where: _ListSchemaFieldsInput): [_ListSchemaFields]
+
+  """
+  Information about fields on other types which return this type, or
+  provide aggregate information about this type
+  """
+  relatedFields: [_ListSchemaRelatedFields]
+}
+
+type _ListMeta {
+  """The Keystone list key"""
+  key: String
+
+  """The Keystone List name"""
+  name: String @deprecated(reason: "Use `key` instead")
+
+  """The list's user-facing description"""
+  description: String
+
+  """The list's display name in the Admin UI"""
+  label: String
+
+  """The list's singular display name"""
+  singular: String
+
+  """The list's plural display name"""
+  plural: String
+
+  """The list's data path"""
+  path: String
+
+  """Access control configuration for the currently authenticated request"""
+  access: _ListAccess
+
+  """Information on the generated GraphQL schema"""
+  schema: _ListSchema
+}
+
+type _QueryMeta {
+  count: Int
+}
+
+input _ksListsMetaInput {
+  key: String
+
+  """Whether this is an auxiliary helper list"""
+  auxiliary: Boolean
+}
+
+input _ListSchemaFieldsInput {
+  type: String
+}
+
+type Query {
+  """ Search for all User items which match the where clause. """
+  allUsers(where: UserWhereInput, search: String, sortBy: [SortUsersBy!], orderBy: String, first: Int, skip: Int): [User]
+
+  """ Search for the User item with the matching ID. """
+  User(where: UserWhereUniqueInput!): User
+
+  """ Perform a meta-query on all User items which match the where clause. """
+  _allUsersMeta(where: UserWhereInput, search: String, sortBy: [SortUsersBy!], orderBy: String, first: Int, skip: Int): _QueryMeta
+
+  """ Retrieve the meta-data for the User list. """
+  _UsersMeta: _ListMeta
+
+  """ Search for all Exercise items which match the where clause. """
+  allExercises(where: ExerciseWhereInput, search: String, sortBy: [SortExercisesBy!], orderBy: String, first: Int, skip: Int): [Exercise]
+
+  """ Search for the Exercise item with the matching ID. """
+  Exercise(where: ExerciseWhereUniqueInput!): Exercise
+
+  """ Perform a meta-query on all Exercise items which match the where clause. 
+  """
+  _allExercisesMeta(where: ExerciseWhereInput, search: String, sortBy: [SortExercisesBy!], orderBy: String, first: Int, skip: Int): _QueryMeta
+
+  """ Retrieve the meta-data for the Exercise list. """
+  _ExercisesMeta: _ListMeta
+
+  """ Search for all ExerciseImage items which match the where clause. """
+  allExerciseImages(where: ExerciseImageWhereInput, search: String, sortBy: [SortExerciseImagesBy!], orderBy: String, first: Int, skip: Int): [ExerciseImage]
+
+  """ Search for the ExerciseImage item with the matching ID. """
+  ExerciseImage(where: ExerciseImageWhereUniqueInput!): ExerciseImage
+
+  """ Perform a meta-query on all ExerciseImage items which match the where clause. 
+  """
+  _allExerciseImagesMeta(where: ExerciseImageWhereInput, search: String, sortBy: [SortExerciseImagesBy!], orderBy: String, first: Int, skip: Int): _QueryMeta
+
+  """ Retrieve the meta-data for the ExerciseImage list. """
+  _ExerciseImagesMeta: _ListMeta
+
+  """ Search for all Player items which match the where clause. """
+  allPlayers(where: PlayerWhereInput, search: String, sortBy: [SortPlayersBy!], orderBy: String, first: Int, skip: Int): [Player]
+
+  """ Search for the Player item with the matching ID. """
+  Player(where: PlayerWhereUniqueInput!): Player
+
+  """ Perform a meta-query on all Player items which match the where clause. 
+  """
+  _allPlayersMeta(where: PlayerWhereInput, search: String, sortBy: [SortPlayersBy!], orderBy: String, first: Int, skip: Int): _QueryMeta
+
+  """ Retrieve the meta-data for the Player list. """
+  _PlayersMeta: _ListMeta
+
+  """ Search for all PlayerImage items which match the where clause. """
+  allPlayerImages(where: PlayerImageWhereInput, search: String, sortBy: [SortPlayerImagesBy!], orderBy: String, first: Int, skip: Int): [PlayerImage]
+
+  """ Search for the PlayerImage item with the matching ID. """
+  PlayerImage(where: PlayerImageWhereUniqueInput!): PlayerImage
+
+  """ Perform a meta-query on all PlayerImage items which match the where clause. 
+  """
+  _allPlayerImagesMeta(where: PlayerImageWhereInput, search: String, sortBy: [SortPlayerImagesBy!], orderBy: String, first: Int, skip: Int): _QueryMeta
+
+  """ Retrieve the meta-data for the PlayerImage list. """
+  _PlayerImagesMeta: _ListMeta
+
+  """ Search for all TrainingItem items which match the where clause. """
+  allTrainingItems(where: TrainingItemWhereInput, search: String, sortBy: [SortTrainingItemsBy!], orderBy: String, first: Int, skip: Int): [TrainingItem]
+
+  """ Search for the TrainingItem item with the matching ID. """
+  TrainingItem(where: TrainingItemWhereUniqueInput!): TrainingItem
+
+  """ Perform a meta-query on all TrainingItem items which match the where clause. 
+  """
+  _allTrainingItemsMeta(where: TrainingItemWhereInput, search: String, sortBy: [SortTrainingItemsBy!], orderBy: String, first: Int, skip: Int): _QueryMeta
+
+  """ Retrieve the meta-data for the TrainingItem list. """
+  _TrainingItemsMeta: _ListMeta
+
+  """ Search for all Team items which match the where clause. """
+  allTeams(where: TeamWhereInput, search: String, sortBy: [SortTeamsBy!], orderBy: String, first: Int, skip: Int): [Team]
+
+  """ Search for the Team item with the matching ID. """
+  Team(where: TeamWhereUniqueInput!): Team
+
+  """ Perform a meta-query on all Team items which match the where clause. """
+  _allTeamsMeta(where: TeamWhereInput, search: String, sortBy: [SortTeamsBy!], orderBy: String, first: Int, skip: Int): _QueryMeta
+
+  """ Retrieve the meta-data for the Team list. """
+  _TeamsMeta: _ListMeta
+
+  """ Search for all EventsListItem items which match the where clause. """
+  allEventsListItems(where: EventsListItemWhereInput, search: String, sortBy: [SortEventsListItemsBy!], orderBy: String, first: Int, skip: Int): [EventsListItem]
+
+  """ Search for the EventsListItem item with the matching ID. """
+  EventsListItem(where: EventsListItemWhereUniqueInput!): EventsListItem
+
+  """ Perform a meta-query on all EventsListItem items which match the where clause. 
+  """
+  _allEventsListItemsMeta(where: EventsListItemWhereInput, search: String, sortBy: [SortEventsListItemsBy!], orderBy: String, first: Int, skip: Int): _QueryMeta
+
+  """ Retrieve the meta-data for the EventsListItem list. """
+  _EventsListItemsMeta: _ListMeta
+
+  """ Retrieve the meta-data for all lists. """
+  _ksListsMeta(where: _ksListsMetaInput): [_ListMeta]
+
+  """The version of the Keystone application serving this API."""
+  appVersion: String
+  authenticatedItem: AuthenticatedItem
+  validateUserPasswordResetToken(email: String!, token: String!): ValidateUserPasswordResetTokenResult
+  keystone: KeystoneMeta!
+}
+
+type Mutation {
+  """ Create a single User item. """
+  createUser(data: UserCreateInput): User
+
+  """ Create multiple User items. """
+  createUsers(data: [UsersCreateInput]): [User]
+
+  """ Update a single User item by ID. """
+  updateUser(id: ID!, data: UserUpdateInput): User
+
+  """ Update multiple User items by ID. """
+  updateUsers(data: [UsersUpdateInput]): [User]
+
+  """ Delete a single User item by ID. """
+  deleteUser(id: ID!): User
+
+  """ Delete multiple User items by ID. """
+  deleteUsers(ids: [ID!]): [User]
+
+  """ Create a single Exercise item. """
+  createExercise(data: ExerciseCreateInput): Exercise
+
+  """ Create multiple Exercise items. """
+  createExercises(data: [ExercisesCreateInput]): [Exercise]
+
+  """ Update a single Exercise item by ID. """
+  updateExercise(id: ID!, data: ExerciseUpdateInput): Exercise
+
+  """ Update multiple Exercise items by ID. """
+  updateExercises(data: [ExercisesUpdateInput]): [Exercise]
+
+  """ Delete a single Exercise item by ID. """
+  deleteExercise(id: ID!): Exercise
+
+  """ Delete multiple Exercise items by ID. """
+  deleteExercises(ids: [ID!]): [Exercise]
+
+  """ Create a single ExerciseImage item. """
+  createExerciseImage(data: ExerciseImageCreateInput): ExerciseImage
+
+  """ Create multiple ExerciseImage items. """
+  createExerciseImages(data: [ExerciseImagesCreateInput]): [ExerciseImage]
+
+  """ Update a single ExerciseImage item by ID. """
+  updateExerciseImage(id: ID!, data: ExerciseImageUpdateInput): ExerciseImage
+
+  """ Update multiple ExerciseImage items by ID. """
+  updateExerciseImages(data: [ExerciseImagesUpdateInput]): [ExerciseImage]
+
+  """ Delete a single ExerciseImage item by ID. """
+  deleteExerciseImage(id: ID!): ExerciseImage
+
+  """ Delete multiple ExerciseImage items by ID. """
+  deleteExerciseImages(ids: [ID!]): [ExerciseImage]
+
+  """ Create a single Player item. """
+  createPlayer(data: PlayerCreateInput): Player
+
+  """ Create multiple Player items. """
+  createPlayers(data: [PlayersCreateInput]): [Player]
+
+  """ Update a single Player item by ID. """
+  updatePlayer(id: ID!, data: PlayerUpdateInput): Player
+
+  """ Update multiple Player items by ID. """
+  updatePlayers(data: [PlayersUpdateInput]): [Player]
+
+  """ Delete a single Player item by ID. """
+  deletePlayer(id: ID!): Player
+
+  """ Delete multiple Player items by ID. """
+  deletePlayers(ids: [ID!]): [Player]
+
+  """ Create a single PlayerImage item. """
+  createPlayerImage(data: PlayerImageCreateInput): PlayerImage
+
+  """ Create multiple PlayerImage items. """
+  createPlayerImages(data: [PlayerImagesCreateInput]): [PlayerImage]
+
+  """ Update a single PlayerImage item by ID. """
+  updatePlayerImage(id: ID!, data: PlayerImageUpdateInput): PlayerImage
+
+  """ Update multiple PlayerImage items by ID. """
+  updatePlayerImages(data: [PlayerImagesUpdateInput]): [PlayerImage]
+
+  """ Delete a single PlayerImage item by ID. """
+  deletePlayerImage(id: ID!): PlayerImage
+
+  """ Delete multiple PlayerImage items by ID. """
+  deletePlayerImages(ids: [ID!]): [PlayerImage]
+
+  """ Create a single TrainingItem item. """
+  createTrainingItem(data: TrainingItemCreateInput): TrainingItem
+
+  """ Create multiple TrainingItem items. """
+  createTrainingItems(data: [TrainingItemsCreateInput]): [TrainingItem]
+
+  """ Update a single TrainingItem item by ID. """
+  updateTrainingItem(id: ID!, data: TrainingItemUpdateInput): TrainingItem
+
+  """ Update multiple TrainingItem items by ID. """
+  updateTrainingItems(data: [TrainingItemsUpdateInput]): [TrainingItem]
+
+  """ Delete a single TrainingItem item by ID. """
+  deleteTrainingItem(id: ID!): TrainingItem
+
+  """ Delete multiple TrainingItem items by ID. """
+  deleteTrainingItems(ids: [ID!]): [TrainingItem]
+
+  """ Create a single Team item. """
+  createTeam(data: TeamCreateInput): Team
+
+  """ Create multiple Team items. """
+  createTeams(data: [TeamsCreateInput]): [Team]
+
+  """ Update a single Team item by ID. """
+  updateTeam(id: ID!, data: TeamUpdateInput): Team
+
+  """ Update multiple Team items by ID. """
+  updateTeams(data: [TeamsUpdateInput]): [Team]
+
+  """ Delete a single Team item by ID. """
+  deleteTeam(id: ID!): Team
+
+  """ Delete multiple Team items by ID. """
+  deleteTeams(ids: [ID!]): [Team]
+
+  """ Create a single EventsListItem item. """
+  createEventsListItem(data: EventsListItemCreateInput): EventsListItem
+
+  """ Create multiple EventsListItem items. """
+  createEventsListItems(data: [EventsListItemsCreateInput]): [EventsListItem]
+
+  """ Update a single EventsListItem item by ID. """
+  updateEventsListItem(id: ID!, data: EventsListItemUpdateInput): EventsListItem
+
+  """ Update multiple EventsListItem items by ID. """
+  updateEventsListItems(data: [EventsListItemsUpdateInput]): [EventsListItem]
+
+  """ Delete a single EventsListItem item by ID. """
+  deleteEventsListItem(id: ID!): EventsListItem
+
+  """ Delete multiple EventsListItem items by ID. """
+  deleteEventsListItems(ids: [ID!]): [EventsListItem]
+  authenticateUserWithPassword(email: String!, password: String!): UserAuthenticationWithPasswordResult!
+  createInitialUser(data: CreateInitialUserInput!): UserAuthenticationWithPasswordSuccess!
+  sendUserPasswordResetLink(email: String!): SendUserPasswordResetLinkResult
+  redeemUserPasswordResetToken(email: String!, token: String!, password: String!): RedeemUserPasswordResetTokenResult
+  addToTraining(exerciseId: ID): TrainingItem
+  endSession: Boolean!
+}
+
+"""The `Upload` scalar type represents a file upload."""
+scalar Upload
+
+union AuthenticatedItem = User
+
+union UserAuthenticationWithPasswordResult = UserAuthenticationWithPasswordSuccess | UserAuthenticationWithPasswordFailure
+
+type UserAuthenticationWithPasswordSuccess {
+  sessionToken: String!
+  item: User!
+}
+
+type UserAuthenticationWithPasswordFailure {
+  code: PasswordAuthErrorCode!
+  message: String!
+}
+
+enum PasswordAuthErrorCode {
+  FAILURE
+  IDENTITY_NOT_FOUND
+  SECRET_NOT_SET
+  MULTIPLE_IDENTITY_MATCHES
+  SECRET_MISMATCH
+}
+
+input CreateInitialUserInput {
+  name: String
+  email: String
+  password: String
+}
+
+type SendUserPasswordResetLinkResult {
+  code: PasswordResetRequestErrorCode!
+  message: String!
+}
+
+enum PasswordResetRequestErrorCode {
+  IDENTITY_NOT_FOUND
+  MULTIPLE_IDENTITY_MATCHES
+}
+
+type ValidateUserPasswordResetTokenResult {
+  code: PasswordResetRedemptionErrorCode!
+  message: String!
+}
+
+type RedeemUserPasswordResetTokenResult {
+  code: PasswordResetRedemptionErrorCode!
+  message: String!
+}
+
+enum PasswordResetRedemptionErrorCode {
+  FAILURE
+  IDENTITY_NOT_FOUND
+  MULTIPLE_IDENTITY_MATCHES
+  TOKEN_NOT_SET
+  TOKEN_MISMATCH
+  TOKEN_EXPIRED
+  TOKEN_REDEEMED
+}
+
+type KeystoneMeta {
+  adminMeta: KeystoneAdminMeta!
+}
+
+type KeystoneAdminMeta {
+  enableSignout: Boolean!
+  enableSessionItem: Boolean!
+  lists: [KeystoneAdminUIListMeta!]!
+  list(key: String!): KeystoneAdminUIListMeta
+}
+
+type KeystoneAdminUIListMeta {
+  key: String!
+  itemQueryName: String!
+  listQueryName: String!
+  hideCreate: Boolean!
+  hideDelete: Boolean!
+  path: String!
+  label: String!
+  singular: String!
+  plural: String!
+  description: String
+  initialColumns: [String!]!
+  pageSize: Int!
+  labelField: String!
+  fields: [KeystoneAdminUIFieldMeta!]!
+  initialSort: KeystoneAdminUISort
+  isHidden: Boolean!
+}
+
+type KeystoneAdminUISort {
+  field: String!
+  direction: KeystoneAdminUISortDirection!
+}
+
+type KeystoneAdminUIFieldMeta {
+  path: String!
+  label: String!
+  isOrderable: Boolean!
+  fieldMeta: JSON
+  viewsHash: String!
+  customViewsHash: String
+  createView: KeystoneAdminUIFieldMetaCreateView!
+  listView: KeystoneAdminUIFieldMetaListView!
+  itemView(id: ID!): KeystoneAdminUIFieldMetaItemView
+}
+
+type KeystoneAdminUIFieldMetaCreateView {
+  fieldMode: KeystoneAdminUIFieldMetaCreateViewFieldMode!
+}
+
+type KeystoneAdminUIFieldMetaListView {
+  fieldMode: KeystoneAdminUIFieldMetaListViewFieldMode!
+}
+
+type KeystoneAdminUIFieldMetaItemView {
+  fieldMode: KeystoneAdminUIFieldMetaItemViewFieldMode!
+}
+
+enum KeystoneAdminUIFieldMetaCreateViewFieldMode {
+  edit
+  hidden
+}
+
+enum KeystoneAdminUIFieldMetaListViewFieldMode {
+  read
+  hidden
+}
+
+enum KeystoneAdminUIFieldMetaItemViewFieldMode {
+  edit
+  read
+  hidden
+}
+
+enum KeystoneAdminUISortDirection {
+  ASC
+  DESC
+}
