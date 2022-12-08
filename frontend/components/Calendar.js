@@ -1,34 +1,28 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
 import format from 'date-fns/format';
 import parse from 'date-fns/parse';
 import startOfWeek from 'date-fns/startOfWeek';
 import getDay from 'date-fns/getDay';
 import enUS from 'date-fns/locale/en-US';
-import events from './Events'
 import gql from 'graphql-tag';
-import { useQuery } from '@apollo/client';
-import { perPage } from '../config';
-import {useMutation} from '@apollo/client';
+import { useQuery, useMutation } from '@apollo/client';
 import { UniqueInputFieldNamesRule } from 'graphql';
-
+import { perPage } from '../config';
+import events from './Events';
 
 const CREATE_EVENT_MUTATION = gql`
-  mutation CREATE_EVENT_MUTATION (
+  mutation CREATE_EVENT_MUTATION(
     $title: String!
     $startdate: String
     $enddate: String
   ) {
-    createEvent(
-      data: {
-        title: $title
-        startdate: $startdate
-        enddate: $enddate
-      }
+    createEventsListItem(
+      data: { title: $title, startdate: $startdate, enddate: $enddate }
     ) {
       id
       title
-      stardate
+      startdate
       enddate
     }
   }
@@ -41,15 +35,20 @@ export const ALL_EVENTS_QUERY = gql`
       title
       startdate
       enddate
-
     }
   }
-`
-
+`;
 
 const locales = {
   'en-US': enUS,
 };
+
+const mapEvents = (_events) =>
+  _events.map((event) => ({
+    title: event.title,
+    start: event.startdate,
+    end: event.enddate,
+  }));
 
 const localizer = dateFnsLocalizer({
   format,
@@ -59,50 +58,42 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-
 export default function CalendarPage() {
   const { data } = useQuery(ALL_EVENTS_QUERY);
-  const [ createEvent ] = useMutation(CREATE_EVENT_MUTATION)
-  
-  const event = data 
-  console.log(event)
+  const [createEvent] = useMutation(CREATE_EVENT_MUTATION);
 
-  const [myEvents2, setEvents] = useState(data)
-  console.log(myEvents2);
+  const myEvents = useMemo(
+    () => data?.allEventsListItems && mapEvents(data.allEventsListItems),
+    [data]
+  );
 
   // Create event
   const handleSelectSlot = useCallback(
     ({ start, end }) => {
-      const title = window.prompt('New Event name, enter hours if needed')
+      const title = window.prompt('New Event name, enter hours if needed');
       if (title) {
-
-        createEvent({ variables: { 
-          startdate: start,
-          enddate: end,
-          title: title
-        } })
-
-        //taka sugestia - to może zadziałać na odświeżaniu zmiennej stanu, zabezpieczam ifem bo u mnie z jakiegoś powodu lista w myEvents już zwraca na starcie undefined, ale może przez to, że jest po prostu pusta
-        if(typeof myEvents2 !== 'undefined'){
-          setEvents([...myEvents2.allEventsListItems, { start, end, title }])
-        }
+        createEvent({
+          variables: {
+            startdate: start,
+            enddate: end,
+            title,
+          },
+        });
       }
     },
     [createEvent]
-  )
- // Show event 
+  );
+  // Show event
   const handleSelectEvent = useCallback(
     (event) => window.alert(event.title),
     []
-  )
-
+  );
 
   return (
-
     <div>
       <Calendar
         localizer={localizer}
-        events={myEvents2}
+        events={myEvents}
         startAccessor="start"
         endAccessor="end"
         style={{ height: 500 }}
