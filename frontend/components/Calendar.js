@@ -59,7 +59,7 @@ const localizer = dateFnsLocalizer({
 });
 
 export default function CalendarPage() {
-  const { data } = useQuery(ALL_EVENTS_QUERY);
+  const { data, refetch } = useQuery(ALL_EVENTS_QUERY);
   const [createEvent] = useMutation(CREATE_EVENT_MUTATION);
 
   const myEvents = useMemo(
@@ -78,7 +78,7 @@ export default function CalendarPage() {
             enddate: end,
             title,
           },
-        });
+        }).then(() => refetch());
       }
     },
     [createEvent]
