@@ -12,6 +12,13 @@ input TeamRelateToOneInput {
   disconnectAll: Boolean
 }
 
+input EventsListItemRelateToOneInput {
+  create: EventsListItemCreateInput
+  connect: EventsListItemWhereUniqueInput
+  disconnect: EventsListItemWhereUniqueInput
+  disconnectAll: Boolean
+}
+
 """ A keystone list """
 type User {
   id: ID!
@@ -21,6 +28,7 @@ type User {
   training(where: TrainingItemWhereInput, search: String, sortBy: [SortTrainingItemsBy!], orderBy: String, first: Int, skip: Int): [TrainingItem!]!
   _trainingMeta(where: TrainingItemWhereInput, search: String, sortBy: [SortTrainingItemsBy!], orderBy: String, first: Int, skip: Int): _QueryMeta
   team: Team
+  event: EventsListItem
   passwordResetToken_is_set: Boolean
   passwordResetIssuedAt: String
   passwordResetRedeemedAt: String
@@ -84,6 +92,8 @@ input UserWhereInput {
   training_none: TrainingItemWhereInput
   team: TeamWhereInput
   team_is_null: Boolean
+  event: EventsListItemWhereInput
+  event_is_null: Boolean
   passwordResetToken_is_set: Boolean
   passwordResetIssuedAt: String
   passwordResetIssuedAt_not: String
@@ -135,6 +145,8 @@ enum SortUsersBy {
   training_DESC
   team_ASC
   team_DESC
+  event_ASC
+  event_DESC
   passwordResetIssuedAt_ASC
   passwordResetIssuedAt_DESC
   passwordResetRedeemedAt_ASC
@@ -151,6 +163,7 @@ input UserUpdateInput {
   password: String
   training: TrainingItemRelateToManyInput
   team: TeamRelateToOneInput
+  event: EventsListItemRelateToOneInput
   passwordResetToken: String
   passwordResetIssuedAt: String
   passwordResetRedeemedAt: String
@@ -170,6 +183,7 @@ input UserCreateInput {
   password: String
   training: TrainingItemRelateToManyInput
   team: TeamRelateToOneInput
+  event: EventsListItemRelateToOneInput
   passwordResetToken: String
   passwordResetIssuedAt: String
   passwordResetRedeemedAt: String
@@ -856,6 +870,7 @@ input TeamsCreateInput {
 type EventsListItem {
   id: ID!
   title: String
+  user: User
   startdate: String
   enddate: String
 }
@@ -885,6 +900,8 @@ input EventsListItemWhereInput {
   title_not_ends_with_i: String
   title_in: [String]
   title_not_in: [String]
+  user: UserWhereInput
+  user_is_null: Boolean
   startdate: String
   startdate_not: String
   startdate_lt: String
@@ -912,6 +929,8 @@ enum SortEventsListItemsBy {
   id_DESC
   title_ASC
   title_DESC
+  user_ASC
+  user_DESC
   startdate_ASC
   startdate_DESC
   enddate_ASC
@@ -920,6 +939,7 @@ enum SortEventsListItemsBy {
 
 input EventsListItemUpdateInput {
   title: String
+  user: UserRelateToOneInput
   startdate: String
   enddate: String
 }
@@ -931,6 +951,7 @@ input EventsListItemsUpdateInput {
 
 input EventsListItemCreateInput {
   title: String
+  user: UserRelateToOneInput
   startdate: String
   enddate: String
 }

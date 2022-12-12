@@ -21,6 +21,13 @@ export type TeamRelateToOneInput = {
   readonly disconnectAll?: Scalars['Boolean'] | null;
 };
 
+export type EventsListItemRelateToOneInput = {
+  readonly create?: EventsListItemCreateInput | null;
+  readonly connect?: EventsListItemWhereUniqueInput | null;
+  readonly disconnect?: EventsListItemWhereUniqueInput | null;
+  readonly disconnectAll?: Scalars['Boolean'] | null;
+};
+
 export type UserWhereInput = {
   readonly AND?: ReadonlyArray<UserWhereInput | null> | null;
   readonly OR?: ReadonlyArray<UserWhereInput | null> | null;
@@ -70,6 +77,8 @@ export type UserWhereInput = {
   readonly training_none?: TrainingItemWhereInput | null;
   readonly team?: TeamWhereInput | null;
   readonly team_is_null?: Scalars['Boolean'] | null;
+  readonly event?: EventsListItemWhereInput | null;
+  readonly event_is_null?: Scalars['Boolean'] | null;
   readonly passwordResetToken_is_set?: Scalars['Boolean'] | null;
   readonly passwordResetIssuedAt?: Scalars['String'] | null;
   readonly passwordResetIssuedAt_not?: Scalars['String'] | null;
@@ -137,6 +146,8 @@ export type SortUsersBy =
   | 'training_DESC'
   | 'team_ASC'
   | 'team_DESC'
+  | 'event_ASC'
+  | 'event_DESC'
   | 'passwordResetIssuedAt_ASC'
   | 'passwordResetIssuedAt_DESC'
   | 'passwordResetRedeemedAt_ASC'
@@ -152,6 +163,7 @@ export type UserUpdateInput = {
   readonly password?: Scalars['String'] | null;
   readonly training?: TrainingItemRelateToManyInput | null;
   readonly team?: TeamRelateToOneInput | null;
+  readonly event?: EventsListItemRelateToOneInput | null;
   readonly passwordResetToken?: Scalars['String'] | null;
   readonly passwordResetIssuedAt?: Scalars['String'] | null;
   readonly passwordResetRedeemedAt?: Scalars['String'] | null;
@@ -171,6 +183,7 @@ export type UserCreateInput = {
   readonly password?: Scalars['String'] | null;
   readonly training?: TrainingItemRelateToManyInput | null;
   readonly team?: TeamRelateToOneInput | null;
+  readonly event?: EventsListItemRelateToOneInput | null;
   readonly passwordResetToken?: Scalars['String'] | null;
   readonly passwordResetIssuedAt?: Scalars['String'] | null;
   readonly passwordResetRedeemedAt?: Scalars['String'] | null;
@@ -795,6 +808,8 @@ export type EventsListItemWhereInput = {
   readonly title_not_ends_with_i?: Scalars['String'] | null;
   readonly title_in?: ReadonlyArray<Scalars['String'] | null> | null;
   readonly title_not_in?: ReadonlyArray<Scalars['String'] | null> | null;
+  readonly user?: UserWhereInput | null;
+  readonly user_is_null?: Scalars['Boolean'] | null;
   readonly startdate?: Scalars['String'] | null;
   readonly startdate_not?: Scalars['String'] | null;
   readonly startdate_lt?: Scalars['String'] | null;
@@ -822,6 +837,8 @@ export type SortEventsListItemsBy =
   | 'id_DESC'
   | 'title_ASC'
   | 'title_DESC'
+  | 'user_ASC'
+  | 'user_DESC'
   | 'startdate_ASC'
   | 'startdate_DESC'
   | 'enddate_ASC'
@@ -829,6 +846,7 @@ export type SortEventsListItemsBy =
 
 export type EventsListItemUpdateInput = {
   readonly title?: Scalars['String'] | null;
+  readonly user?: UserRelateToOneInput | null;
   readonly startdate?: Scalars['String'] | null;
   readonly enddate?: Scalars['String'] | null;
 };
@@ -840,6 +858,7 @@ export type EventsListItemsUpdateInput = {
 
 export type EventsListItemCreateInput = {
   readonly title?: Scalars['String'] | null;
+  readonly user?: UserRelateToOneInput | null;
   readonly startdate?: Scalars['String'] | null;
   readonly enddate?: Scalars['String'] | null;
 };
@@ -903,6 +922,7 @@ export type UserListTypeInfo = {
     | 'password'
     | 'training'
     | 'team'
+    | 'event'
     | 'passwordResetToken'
     | 'passwordResetIssuedAt'
     | 'passwordResetRedeemedAt'
@@ -916,6 +936,7 @@ export type UserListTypeInfo = {
     readonly password?: string | null;
     readonly training?: string | null;
     readonly team?: string | null;
+    readonly event?: string | null;
     readonly passwordResetToken?: string | null;
     readonly passwordResetIssuedAt?: Date | null;
     readonly passwordResetRedeemedAt?: Date | null;
@@ -1168,10 +1189,11 @@ export type TeamListFn = (
 
 export type EventsListItemListTypeInfo = {
   key: 'EventsListItem';
-  fields: 'id' | 'title' | 'startdate' | 'enddate';
+  fields: 'id' | 'title' | 'user' | 'startdate' | 'enddate';
   backing: {
     readonly id: string;
     readonly title?: string | null;
+    readonly user?: string | null;
     readonly startdate?: Date | null;
     readonly enddate?: Date | null;
   };

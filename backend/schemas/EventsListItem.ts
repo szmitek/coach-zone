@@ -9,7 +9,7 @@ export const EventsListItem = list({
     },
     fields: {
         title: text({ isRequired: true }), 
-        //user: relationship({ref: 'User.event'}),
+        user: relationship({ref: 'User.event'}),
         startdate: timestamp(),
         enddate: timestamp(),
 
