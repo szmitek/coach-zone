@@ -22,7 +22,7 @@ export const User = list({
             }
         }),
         team: relationship({ ref: 'Team.user' }),
-        //event: relationship({ ref: 'EventsListItem.user'}),
+        event: relationship({ ref: 'EventsListItem.user'}),
         //Todo: add roles
     },
 })

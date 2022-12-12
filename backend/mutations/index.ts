@@ -1,5 +1,6 @@
 import { graphQLSchemaExtension } from '@keystone-next/keystone/schema';
 import addToTraining from './addToTraining';
+import createEvent from './createEvent';
 
 export const extendGraphqlSchema = graphQLSchemaExtension({
     typeDefs: `
@@ -9,6 +10,7 @@ export const extendGraphqlSchema = graphQLSchemaExtension({
     resolvers: {
         Mutation: {
             addToTraining,
+            createEvent, 
         }
     }
 })
