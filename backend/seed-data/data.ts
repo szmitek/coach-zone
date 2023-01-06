@@ -8,7 +8,8 @@ function timestamp() {
 export const exercises = [
   {
     name: 'Conditioning',
-    description: 'start z 2 point -> niedźwiedzie (zejście prosto z pozycji OL) -> sprint ->przeskoki przez płotki (zmieniać strony)',
+    description:
+      'start z 2 point -> niedźwiedzie (zejście prosto z pozycji OL) -> sprint ->przeskoki przez płotki (zmieniać strony)',
     position: 'OL',
     photo: {
       id: '5dfbed262849d7961377c2c0',
@@ -28,8 +29,7 @@ export const exercises = [
         type: 'upload',
         etag: 'e1fdf84d5126b6ca2e1c8ef9532be5a5',
         placeholder: false,
-        url:
-          'https://res.cloudinary.com/dzhuwnmtp/image/upload/v1667843094/coachzone/conditioningOL_xfpf7h.png',
+        url: 'https://res.cloudinary.com/dzhuwnmtp/image/upload/v1667843094/coachzone/conditioningOL_xfpf7h.png',
         secure_url:
           'https://res.cloudinary.com/dzhuwnmtp/image/upload/v1667843094/coachzone/conditioningOL_xfpf7h.png',
         original_filename: 'file',
@@ -44,7 +44,8 @@ export const exercises = [
   },
   {
     name: 'Conditioning',
-    description: 'release -> sprint -> quickstepy wokół conów x3 + łapanie piłki tenisowej -> cut na hexach (zmieniać strony) piłka tenisowa',
+    description:
+      'release -> sprint -> quickstepy wokół conów x3 + łapanie piłki tenisowej -> cut na hexach (zmieniać strony) piłka tenisowa',
     position: 'RB',
     photo: {
       id: '5dfbed262849d7961377c2c0',
@@ -64,8 +65,7 @@ export const exercises = [
         type: 'upload',
         etag: 'e1fdf84d5126b6ca2e1c8ef9532be5a5',
         placeholder: false,
-        url:
-          'https://res.cloudinary.com/dzhuwnmtp/image/upload/v1667843260/coachzone/conditioningWR_htria7.png',
+        url: 'https://res.cloudinary.com/dzhuwnmtp/image/upload/v1667843260/coachzone/conditioningWR_htria7.png',
         secure_url:
           'https://res.cloudinary.com/dzhuwnmtp/image/upload/v1667843260/coachzone/conditioningWR_htria7.png',
         original_filename: 'file',
@@ -80,7 +80,8 @@ export const exercises = [
   },
   {
     name: 'IZ vs slant DL + LB',
-    description: 'dwóch OL ustawia się w linii. Naprzeciwko jednego (heads up), po stronie biegu ustawia się DL. Za DL staje LB. Na start DL wchodzi w jedną z dziur (umawia się z LB w którą), a LB wbiega w drugą. OL blokują swoje dziury. Za OL rusza RB i wbiega w dziurę nie wybraną przez DL',
+    description:
+      'dwóch OL ustawia się w linii. Naprzeciwko jednego (heads up), po stronie biegu ustawia się DL. Za DL staje LB. Na start DL wchodzi w jedną z dziur (umawia się z LB w którą), a LB wbiega w drugą. OL blokują swoje dziury. Za OL rusza RB i wbiega w dziurę nie wybraną przez DL',
     position: 'OL',
     photo: {
       id: '5dfbed262849d7961377c2c0',
@@ -100,8 +101,7 @@ export const exercises = [
         type: 'upload',
         etag: 'e1fdf84d5126b6ca2e1c8ef9532be5a5',
         placeholder: false,
-        url:
-          'https://res.cloudinary.com/dzhuwnmtp/image/upload/v1667843260/coachzone/IZ_ddbxhv.png',
+        url: 'https://res.cloudinary.com/dzhuwnmtp/image/upload/v1667843260/coachzone/IZ_ddbxhv.png',
         secure_url:
           'https://res.cloudinary.com/dzhuwnmtp/image/upload/v1667843260/coachzone/IZ_ddbxhv.png',
         original_filename: 'file',
@@ -136,8 +136,7 @@ export const exercises = [
         type: 'upload',
         etag: 'e1fdf84d5126b6ca2e1c8ef9532be5a5',
         placeholder: false,
-        url:
-          'https://res.cloudinary.com/dzhuwnmtp/image/upload/v1667843260/coachzone/RBcourse_inkmkz.png',
+        url: 'https://res.cloudinary.com/dzhuwnmtp/image/upload/v1667843260/coachzone/RBcourse_inkmkz.png',
         secure_url:
           'https://res.cloudinary.com/dzhuwnmtp/image/upload/v1667843260/coachzone/RBcourse_inkmkz.png',
         original_filename: 'file',
@@ -152,7 +151,8 @@ export const exercises = [
   },
   {
     name: 'Zone drop',
-    description: 'zawodnik ustawia się w pozycji. Za nim, w odległości 10y od siebie staje 2 WR. Na sygnał zawodnik robi drop do strefy pomiędzy 2 WRów. QB obraca się z piłką patrząc na jednego lub drugiego WR, zawodnik reaguje side stepami w tą stronę. Następnie QB rzuca piłkę, a zawodnik stara się zbić podanie',
+    description:
+      'zawodnik ustawia się w pozycji. Za nim, w odległości 10y od siebie staje 2 WR. Na sygnał zawodnik robi drop do strefy pomiędzy 2 WRów. QB obraca się z piłką patrząc na jednego lub drugiego WR, zawodnik reaguje side stepami w tą stronę. Następnie QB rzuca piłkę, a zawodnik stara się zbić podanie',
     position: 'DB',
     photo: {
       id: '5dfbed262849d7961377c2c0',
@@ -172,8 +172,7 @@ export const exercises = [
         type: 'upload',
         etag: 'e1fdf84d5126b6ca2e1c8ef9532be5a5',
         placeholder: false,
-        url:
-          'https://res.cloudinary.com/dzhuwnmtp/image/upload/v1667843260/coachzone/Zonedrop_ggvzoo.png',
+        url: 'https://res.cloudinary.com/dzhuwnmtp/image/upload/v1667843260/coachzone/Zonedrop_ggvzoo.png',
         secure_url:
           'https://res.cloudinary.com/dzhuwnmtp/image/upload/v1667843260/coachzone/Zonedrop_ggvzoo.png',
         original_filename: 'file',
@@ -188,7 +187,8 @@ export const exercises = [
   },
   {
     name: 'Zone cover',
-    description: '2 DB ustawia się w strefach. 2WR przebiega w poprzek stref, zaczynając z przeciwległych ston. DB kryją Wrów poruszając się w obrębie swoich stref.  QB rzuca w dowolnym momencie do jednego z WR',
+    description:
+      '2 DB ustawia się w strefach. 2WR przebiega w poprzek stref, zaczynając z przeciwległych ston. DB kryją Wrów poruszając się w obrębie swoich stref.  QB rzuca w dowolnym momencie do jednego z WR',
     position: 'DB',
     photo: {
       id: '5dfbed262849d7961377c2c0',
@@ -208,8 +208,7 @@ export const exercises = [
         type: 'upload',
         etag: 'e1fdf84d5126b6ca2e1c8ef9532be5a5',
         placeholder: false,
-        url:
-          'https://res.cloudinary.com/dzhuwnmtp/image/upload/v1667843260/coachzone/zonecover_vqherp.png',
+        url: 'https://res.cloudinary.com/dzhuwnmtp/image/upload/v1667843260/coachzone/zonecover_vqherp.png',
         secure_url:
           'https://res.cloudinary.com/dzhuwnmtp/image/upload/v1667843260/coachzone/zonecover_vqherp.png',
         original_filename: 'file',
@@ -224,7 +223,8 @@ export const exercises = [
   },
   {
     name: 'Angle tackle',
-    description: 'zawodnik ustawia się naprzeciw blokującego. 5y za plecami blokującego ustawia się RB. Na sygnał Zawodnik wchodzi w kontakt z blokującym przeciwnikiem i obserwuje RB. RB rusza po skosie w wybraną przez siebie stronę. Zawodnik zrzuca blok i tackluje biegacza',
+    description:
+      'zawodnik ustawia się naprzeciw blokującego. 5y za plecami blokującego ustawia się RB. Na sygnał Zawodnik wchodzi w kontakt z blokującym przeciwnikiem i obserwuje RB. RB rusza po skosie w wybraną przez siebie stronę. Zawodnik zrzuca blok i tackluje biegacza',
     position: 'LB',
     photo: {
       id: '5dfbed262849d7961377c2c0',
@@ -244,8 +244,7 @@ export const exercises = [
         type: 'upload',
         etag: 'e1fdf84d5126b6ca2e1c8ef9532be5a5',
         placeholder: false,
-        url:
-          'https://res.cloudinary.com/dzhuwnmtp/image/upload/v1667843260/coachzone/Angletackle_kqwfjq.png',
+        url: 'https://res.cloudinary.com/dzhuwnmtp/image/upload/v1667843260/coachzone/Angletackle_kqwfjq.png',
         secure_url:
           'https://res.cloudinary.com/dzhuwnmtp/image/upload/v1667843260/coachzone/Angletackle_kqwfjq.png',
         original_filename: 'file',
@@ -260,7 +259,8 @@ export const exercises = [
   },
   {
     name: '1 on 1 run block',
-    description: 'razem z DL i TE! Ustawiamy kwadrat 4x4y. OL startuje na skraju kwadratum DL ustawia się na jego ramieniu od wnętrza kwadratu. Na sygnał DL rushuje a OL robi run block. DL stara się przejść na drugą stronę kwadratu',
+    description:
+      'razem z DL i TE! Ustawiamy kwadrat 4x4y. OL startuje na skraju kwadratum DL ustawia się na jego ramieniu od wnętrza kwadratu. Na sygnał DL rushuje a OL robi run block. DL stara się przejść na drugą stronę kwadratu',
     position: 'DL',
     photo: {
       id: '5dfbed262849d7961377c2c0',
@@ -280,8 +280,7 @@ export const exercises = [
         type: 'upload',
         etag: 'e1fdf84d5126b6ca2e1c8ef9532be5a5',
         placeholder: false,
-        url:
-          'https://res.cloudinary.com/dzhuwnmtp/image/upload/v1667843094/coachzone/conditioningOL_xfpf7h.png',
+        url: 'https://res.cloudinary.com/dzhuwnmtp/image/upload/v1667843094/coachzone/conditioningOL_xfpf7h.png',
         secure_url:
           'https://res.cloudinary.com/dzhuwnmtp/image/upload/v1667843094/coachzone/conditioningOL_xfpf7h.png',
         original_filename: 'file',
@@ -296,7 +295,8 @@ export const exercises = [
   },
   {
     name: 'Goal line tackle',
-    description: 'D# i O# ustawiająsię naprzeciw siebie w odległości 2y. Przed O# na położonej tarczy leży piłka. Na sygnał O# łapie piłkę i biegnie po prawej lub lewej stronie tarczy, próbując przebiec goal line (mieszcząc się pomiędzy znacznikami). D# tackluje go',
+    description:
+      'D# i O# ustawiająsię naprzeciw siebie w odległości 2y. Przed O# na położonej tarczy leży piłka. Na sygnał O# łapie piłkę i biegnie po prawej lub lewej stronie tarczy, próbując przebiec goal line (mieszcząc się pomiędzy znacznikami). D# tackluje go',
     position: 'WR',
     photo: {
       id: '5dfbed262849d7961377c2c0',
@@ -316,8 +316,7 @@ export const exercises = [
         type: 'upload',
         etag: 'e1fdf84d5126b6ca2e1c8ef9532be5a5',
         placeholder: false,
-        url:
-          'https://res.cloudinary.com/dzhuwnmtp/image/upload/v1667843261/coachzone/1v1wr_anmhaw.png',
+        url: 'https://res.cloudinary.com/dzhuwnmtp/image/upload/v1667843261/coachzone/1v1wr_anmhaw.png',
         secure_url:
           'https://res.cloudinary.com/dzhuwnmtp/image/upload/v1667843261/coachzone/1v1wr_anmhaw.png',
         original_filename: 'file',

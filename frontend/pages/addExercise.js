@@ -1,9 +1,9 @@
-import CreateExercise from "../components/CreateExercise";
+import CreateExercise from '../components/CreateExercise';
 
 export default function addExercisePage() {
-    return (
-        <div>
-            <CreateExercise />
-        </div>
-    )
+  return (
+    <div>
+      <CreateExercise />
+    </div>
+  );
 }

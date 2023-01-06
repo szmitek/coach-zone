@@ -21,20 +21,22 @@ const REMOVE_FROM_TRAINING_MUTATION = gql`
   }
 `;
 
-
 export default function RemoveFromTraining({ id }) {
-    const [removeFromTraining, { loading }] = useMutation(REMOVE_FROM_TRAINING_MUTATION, {
-        variables: { id },
-        refetchQueries: [{ query: CURRENT_USER_QUERY }],
-    });
-    return (
+  const [removeFromTraining, { loading }] = useMutation(
+    REMOVE_FROM_TRAINING_MUTATION,
+    {
+      variables: { id },
+      refetchQueries: [{ query: CURRENT_USER_QUERY }],
+    }
+  );
+  return (
     <BigButton
-        onClick={removeFromTraining}
-        disabled={loading}
-        type="button"
-        title='Remove this exercise from training'
+      onClick={removeFromTraining}
+      disabled={loading}
+      type="button"
+      title="Remove this exercise from training"
     >
-        &times;
+      &times;
     </BigButton>
-    );
+  );
 }

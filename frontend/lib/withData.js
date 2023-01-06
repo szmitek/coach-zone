@@ -36,7 +36,7 @@ function createClient({ headers, initialState }) {
         Query: {
           fields: {
             // TODO: We will add this together!
-             //allExercises: paginationField(), //dont want to wark, crashes entire web
+            // allExercises: paginationField(), //dont want to wark, crashes entire web
           },
         },
       },

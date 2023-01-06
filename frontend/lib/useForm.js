@@ -1,42 +1,44 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
-export default function useForm( initial = {}) {
-    //create a state object for our inputs
-    const [inputs, setInputs] = useState(initial);
-    const initialValues = Object.values(initial).join('');
+export default function useForm(initial = {}) {
+  // create a state object for our inputs
+  const [inputs, setInputs] = useState(initial);
+  const initialValues = Object.values(initial).join('');
 
-    useEffect(() => {
-        //This function runs when thing we are watch change
-        setInputs(initial);
-    }, [initialValues]); 
+  useEffect(() => {
+    // This function runs when thing we are watch change
+    setInputs(initial);
+  }, [initialValues]);
 
-    function handleChange(e) {
-        let { value, name, type} = e.target;
+  function handleChange(e) {
+    let { value, name, type } = e.target;
 
-        if (type === 'file') {
-            [value] = e.target.files;
-        }
-        setInputs({
-            //copy existing state
-            ...inputs,
-            [name]: value,
-        });
-    }       
-
-    function resetForm() {
-        setInputs(initial);
+    if (type === 'file') {
+      [value] = e.target.files;
     }
+    setInputs({
+      // copy existing state
+      ...inputs,
+      [name]: value,
+    });
+  }
 
-    function clearForm() {
-        const blankState = Object.fromEntries(Object.entries(inputs).map(([key, value]) => [key, '']));
-            setInputs(blankState);
-        }
+  function resetForm() {
+    setInputs(initial);
+  }
 
-    //return the things we want to surface from this custom hook
-    return {
-        inputs,
-        handleChange,
-        resetForm,
-        clearForm,
-    }
+  function clearForm() {
+    const blankState = Object.fromEntries(
+      Object.entries(inputs).map(([key, value]) => [key, ''])
+    );
+    setInputs(blankState);
+  }
+
+  // return the things we want to surface from this custom hook
+  return {
+    inputs,
+    handleChange,
+    resetForm,
+    clearForm,
+  };
 }

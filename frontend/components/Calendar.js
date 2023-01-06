@@ -16,14 +16,9 @@ const CREATE_EVENT_MUTATION = gql`
     $title: String!
     $startdate: String
     $enddate: String
-    
   ) {
     createEventsListItem(
-      data: { 
-        title: $title, 
-        startdate: $startdate, 
-        enddate: $enddate 
-      }
+      data: { title: $title, startdate: $startdate, enddate: $enddate }
     ) {
       id
       title

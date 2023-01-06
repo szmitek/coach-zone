@@ -36,7 +36,7 @@ const HeaderStyles = styled.header`
 `;
 
 export default function Header() {
-    return (
+  return (
     <HeaderStyles>
       <div className="bar">
         <Logo>
