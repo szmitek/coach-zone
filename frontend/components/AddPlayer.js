@@ -1,10 +1,11 @@
-import gql from 'graphql-tag';
 import { useMutation } from '@apollo/client';
+import gql from 'graphql-tag';
 import Router from 'next/router';
 import useForm from '../lib/useForm';
 import Form from './styles/Form';
 import DisplayError from './ErrorMessage';
 import { ALL_PLAYERS_QUERY } from './Players';
+import { useUser } from './User';
 
 const CREATE_PLAYER_MUTATION = gql`
   mutation CREATE_PLAYER_MUTATION(
@@ -15,6 +16,7 @@ const CREATE_PLAYER_MUTATION = gql`
     $number: String!
     $weaknesses: String
     $strengths: String
+    $currentUserTeamId: ID!
   ) {
     createPlayer(
       data: {
@@ -25,6 +27,7 @@ const CREATE_PLAYER_MUTATION = gql`
         strengths: $strengths
         description: $description
         photo: { create: { image: $image, altText: $name } }
+        team: { connect: { id: $currentUserTeamId } }
       }
     ) {
       id
@@ -48,10 +51,13 @@ export default function CreatePlayer() {
     number: '#',
   });
 
+  const me = useUser();
+  const currentUserTeamId = me?.team?.id;
+
   const [createPlayer, { loading, error, data }] = useMutation(
     CREATE_PLAYER_MUTATION,
     {
-      variables: inputs,
+      variables: { ...inputs, currentUserTeamId },
       refetchQueries: [{ query: ALL_PLAYERS_QUERY }],
     }
   );
