@@ -6,36 +6,46 @@ import ErrorMessage from '../../components/ErrorMessage';
 import TeamStyles from '../../components/styles/TeamStyles';
 import { useUser } from '../../components/User';
 
-// function TeamItem({ teamItem }) {
-//    const { team } = teamItem;
-//    if (!team) return null;
-//    return (
-//        <div className='team-player'>
-//            <img
-//                src={teamItem.photo.image.publicUrlTransformed}
-//                alt={teamItem.name}
-//            />
-//                <h2>{teamItem.name}</h2>
-//                <h3>{teamItem.position}</h3>
-//                <h3>{teamItem.number}</h3>
-//                <p>{teamItem.description}</p>
-//                <p>{teamItem.strengths}</p>
-//                <p>{teamItem.weaknesses}</p>
-//
-//        </div>
-//    )
-// }
+const TEAM_PLAYERS_QUERY = gql`
+  query TEAM_PLAYERS_QUERY($teamId: ID!) {
+    Team(where: { id: $teamId }) {
+      players(where: { team: { id: $teamId } }) {
+        id
+        name
+        position
+        number
+        description
+        strengths
+        weaknesses
+        photo {
+          image {
+            publicUrlTransformed
+          }
+        }
+      }
+    }
+  }
+`;
 
 export default function ShowTeamPage() {
   const me = useUser();
   if (!me) return null;
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const { data, loading, error } = useQuery(TEAM_PLAYERS_QUERY, {
+    variables: { teamId: me.team.id },
+  });
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <ErrorMessage error={error} />;
+
   return (
     <TeamStyles>
       <Head>
         <title>Your SQUAD</title>
       </Head>
       <div className="players">
-        {me.team.players.map((teamItem) => (
+        {data.Team.players.map((teamItem) => (
           <div className="team-player" key={teamItem.id}>
             <img
               src={teamItem.photo.image.publicUrlTransformed}
