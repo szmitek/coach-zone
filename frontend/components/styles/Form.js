@@ -60,7 +60,7 @@ const Form = styled.form`
       background-image: linear-gradient(
         to right,
         #000000 0%,
-        #DAA520 50%,
+        #daa520 50%,
         #000000 100%
       );
     }

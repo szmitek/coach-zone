@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import styled, { createGlobalStyle } from 'styled-components';
-import Header from "./Header";
-
+import Header from './Header';
 
 const GlobalStyles = createGlobalStyle`
   @font-face {
@@ -51,16 +50,16 @@ const InnerStyles = styled.div`
   padding: 2rem;
 `;
 
-export default function Page({children}) {
-    return (
+export default function Page({ children }) {
+  return (
     <div>
-        <GlobalStyles></GlobalStyles>
-        <Header></Header>
-        <InnerStyles>{children}</InnerStyles>
+      <GlobalStyles />
+      <Header />
+      <InnerStyles>{children}</InnerStyles>
     </div>
-    );
+  );
 }
 
 Page.propTypes = {
-    children: PropTypes.any,
-  };
+  children: PropTypes.any,
+};

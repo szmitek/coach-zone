@@ -2,7 +2,7 @@ import styled from 'styled-components';
 import { useUser } from './User';
 import TrainingStyles from './styles/TrainingStyles';
 import Supreme from './styles/Supreme';
-import { useTraining } from '../lib/trainingState' 
+import { useTraining } from '../lib/trainingState';
 import CloseButton from './styles/CloseButton';
 import RemoveFromTraining from './RemoveFromTraining';
 
@@ -23,7 +23,7 @@ const TrainingItemStyles = styled.li`
 function TrainingItem({ trainingItem }) {
   const { exercise } = trainingItem;
   if (!exercise) return null;
-  //console.log(exercise);
+  // console.log(exercise);
   return (
     <TrainingItemStyles>
       <img
@@ -55,9 +55,7 @@ export default function Training() {
           <TrainingItem key={trainingItem.id} trainingItem={trainingItem} />
         ))}
       </ul>
-      <footer>
-        
-      </footer>
+      <footer />
     </TrainingStyles>
   );
 }

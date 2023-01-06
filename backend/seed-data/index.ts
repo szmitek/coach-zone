@@ -10,12 +10,12 @@ export async function insertSeedData(ks: any) {
   for (const exercise of exercises) {
     console.log(`  🛍️ Adding Exercise: ${exercise.name}`);
     const { _id } = await mongoose
-    .model('ExerciseImage')
-    .create({ image: exercise.photo, altText: exercise.description });
+      .model('ExerciseImage')
+      .create({ image: exercise.photo, altText: exercise.description });
     exercise.photo = _id;
     await mongoose.model('Exercise').create(exercise);
   }
   console.log(`✅ Seed Data Inserted: ${exercises.length} Exercises`);
-  console.log(`👋 Please start the process with \`yarn dev\` or \`npm run dev\``);
+  console.log('👋 Please start the process with `yarn dev` or `npm run dev`');
   process.exit();
 }
