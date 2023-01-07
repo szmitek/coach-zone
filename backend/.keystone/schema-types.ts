@@ -21,10 +21,10 @@ export type TeamRelateToOneInput = {
   readonly disconnectAll?: Scalars['Boolean'] | null;
 };
 
-export type EventsListItemRelateToOneInput = {
-  readonly create?: EventsListItemCreateInput | null;
-  readonly connect?: EventsListItemWhereUniqueInput | null;
-  readonly disconnect?: EventsListItemWhereUniqueInput | null;
+export type EventsListItemRelateToManyInput = {
+  readonly create?: ReadonlyArray<EventsListItemCreateInput | null> | null;
+  readonly connect?: ReadonlyArray<EventsListItemWhereUniqueInput | null> | null;
+  readonly disconnect?: ReadonlyArray<EventsListItemWhereUniqueInput | null> | null;
   readonly disconnectAll?: Scalars['Boolean'] | null;
 };
 
@@ -77,8 +77,9 @@ export type UserWhereInput = {
   readonly training_none?: TrainingItemWhereInput | null;
   readonly team?: TeamWhereInput | null;
   readonly team_is_null?: Scalars['Boolean'] | null;
-  readonly event?: EventsListItemWhereInput | null;
-  readonly event_is_null?: Scalars['Boolean'] | null;
+  readonly event_every?: EventsListItemWhereInput | null;
+  readonly event_some?: EventsListItemWhereInput | null;
+  readonly event_none?: EventsListItemWhereInput | null;
   readonly passwordResetToken_is_set?: Scalars['Boolean'] | null;
   readonly passwordResetIssuedAt?: Scalars['String'] | null;
   readonly passwordResetIssuedAt_not?: Scalars['String'] | null;
@@ -163,7 +164,7 @@ export type UserUpdateInput = {
   readonly password?: Scalars['String'] | null;
   readonly training?: TrainingItemRelateToManyInput | null;
   readonly team?: TeamRelateToOneInput | null;
-  readonly event?: EventsListItemRelateToOneInput | null;
+  readonly event?: EventsListItemRelateToManyInput | null;
   readonly passwordResetToken?: Scalars['String'] | null;
   readonly passwordResetIssuedAt?: Scalars['String'] | null;
   readonly passwordResetRedeemedAt?: Scalars['String'] | null;
@@ -183,7 +184,7 @@ export type UserCreateInput = {
   readonly password?: Scalars['String'] | null;
   readonly training?: TrainingItemRelateToManyInput | null;
   readonly team?: TeamRelateToOneInput | null;
-  readonly event?: EventsListItemRelateToOneInput | null;
+  readonly event?: EventsListItemRelateToManyInput | null;
   readonly passwordResetToken?: Scalars['String'] | null;
   readonly passwordResetIssuedAt?: Scalars['String'] | null;
   readonly passwordResetRedeemedAt?: Scalars['String'] | null;

@@ -12,10 +12,10 @@ input TeamRelateToOneInput {
   disconnectAll: Boolean
 }
 
-input EventsListItemRelateToOneInput {
-  create: EventsListItemCreateInput
-  connect: EventsListItemWhereUniqueInput
-  disconnect: EventsListItemWhereUniqueInput
+input EventsListItemRelateToManyInput {
+  create: [EventsListItemCreateInput]
+  connect: [EventsListItemWhereUniqueInput]
+  disconnect: [EventsListItemWhereUniqueInput]
   disconnectAll: Boolean
 }
 
@@ -28,7 +28,8 @@ type User {
   training(where: TrainingItemWhereInput, search: String, sortBy: [SortTrainingItemsBy!], orderBy: String, first: Int, skip: Int): [TrainingItem!]!
   _trainingMeta(where: TrainingItemWhereInput, search: String, sortBy: [SortTrainingItemsBy!], orderBy: String, first: Int, skip: Int): _QueryMeta
   team: Team
-  event: EventsListItem
+  event(where: EventsListItemWhereInput, search: String, sortBy: [SortEventsListItemsBy!], orderBy: String, first: Int, skip: Int): [EventsListItem!]!
+  _eventMeta(where: EventsListItemWhereInput, search: String, sortBy: [SortEventsListItemsBy!], orderBy: String, first: Int, skip: Int): _QueryMeta
   passwordResetToken_is_set: Boolean
   passwordResetIssuedAt: String
   passwordResetRedeemedAt: String
@@ -92,8 +93,15 @@ input UserWhereInput {
   training_none: TrainingItemWhereInput
   team: TeamWhereInput
   team_is_null: Boolean
-  event: EventsListItemWhereInput
-  event_is_null: Boolean
+
+  """ condition must be true for all nodes """
+  event_every: EventsListItemWhereInput
+
+  """ condition must be true for at least 1 node """
+  event_some: EventsListItemWhereInput
+
+  """ condition must be false for all nodes """
+  event_none: EventsListItemWhereInput
   passwordResetToken_is_set: Boolean
   passwordResetIssuedAt: String
   passwordResetIssuedAt_not: String
@@ -163,7 +171,7 @@ input UserUpdateInput {
   password: String
   training: TrainingItemRelateToManyInput
   team: TeamRelateToOneInput
-  event: EventsListItemRelateToOneInput
+  event: EventsListItemRelateToManyInput
   passwordResetToken: String
   passwordResetIssuedAt: String
   passwordResetRedeemedAt: String
@@ -183,7 +191,7 @@ input UserCreateInput {
   password: String
   training: TrainingItemRelateToManyInput
   team: TeamRelateToOneInput
-  event: EventsListItemRelateToOneInput
+  event: EventsListItemRelateToManyInput
   passwordResetToken: String
   passwordResetIssuedAt: String
   passwordResetRedeemedAt: String

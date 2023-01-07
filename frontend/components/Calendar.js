@@ -10,15 +10,22 @@ import { useQuery, useMutation } from '@apollo/client';
 import { UniqueInputFieldNamesRule } from 'graphql';
 import { perPage } from '../config';
 import events from './Events';
+import { useUser } from './User';
 
 const CREATE_EVENT_MUTATION = gql`
   mutation CREATE_EVENT_MUTATION(
     $title: String!
     $startdate: String
     $enddate: String
+    $userId: ID!
   ) {
     createEventsListItem(
-      data: { title: $title, startdate: $startdate, enddate: $enddate }
+      data: {
+        title: $title
+        startdate: $startdate
+        enddate: $enddate
+        user: { connect: { id: $userId } }
+      }
     ) {
       id
       title
@@ -29,8 +36,8 @@ const CREATE_EVENT_MUTATION = gql`
 `;
 
 export const ALL_EVENTS_QUERY = gql`
-  query ALL_EVENTS_QUERY {
-    allEventsListItems {
+  query ALL_EVENTS_QUERY($user: ID) {
+    allEventsListItems(where: { user: { id: $user } }) {
       id
       title
       startdate
@@ -59,15 +66,33 @@ const localizer = dateFnsLocalizer({
 });
 
 export default function CalendarPage() {
-  const { data, refetch } = useQuery(ALL_EVENTS_QUERY);
-  const [createEvent] = useMutation(CREATE_EVENT_MUTATION);
+  const me = useUser();
+  if (!me) return null;
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const { data, loading, error, refetch } = useQuery(ALL_EVENTS_QUERY, {
+    variables: {
+      user: me.id,
+    },
+  });
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error.message}</p>;
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [createEvent] = useMutation(CREATE_EVENT_MUTATION, {
+    variables: { userId: me.id },
+    refetchQueries: [{ query: ALL_EVENTS_QUERY }],
+  });
+  console.log(data);
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const myEvents = useMemo(
     () => data?.allEventsListItems && mapEvents(data.allEventsListItems),
     [data]
   );
 
   // Create event
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const handleSelectSlot = useCallback(
     ({ start, end }) => {
       const title = window.prompt('New Event name, enter hours if needed');
@@ -77,6 +102,7 @@ export default function CalendarPage() {
             startdate: start,
             enddate: end,
             title,
+            userId: me.id,
           },
         }).then(() => refetch());
       }
@@ -84,6 +110,7 @@ export default function CalendarPage() {
     [createEvent]
   );
   // Show event
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const handleSelectEvent = useCallback(
     (event) => window.alert(event.title),
     []
