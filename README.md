@@ -26,9 +26,5 @@ Coach Zone is a web application that allows coaches to manage their team's playe
 * The backend server will be running on port 3000 and the frontend client will be running on port 7777.
 
 ## Tech Stack
-* Node.js
-* Next.js
-* MongoDB
-* GraphQL
-* Apollo
-* Styled Components
+* Frontend: React, Next.js, Apollo Client, GraphQL, styled-components
+* Backend: Node.js, Apollo Server, GraphQL, MongoDB
