@@ -18,16 +18,14 @@ export default function Exercise({ exercise }) {
       <Position>{exercise.position}</Position>
       <p>{exercise.description}</p>
       <div className="buttonList">
-        <Link
-          href={{
-            pathname: 'update',
-            query: {
-              id: exercise.id,
-            },
-          }}
-        >
-          Edit ✏️
-        </Link>
+          <Link
+              href="/exercises/update"
+              query={{
+                  id: exercise.id,
+              }}
+          >
+              Edit ✏️
+          </Link>
         <AddToTraining id={exercise.id} />
         <DeleteExercise id={exercise.id}>Delete</DeleteExercise>
       </div>
