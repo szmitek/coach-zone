@@ -1,5 +1,5 @@
 # Coach Zone
-Coach Zone is a web application that allows coaches to manage their team's players, exercises, and training schedule.
+Coach Zone is a web application that allows coaches to manage their team, players and exercises. It provides a platform for coaches to create, edit and delete exercises, and training plans. Coaches can infect their players by adding their strengths and weaknesses, which will allow you to track the player's progress. It also includes a stopwatch and calendar to help coaches keep track of training sessions and events.
 
 ## Features
 * Players: coaches can view, add, update, and delete players in their team. Each player has a name, position, number, strengths, weaknesses, description, and photo.
