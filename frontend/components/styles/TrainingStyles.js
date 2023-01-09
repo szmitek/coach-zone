@@ -6,9 +6,11 @@ const TrainingStyles = styled.div`
   background: white;
   position: fixed;
   height: 100%;
+  width: 500px;
+  overflow-x: scroll;
   top: 0;
   right: 0;
-  width: 40%;
+  width: 80%;
   min-width: 500px;
   bottom: 0;
   transform: translateX(100%);

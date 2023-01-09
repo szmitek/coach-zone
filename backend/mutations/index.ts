@@ -10,7 +10,6 @@ export const extendGraphqlSchema = graphQLSchemaExtension({
   resolvers: {
     Mutation: {
       addToTraining,
-      createEvent,
     },
   },
 });

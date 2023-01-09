@@ -5,57 +5,76 @@ import Supreme from './styles/Supreme';
 import { useTraining } from '../lib/trainingState';
 import CloseButton from './styles/CloseButton';
 import RemoveFromTraining from './RemoveFromTraining';
+import Group from './styles/Group'
 
 const TrainingItemStyles = styled.li`
   padding: 1rem 0;
   border-bottom: 1px solid var(--lightGrey);
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-rows: auto 1fr;
   img {
-    margin-right: 1rem;
+    width: 170px;
+    height: 100px;
+    object-fit: cover;
+    margin-bottom: 1rem;
   }
-  h3,
-  p {
+  h3 {
     margin: 0;
-  },
+  }
+`;
+
+const GroupContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  width: 100%;
+  height: 300px;
 `;
 
 function TrainingItem({ trainingItem }) {
-  const { exercise } = trainingItem;
-  if (!exercise) return null;
-  // console.log(exercise);
-  return (
-    <TrainingItemStyles>
-      <img
-        width="100"
-        src={exercise.photo.image.publicUrlTransformed}
-        alt={exercise.name}
-      />
-      <div>
-        <h3>{exercise.name}</h3>
-        <h2>{exercise.position}</h2>
-      </div>
-      <RemoveFromTraining id={trainingItem.id} />
-    </TrainingItemStyles>
-  );
+    const { exercise } = trainingItem;
+    if (!exercise) return null;
+    return (
+        <TrainingItemStyles>
+            <img
+                width="100"
+                src={exercise.photo.image.publicUrlTransformed}
+                alt={exercise.name}
+            />
+            <div>
+                <h3>{exercise.name}</h3>
+            </div>
+            <RemoveFromTraining id={trainingItem.id} />
+        </TrainingItemStyles>
+    );
 }
-
+import _ from 'lodash';
 export default function Training() {
-  const me = useUser();
-  const { trainingOpen, closeTraining } = useTraining();
-  if (!me) return null;
-  return (
-    <TrainingStyles open={trainingOpen}>
-      <header>
-        <Supreme>{me.name}'s Training</Supreme>
-        <CloseButton onClick={closeTraining}>&times;</CloseButton>
-      </header>
-      <ul>
-        {me.training.map((trainingItem) => (
-          <TrainingItem key={trainingItem.id} trainingItem={trainingItem} />
-        ))}
-      </ul>
-      <footer />
-    </TrainingStyles>
-  );
+    const me = useUser();
+    const { trainingOpen, closeTraining } = useTraining();
+    if (!me) return null;
+
+    // Group the training items by position
+    const groupedTraining = _.groupBy(me.training, 'exercise.position');
+
+    return (
+        <TrainingStyles open={trainingOpen}>
+            <header>
+                <Supreme>{me.name}'s Training</Supreme>
+                <CloseButton onClick={closeTraining}>&times;</CloseButton>
+            </header>
+            {/* Render a list of items for each group */}
+            <GroupContainer>
+                {Object.entries(groupedTraining).map(([position, trainingItems]) => (
+                    <Group key={position}>
+                        <h2>{position}</h2>
+                        <ul>
+                            {trainingItems.map((trainingItem) => (
+                                <TrainingItem key={trainingItem.id} trainingItem={trainingItem} />
+                            ))}
+                        </ul>
+                    </Group>
+                ))}
+            </GroupContainer>
+        </TrainingStyles>
+    );
 }
