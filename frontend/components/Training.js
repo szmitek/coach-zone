@@ -52,11 +52,15 @@ function TrainingItem({ trainingItem, closeTraining }) {
         </TrainingItemStyles>
     );
 }
-
+import { useEffect } from 'react';
 export default function Training() {
     const me = useUser();
     const { trainingOpen, closeTraining } = useTraining();
     if (!me) return null;
+
+    useEffect(() => {
+        closeTraining();
+    }, []); // Only run the effect when the component is first rendered
 
     // Group the training items by position
     const groupedTraining = _.groupBy(me.training, 'exercise.position');
