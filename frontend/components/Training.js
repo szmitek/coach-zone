@@ -6,6 +6,9 @@ import { useTraining } from '../lib/trainingState';
 import CloseButton from './styles/CloseButton';
 import RemoveFromTraining from './RemoveFromTraining';
 import Group from './styles/Group'
+import _ from 'lodash';
+import Link from 'next/link';
+
 
 const TrainingItemStyles = styled.li`
   padding: 1rem 0;
@@ -30,24 +33,26 @@ const GroupContainer = styled.div`
   height: 300px;
 `;
 
-function TrainingItem({ trainingItem }) {
+function TrainingItem({ trainingItem, closeTraining }) {
     const { exercise } = trainingItem;
     if (!exercise) return null;
     return (
-        <TrainingItemStyles>
+        <TrainingItemStyles onClick={closeTraining}>
             <img
                 width="100"
                 src={exercise.photo.image.publicUrlTransformed}
                 alt={exercise.name}
             />
             <div>
-                <h3>{exercise.name}</h3>
+                <h3>
+                    <Link href={`/exercise/${exercise.id}`}>{exercise.name}</Link>
+                </h3>
             </div>
             <RemoveFromTraining id={trainingItem.id} />
         </TrainingItemStyles>
     );
 }
-import _ from 'lodash';
+
 export default function Training() {
     const me = useUser();
     const { trainingOpen, closeTraining } = useTraining();
@@ -69,7 +74,7 @@ export default function Training() {
                         <h2>{position}</h2>
                         <ul>
                             {trainingItems.map((trainingItem) => (
-                                <TrainingItem key={trainingItem.id} trainingItem={trainingItem} />
+                                <TrainingItem key={trainingItem.id} trainingItem={trainingItem} closeTraining={closeTraining} />
                             ))}
                         </ul>
                     </Group>
