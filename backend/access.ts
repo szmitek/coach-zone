@@ -1,5 +1,6 @@
 import { permissionsList } from './schemas/fields';
 import { ListAccessArgs } from './types';
+import {PlayerImage} from "./schemas/PlayerImage";
 // At it's simplest, the access control returns a yes or no value depending on the users session
 
 export function isSignedIn({ session }: ListAccessArgs) {
@@ -19,6 +20,13 @@ export const permissions = {
   ...generatedPermissions,
   isAwesome({ session }: ListAccessArgs): boolean {
     return session?.data.name.includes('Szmitek');
+  },
+  canManagePlayerImages({ session }: ListAccessArgs) {
+    // First check if the user is signed in
+    if (!isSignedIn({ session })) {
+      return false;
+    }
+    return true;
   },
 };
 
@@ -83,18 +91,12 @@ export const rules = {
     return { team: { user: { id: session.itemId } } };
   },
   canManagePlayerImages({ session }: ListAccessArgs) {
-    // First check if the user is signed in
     if (!isSignedIn({ session })) {
       return false;
     }
-    // If the user has the permission to manage player images, they can perform CRUD actions on the player images
-    if (permissions.canManagePlayerImages({ session })) {
-      return true;
-    }
-
-    // If the user is the owner of the team that the player image is associated with, they can perform CRUD actions on the player image
-    return { team: { user: { id: session.itemId } } };
+    return { player: { team: { user: { id: session.itemId } } } };
   },
+
   canManageUsers({ session }: ListAccessArgs) {
     if (!isSignedIn({ session })) {
       return false;
