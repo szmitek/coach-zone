@@ -19,6 +19,20 @@ input EventsListItemRelateToManyInput {
   disconnectAll: Boolean
 }
 
+input RoleRelateToOneInput {
+  create: RoleCreateInput
+  connect: RoleWhereUniqueInput
+  disconnect: RoleWhereUniqueInput
+  disconnectAll: Boolean
+}
+
+input ExerciseRelateToManyInput {
+  create: [ExerciseCreateInput]
+  connect: [ExerciseWhereUniqueInput]
+  disconnect: [ExerciseWhereUniqueInput]
+  disconnectAll: Boolean
+}
+
 """ A keystone list """
 type User {
   id: ID!
@@ -30,6 +44,9 @@ type User {
   team: Team
   event(where: EventsListItemWhereInput, search: String, sortBy: [SortEventsListItemsBy!], orderBy: String, first: Int, skip: Int): [EventsListItem!]!
   _eventMeta(where: EventsListItemWhereInput, search: String, sortBy: [SortEventsListItemsBy!], orderBy: String, first: Int, skip: Int): _QueryMeta
+  role: Role
+  exercise(where: ExerciseWhereInput, search: String, sortBy: [SortExercisesBy!], orderBy: String, first: Int, skip: Int): [Exercise!]!
+  _exerciseMeta(where: ExerciseWhereInput, search: String, sortBy: [SortExercisesBy!], orderBy: String, first: Int, skip: Int): _QueryMeta
   passwordResetToken_is_set: Boolean
   passwordResetIssuedAt: String
   passwordResetRedeemedAt: String
@@ -102,6 +119,17 @@ input UserWhereInput {
 
   """ condition must be false for all nodes """
   event_none: EventsListItemWhereInput
+  role: RoleWhereInput
+  role_is_null: Boolean
+
+  """ condition must be true for all nodes """
+  exercise_every: ExerciseWhereInput
+
+  """ condition must be true for at least 1 node """
+  exercise_some: ExerciseWhereInput
+
+  """ condition must be false for all nodes """
+  exercise_none: ExerciseWhereInput
   passwordResetToken_is_set: Boolean
   passwordResetIssuedAt: String
   passwordResetIssuedAt_not: String
@@ -155,6 +183,10 @@ enum SortUsersBy {
   team_DESC
   event_ASC
   event_DESC
+  role_ASC
+  role_DESC
+  exercise_ASC
+  exercise_DESC
   passwordResetIssuedAt_ASC
   passwordResetIssuedAt_DESC
   passwordResetRedeemedAt_ASC
@@ -172,6 +204,8 @@ input UserUpdateInput {
   training: TrainingItemRelateToManyInput
   team: TeamRelateToOneInput
   event: EventsListItemRelateToManyInput
+  role: RoleRelateToOneInput
+  exercise: ExerciseRelateToManyInput
   passwordResetToken: String
   passwordResetIssuedAt: String
   passwordResetRedeemedAt: String
@@ -192,6 +226,8 @@ input UserCreateInput {
   training: TrainingItemRelateToManyInput
   team: TeamRelateToOneInput
   event: EventsListItemRelateToManyInput
+  role: RoleRelateToOneInput
+  exercise: ExerciseRelateToManyInput
   passwordResetToken: String
   passwordResetIssuedAt: String
   passwordResetRedeemedAt: String
@@ -211,6 +247,13 @@ input ExerciseImageRelateToOneInput {
   disconnectAll: Boolean
 }
 
+input UserRelateToOneInput {
+  create: UserCreateInput
+  connect: UserWhereUniqueInput
+  disconnect: UserWhereUniqueInput
+  disconnectAll: Boolean
+}
+
 """ A keystone list """
 type Exercise {
   id: ID!
@@ -218,6 +261,7 @@ type Exercise {
   description: String
   photo: ExerciseImage
   position: String
+  user: User
 }
 
 input ExerciseWhereInput {
@@ -283,6 +327,8 @@ input ExerciseWhereInput {
   position_not_ends_with_i: String
   position_in: [String]
   position_not_in: [String]
+  user: UserWhereInput
+  user_is_null: Boolean
 }
 
 input ExerciseWhereUniqueInput {
@@ -300,6 +346,8 @@ enum SortExercisesBy {
   photo_DESC
   position_ASC
   position_DESC
+  user_ASC
+  user_DESC
 }
 
 input ExerciseUpdateInput {
@@ -307,6 +355,7 @@ input ExerciseUpdateInput {
   description: String
   photo: ExerciseImageRelateToOneInput
   position: String
+  user: UserRelateToOneInput
 }
 
 input ExercisesUpdateInput {
@@ -319,6 +368,7 @@ input ExerciseCreateInput {
   description: String
   photo: ExerciseImageRelateToOneInput
   position: String
+  user: UserRelateToOneInput
 }
 
 input ExercisesCreateInput {
@@ -735,13 +785,6 @@ input PlayerImagesCreateInput {
   data: PlayerImageCreateInput
 }
 
-input UserRelateToOneInput {
-  create: UserCreateInput
-  connect: UserWhereUniqueInput
-  disconnect: UserWhereUniqueInput
-  disconnectAll: Boolean
-}
-
 """ A keystone list """
 type TrainingItem {
   id: ID!
@@ -966,6 +1009,138 @@ input EventsListItemCreateInput {
 
 input EventsListItemsCreateInput {
   data: EventsListItemCreateInput
+}
+
+input UserRelateToManyInput {
+  create: [UserCreateInput]
+  connect: [UserWhereUniqueInput]
+  disconnect: [UserWhereUniqueInput]
+  disconnectAll: Boolean
+}
+
+""" A keystone list """
+type Role {
+  id: ID!
+  name: String
+  canManageExercises: Boolean
+  canSeeOtherUsers: Boolean
+  canManageUsers: Boolean
+  canManageRoles: Boolean
+  canManageTraining: Boolean
+  canManageTeam: Boolean
+  canManageEvents: Boolean
+  assignedTo(where: UserWhereInput, search: String, sortBy: [SortUsersBy!], orderBy: String, first: Int, skip: Int): [User!]!
+  _assignedToMeta(where: UserWhereInput, search: String, sortBy: [SortUsersBy!], orderBy: String, first: Int, skip: Int): _QueryMeta
+}
+
+input RoleWhereInput {
+  AND: [RoleWhereInput]
+  OR: [RoleWhereInput]
+  id: ID
+  id_not: ID
+  id_in: [ID]
+  id_not_in: [ID]
+  name: String
+  name_not: String
+  name_contains: String
+  name_not_contains: String
+  name_starts_with: String
+  name_not_starts_with: String
+  name_ends_with: String
+  name_not_ends_with: String
+  name_i: String
+  name_not_i: String
+  name_contains_i: String
+  name_not_contains_i: String
+  name_starts_with_i: String
+  name_not_starts_with_i: String
+  name_ends_with_i: String
+  name_not_ends_with_i: String
+  name_in: [String]
+  name_not_in: [String]
+  canManageExercises: Boolean
+  canManageExercises_not: Boolean
+  canSeeOtherUsers: Boolean
+  canSeeOtherUsers_not: Boolean
+  canManageUsers: Boolean
+  canManageUsers_not: Boolean
+  canManageRoles: Boolean
+  canManageRoles_not: Boolean
+  canManageTraining: Boolean
+  canManageTraining_not: Boolean
+  canManageTeam: Boolean
+  canManageTeam_not: Boolean
+  canManageEvents: Boolean
+  canManageEvents_not: Boolean
+
+  """ condition must be true for all nodes """
+  assignedTo_every: UserWhereInput
+
+  """ condition must be true for at least 1 node """
+  assignedTo_some: UserWhereInput
+
+  """ condition must be false for all nodes """
+  assignedTo_none: UserWhereInput
+}
+
+input RoleWhereUniqueInput {
+  id: ID!
+}
+
+enum SortRolesBy {
+  id_ASC
+  id_DESC
+  name_ASC
+  name_DESC
+  canManageExercises_ASC
+  canManageExercises_DESC
+  canSeeOtherUsers_ASC
+  canSeeOtherUsers_DESC
+  canManageUsers_ASC
+  canManageUsers_DESC
+  canManageRoles_ASC
+  canManageRoles_DESC
+  canManageTraining_ASC
+  canManageTraining_DESC
+  canManageTeam_ASC
+  canManageTeam_DESC
+  canManageEvents_ASC
+  canManageEvents_DESC
+  assignedTo_ASC
+  assignedTo_DESC
+}
+
+input RoleUpdateInput {
+  name: String
+  canManageExercises: Boolean
+  canSeeOtherUsers: Boolean
+  canManageUsers: Boolean
+  canManageRoles: Boolean
+  canManageTraining: Boolean
+  canManageTeam: Boolean
+  canManageEvents: Boolean
+  assignedTo: UserRelateToManyInput
+}
+
+input RolesUpdateInput {
+  id: ID!
+  data: RoleUpdateInput
+}
+
+input RoleCreateInput {
+  name: String
+  canManageExercises: Boolean
+  canSeeOtherUsers: Boolean
+  canManageUsers: Boolean
+  canManageRoles: Boolean
+  canManageTraining: Boolean
+  canManageTeam: Boolean
+  canManageEvents: Boolean
+  assignedTo: UserRelateToManyInput
+}
+
+input RolesCreateInput {
+  data: RoleCreateInput
 }
 
 """
@@ -1251,6 +1426,18 @@ type Query {
   """ Retrieve the meta-data for the EventsListItem list. """
   _EventsListItemsMeta: _ListMeta
 
+  """ Search for all Role items which match the where clause. """
+  allRoles(where: RoleWhereInput, search: String, sortBy: [SortRolesBy!], orderBy: String, first: Int, skip: Int): [Role]
+
+  """ Search for the Role item with the matching ID. """
+  Role(where: RoleWhereUniqueInput!): Role
+
+  """ Perform a meta-query on all Role items which match the where clause. """
+  _allRolesMeta(where: RoleWhereInput, search: String, sortBy: [SortRolesBy!], orderBy: String, first: Int, skip: Int): _QueryMeta
+
+  """ Retrieve the meta-data for the Role list. """
+  _RolesMeta: _ListMeta
+
   """ Retrieve the meta-data for all lists. """
   _ksListsMeta(where: _ksListsMetaInput): [_ListMeta]
 
@@ -1405,6 +1592,24 @@ type Mutation {
 
   """ Delete multiple EventsListItem items by ID. """
   deleteEventsListItems(ids: [ID!]): [EventsListItem]
+
+  """ Create a single Role item. """
+  createRole(data: RoleCreateInput): Role
+
+  """ Create multiple Role items. """
+  createRoles(data: [RolesCreateInput]): [Role]
+
+  """ Update a single Role item by ID. """
+  updateRole(id: ID!, data: RoleUpdateInput): Role
+
+  """ Update multiple Role items by ID. """
+  updateRoles(data: [RolesUpdateInput]): [Role]
+
+  """ Delete a single Role item by ID. """
+  deleteRole(id: ID!): Role
+
+  """ Delete multiple Role items by ID. """
+  deleteRoles(ids: [ID!]): [Role]
   authenticateUserWithPassword(email: String!, password: String!): UserAuthenticationWithPasswordResult!
   createInitialUser(data: CreateInitialUserInput!): UserAuthenticationWithPasswordSuccess!
   sendUserPasswordResetLink(email: String!): SendUserPasswordResetLinkResult

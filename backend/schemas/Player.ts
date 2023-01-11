@@ -1,9 +1,14 @@
 import { text, select, relationship } from '@keystone-next/fields';
 import { list } from '@keystone-next/keystone/schema';
+import {isSignedIn, rules} from "../access";
 
 export const Player = list({
-  // todo
-  // access:
+   access: {
+     create: isSignedIn,
+     read: rules.canManagePlayerItems,
+     update: rules.canManagePlayerItems,
+     delete: rules.canManagePlayerItems,
+   },
   fields: {
     name: text({ isRequired: true }),
     number: text({ isRequired: true }),

@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { relationship, text } from '@keystone-next/fields';
 import { list } from '@keystone-next/keystone/schema';
 import { cloudinaryImage } from '@keystone-next/cloudinary';
+import {isSignedIn, permissions, rules} from "../access";
 
 export const cloudinary = {
   cloudName: process.env.CLOUDINARY_CLOUD_NAME,
@@ -11,6 +12,12 @@ export const cloudinary = {
 };
 
 export const PlayerImage = list({
+  access: {
+    create: isSignedIn,
+    read: rules.canManagePlayerImages,
+    update: rules.canManagePlayerImages,
+    delete: rules.canManagePlayerImages,
+  },
   fields: {
     image: cloudinaryImage({
       cloudinary,
@@ -20,6 +27,8 @@ export const PlayerImage = list({
     player: relationship({ ref: 'Player.photo' }),
   },
   ui: {
-    initialColumns: ['image', 'altText', 'player'],
+    listView: {
+      initialColumns: ['image', 'altText', 'player'],
+    }
   },
 });

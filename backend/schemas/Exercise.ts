@@ -1,9 +1,14 @@
 import { text, select, relationship } from '@keystone-next/fields';
 import { list } from '@keystone-next/keystone/schema';
+import { isSignedIn, rules } from '../access';
 
 export const Exercise = list({
-  // todo
-  // access:
+  access: {
+    create: isSignedIn,
+    read: rules.canReadExercise,
+    update: rules.canManageExercises,
+    delete: rules.canManageExercises,
+  },
   fields: {
     name: text({ isRequired: true }),
     description: text({
@@ -31,9 +36,14 @@ export const Exercise = list({
       ],
       ui: {
         displayMode: 'segmented-control',
-        // createView: { fieldMode: 'hidden' },
+        createView: { fieldMode: 'hidden' },
       },
     }),
-    // TODO: Photo
+    user: relationship({
+      ref: 'User.exercise',
+      defaultValue: ({ context }) => ({
+        connect: { id: context.session.itemId },
+      }),
+    }),
   },
 });

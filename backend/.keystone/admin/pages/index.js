@@ -45,6 +45,9 @@ export default function Home() {
           EventsListItem: _allEventsListItemsMeta {
             count
           }
+          Role: _allRolesMeta {
+            count
+          }
         }
       `}
     />

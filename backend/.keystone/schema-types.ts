@@ -28,6 +28,20 @@ export type EventsListItemRelateToManyInput = {
   readonly disconnectAll?: Scalars['Boolean'] | null;
 };
 
+export type RoleRelateToOneInput = {
+  readonly create?: RoleCreateInput | null;
+  readonly connect?: RoleWhereUniqueInput | null;
+  readonly disconnect?: RoleWhereUniqueInput | null;
+  readonly disconnectAll?: Scalars['Boolean'] | null;
+};
+
+export type ExerciseRelateToManyInput = {
+  readonly create?: ReadonlyArray<ExerciseCreateInput | null> | null;
+  readonly connect?: ReadonlyArray<ExerciseWhereUniqueInput | null> | null;
+  readonly disconnect?: ReadonlyArray<ExerciseWhereUniqueInput | null> | null;
+  readonly disconnectAll?: Scalars['Boolean'] | null;
+};
+
 export type UserWhereInput = {
   readonly AND?: ReadonlyArray<UserWhereInput | null> | null;
   readonly OR?: ReadonlyArray<UserWhereInput | null> | null;
@@ -80,6 +94,11 @@ export type UserWhereInput = {
   readonly event_every?: EventsListItemWhereInput | null;
   readonly event_some?: EventsListItemWhereInput | null;
   readonly event_none?: EventsListItemWhereInput | null;
+  readonly role?: RoleWhereInput | null;
+  readonly role_is_null?: Scalars['Boolean'] | null;
+  readonly exercise_every?: ExerciseWhereInput | null;
+  readonly exercise_some?: ExerciseWhereInput | null;
+  readonly exercise_none?: ExerciseWhereInput | null;
   readonly passwordResetToken_is_set?: Scalars['Boolean'] | null;
   readonly passwordResetIssuedAt?: Scalars['String'] | null;
   readonly passwordResetIssuedAt_not?: Scalars['String'] | null;
@@ -149,6 +168,10 @@ export type SortUsersBy =
   | 'team_DESC'
   | 'event_ASC'
   | 'event_DESC'
+  | 'role_ASC'
+  | 'role_DESC'
+  | 'exercise_ASC'
+  | 'exercise_DESC'
   | 'passwordResetIssuedAt_ASC'
   | 'passwordResetIssuedAt_DESC'
   | 'passwordResetRedeemedAt_ASC'
@@ -165,6 +188,8 @@ export type UserUpdateInput = {
   readonly training?: TrainingItemRelateToManyInput | null;
   readonly team?: TeamRelateToOneInput | null;
   readonly event?: EventsListItemRelateToManyInput | null;
+  readonly role?: RoleRelateToOneInput | null;
+  readonly exercise?: ExerciseRelateToManyInput | null;
   readonly passwordResetToken?: Scalars['String'] | null;
   readonly passwordResetIssuedAt?: Scalars['String'] | null;
   readonly passwordResetRedeemedAt?: Scalars['String'] | null;
@@ -185,6 +210,8 @@ export type UserCreateInput = {
   readonly training?: TrainingItemRelateToManyInput | null;
   readonly team?: TeamRelateToOneInput | null;
   readonly event?: EventsListItemRelateToManyInput | null;
+  readonly role?: RoleRelateToOneInput | null;
+  readonly exercise?: ExerciseRelateToManyInput | null;
   readonly passwordResetToken?: Scalars['String'] | null;
   readonly passwordResetIssuedAt?: Scalars['String'] | null;
   readonly passwordResetRedeemedAt?: Scalars['String'] | null;
@@ -201,6 +228,13 @@ export type ExerciseImageRelateToOneInput = {
   readonly create?: ExerciseImageCreateInput | null;
   readonly connect?: ExerciseImageWhereUniqueInput | null;
   readonly disconnect?: ExerciseImageWhereUniqueInput | null;
+  readonly disconnectAll?: Scalars['Boolean'] | null;
+};
+
+export type UserRelateToOneInput = {
+  readonly create?: UserCreateInput | null;
+  readonly connect?: UserWhereUniqueInput | null;
+  readonly disconnect?: UserWhereUniqueInput | null;
   readonly disconnectAll?: Scalars['Boolean'] | null;
 };
 
@@ -267,6 +301,8 @@ export type ExerciseWhereInput = {
   readonly position_not_ends_with_i?: Scalars['String'] | null;
   readonly position_in?: ReadonlyArray<Scalars['String'] | null> | null;
   readonly position_not_in?: ReadonlyArray<Scalars['String'] | null> | null;
+  readonly user?: UserWhereInput | null;
+  readonly user_is_null?: Scalars['Boolean'] | null;
 };
 
 export type ExerciseWhereUniqueInput = {
@@ -283,13 +319,16 @@ export type SortExercisesBy =
   | 'photo_ASC'
   | 'photo_DESC'
   | 'position_ASC'
-  | 'position_DESC';
+  | 'position_DESC'
+  | 'user_ASC'
+  | 'user_DESC';
 
 export type ExerciseUpdateInput = {
   readonly name?: Scalars['String'] | null;
   readonly description?: Scalars['String'] | null;
   readonly photo?: ExerciseImageRelateToOneInput | null;
   readonly position?: Scalars['String'] | null;
+  readonly user?: UserRelateToOneInput | null;
 };
 
 export type ExercisesUpdateInput = {
@@ -302,6 +341,7 @@ export type ExerciseCreateInput = {
   readonly description?: Scalars['String'] | null;
   readonly photo?: ExerciseImageRelateToOneInput | null;
   readonly position?: Scalars['String'] | null;
+  readonly user?: UserRelateToOneInput | null;
 };
 
 export type ExercisesCreateInput = {
@@ -669,13 +709,6 @@ export type PlayerImagesCreateInput = {
   readonly data?: PlayerImageCreateInput | null;
 };
 
-export type UserRelateToOneInput = {
-  readonly create?: UserCreateInput | null;
-  readonly connect?: UserWhereUniqueInput | null;
-  readonly disconnect?: UserWhereUniqueInput | null;
-  readonly disconnectAll?: Scalars['Boolean'] | null;
-};
-
 export type TrainingItemWhereInput = {
   readonly AND?: ReadonlyArray<TrainingItemWhereInput | null> | null;
   readonly OR?: ReadonlyArray<TrainingItemWhereInput | null> | null;
@@ -868,6 +901,116 @@ export type EventsListItemsCreateInput = {
   readonly data?: EventsListItemCreateInput | null;
 };
 
+export type UserRelateToManyInput = {
+  readonly create?: ReadonlyArray<UserCreateInput | null> | null;
+  readonly connect?: ReadonlyArray<UserWhereUniqueInput | null> | null;
+  readonly disconnect?: ReadonlyArray<UserWhereUniqueInput | null> | null;
+  readonly disconnectAll?: Scalars['Boolean'] | null;
+};
+
+export type RoleWhereInput = {
+  readonly AND?: ReadonlyArray<RoleWhereInput | null> | null;
+  readonly OR?: ReadonlyArray<RoleWhereInput | null> | null;
+  readonly id?: Scalars['ID'] | null;
+  readonly id_not?: Scalars['ID'] | null;
+  readonly id_in?: ReadonlyArray<Scalars['ID'] | null> | null;
+  readonly id_not_in?: ReadonlyArray<Scalars['ID'] | null> | null;
+  readonly name?: Scalars['String'] | null;
+  readonly name_not?: Scalars['String'] | null;
+  readonly name_contains?: Scalars['String'] | null;
+  readonly name_not_contains?: Scalars['String'] | null;
+  readonly name_starts_with?: Scalars['String'] | null;
+  readonly name_not_starts_with?: Scalars['String'] | null;
+  readonly name_ends_with?: Scalars['String'] | null;
+  readonly name_not_ends_with?: Scalars['String'] | null;
+  readonly name_i?: Scalars['String'] | null;
+  readonly name_not_i?: Scalars['String'] | null;
+  readonly name_contains_i?: Scalars['String'] | null;
+  readonly name_not_contains_i?: Scalars['String'] | null;
+  readonly name_starts_with_i?: Scalars['String'] | null;
+  readonly name_not_starts_with_i?: Scalars['String'] | null;
+  readonly name_ends_with_i?: Scalars['String'] | null;
+  readonly name_not_ends_with_i?: Scalars['String'] | null;
+  readonly name_in?: ReadonlyArray<Scalars['String'] | null> | null;
+  readonly name_not_in?: ReadonlyArray<Scalars['String'] | null> | null;
+  readonly canManageExercises?: Scalars['Boolean'] | null;
+  readonly canManageExercises_not?: Scalars['Boolean'] | null;
+  readonly canSeeOtherUsers?: Scalars['Boolean'] | null;
+  readonly canSeeOtherUsers_not?: Scalars['Boolean'] | null;
+  readonly canManageUsers?: Scalars['Boolean'] | null;
+  readonly canManageUsers_not?: Scalars['Boolean'] | null;
+  readonly canManageRoles?: Scalars['Boolean'] | null;
+  readonly canManageRoles_not?: Scalars['Boolean'] | null;
+  readonly canManageTraining?: Scalars['Boolean'] | null;
+  readonly canManageTraining_not?: Scalars['Boolean'] | null;
+  readonly canManageTeam?: Scalars['Boolean'] | null;
+  readonly canManageTeam_not?: Scalars['Boolean'] | null;
+  readonly canManageEvents?: Scalars['Boolean'] | null;
+  readonly canManageEvents_not?: Scalars['Boolean'] | null;
+  readonly assignedTo_every?: UserWhereInput | null;
+  readonly assignedTo_some?: UserWhereInput | null;
+  readonly assignedTo_none?: UserWhereInput | null;
+};
+
+export type RoleWhereUniqueInput = {
+  readonly id: Scalars['ID'];
+};
+
+export type SortRolesBy =
+  | 'id_ASC'
+  | 'id_DESC'
+  | 'name_ASC'
+  | 'name_DESC'
+  | 'canManageExercises_ASC'
+  | 'canManageExercises_DESC'
+  | 'canSeeOtherUsers_ASC'
+  | 'canSeeOtherUsers_DESC'
+  | 'canManageUsers_ASC'
+  | 'canManageUsers_DESC'
+  | 'canManageRoles_ASC'
+  | 'canManageRoles_DESC'
+  | 'canManageTraining_ASC'
+  | 'canManageTraining_DESC'
+  | 'canManageTeam_ASC'
+  | 'canManageTeam_DESC'
+  | 'canManageEvents_ASC'
+  | 'canManageEvents_DESC'
+  | 'assignedTo_ASC'
+  | 'assignedTo_DESC';
+
+export type RoleUpdateInput = {
+  readonly name?: Scalars['String'] | null;
+  readonly canManageExercises?: Scalars['Boolean'] | null;
+  readonly canSeeOtherUsers?: Scalars['Boolean'] | null;
+  readonly canManageUsers?: Scalars['Boolean'] | null;
+  readonly canManageRoles?: Scalars['Boolean'] | null;
+  readonly canManageTraining?: Scalars['Boolean'] | null;
+  readonly canManageTeam?: Scalars['Boolean'] | null;
+  readonly canManageEvents?: Scalars['Boolean'] | null;
+  readonly assignedTo?: UserRelateToManyInput | null;
+};
+
+export type RolesUpdateInput = {
+  readonly id: Scalars['ID'];
+  readonly data?: RoleUpdateInput | null;
+};
+
+export type RoleCreateInput = {
+  readonly name?: Scalars['String'] | null;
+  readonly canManageExercises?: Scalars['Boolean'] | null;
+  readonly canSeeOtherUsers?: Scalars['Boolean'] | null;
+  readonly canManageUsers?: Scalars['Boolean'] | null;
+  readonly canManageRoles?: Scalars['Boolean'] | null;
+  readonly canManageTraining?: Scalars['Boolean'] | null;
+  readonly canManageTeam?: Scalars['Boolean'] | null;
+  readonly canManageEvents?: Scalars['Boolean'] | null;
+  readonly assignedTo?: UserRelateToManyInput | null;
+};
+
+export type RolesCreateInput = {
+  readonly data?: RoleCreateInput | null;
+};
+
 export type _ksListsMetaInput = {
   readonly key?: Scalars['String'] | null;
   readonly auxiliary?: Scalars['Boolean'] | null;
@@ -924,6 +1067,8 @@ export type UserListTypeInfo = {
     | 'training'
     | 'team'
     | 'event'
+    | 'role'
+    | 'exercise'
     | 'passwordResetToken'
     | 'passwordResetIssuedAt'
     | 'passwordResetRedeemedAt'
@@ -938,6 +1083,8 @@ export type UserListTypeInfo = {
     readonly training?: string | null;
     readonly team?: string | null;
     readonly event?: string | null;
+    readonly role?: string | null;
+    readonly exercise?: string | null;
     readonly passwordResetToken?: string | null;
     readonly passwordResetIssuedAt?: Date | null;
     readonly passwordResetRedeemedAt?: Date | null;
@@ -972,13 +1119,14 @@ export type UserListFn = (
 
 export type ExerciseListTypeInfo = {
   key: 'Exercise';
-  fields: 'id' | 'name' | 'description' | 'photo' | 'position';
+  fields: 'id' | 'name' | 'description' | 'photo' | 'position' | 'user';
   backing: {
     readonly id: string;
     readonly name?: string | null;
     readonly description?: string | null;
     readonly photo?: string | null;
     readonly position?: string | null;
+    readonly user?: string | null;
   };
   inputs: {
     where: ExerciseWhereInput;
@@ -1223,6 +1371,56 @@ export type EventsListItemListFn = (
   EventsListItemListTypeInfo['fields']
 >;
 
+export type RoleListTypeInfo = {
+  key: 'Role';
+  fields:
+    | 'id'
+    | 'name'
+    | 'canManageExercises'
+    | 'canSeeOtherUsers'
+    | 'canManageUsers'
+    | 'canManageRoles'
+    | 'canManageTraining'
+    | 'canManageTeam'
+    | 'canManageEvents'
+    | 'assignedTo';
+  backing: {
+    readonly id: string;
+    readonly name?: string | null;
+    readonly canManageExercises?: boolean | null;
+    readonly canSeeOtherUsers?: boolean | null;
+    readonly canManageUsers?: boolean | null;
+    readonly canManageRoles?: boolean | null;
+    readonly canManageTraining?: boolean | null;
+    readonly canManageTeam?: boolean | null;
+    readonly canManageEvents?: boolean | null;
+    readonly assignedTo?: string | null;
+  };
+  inputs: {
+    where: RoleWhereInput;
+    create: RoleCreateInput;
+    update: RoleUpdateInput;
+  };
+  args: {
+    listQuery: {
+      readonly where?: RoleWhereInput | null;
+      readonly sortBy?: ReadonlyArray<SortRolesBy> | null;
+      readonly first?: Scalars['Int'] | null;
+      readonly skip?: Scalars['Int'] | null;
+    };
+  };
+};
+
+export type RoleListFn = (
+  listConfig: import('@keystone-next/keystone/schema').ListConfig<
+    RoleListTypeInfo,
+    RoleListTypeInfo['fields']
+  >
+) => import('@keystone-next/keystone/schema').ListConfig<
+  RoleListTypeInfo,
+  RoleListTypeInfo['fields']
+>;
+
 export type KeystoneListsTypeInfo = {
   readonly User: UserListTypeInfo;
   readonly Exercise: ExerciseListTypeInfo;
@@ -1232,4 +1430,5 @@ export type KeystoneListsTypeInfo = {
   readonly TrainingItem: TrainingItemListTypeInfo;
   readonly Team: TeamListTypeInfo;
   readonly EventsListItem: EventsListItemListTypeInfo;
+  readonly Role: RoleListTypeInfo;
 };
