@@ -42,10 +42,7 @@ export const rules = {
     return { user: { id: session.itemId } };
   },
   canReadExercise({ session }: ListAccessArgs) {
-    if (!isSignedIn({ session })) {
-      return false;
-    }
-    return true; // They can read everyt
+    return true;
   },
   canTraining({ session }: ListAccessArgs) {
     if (!isSignedIn({ session })) {
