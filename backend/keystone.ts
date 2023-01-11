@@ -16,6 +16,10 @@ import { TrainingItem } from './schemas/TrainingItem';
 import { extendGraphqlSchema } from './mutations';
 import { Team } from './schemas/Team';
 import { EventsListItem } from './schemas/EventsListItem';
+import { Role } from './schemas/Role';
+import { permissionsList } from './schemas/fields';
+
+function check(name: string) {}
 
 const databaseURL =
   process.env.DATABASE_URL || 'mongodb://localhost/keystone-coach-zone';
@@ -69,6 +73,7 @@ export default withAuth(
       TrainingItem,
       Team,
       EventsListItem,
+      Role,
     }),
     extendGraphqlSchema,
     ui: {
@@ -79,7 +84,7 @@ export default withAuth(
     },
     session: withItemData(statelessSessions(sessionConfig), {
       // GraphQL Query
-      User: 'id name email',
+      User: `id name email role { ${permissionsList.join(' ')} }`,
     }),
   })
 );
