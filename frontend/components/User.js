@@ -25,6 +25,22 @@ const CURRENT_USER_QUERY = gql`
             }
           }
         }
+        exercise {
+          id
+          name
+          description
+          position
+          user {
+            id
+            name
+            email
+          }
+          photo {
+            image {
+              publicUrlTransformed
+            }
+          }
+        }
         training {
           id
           quantity

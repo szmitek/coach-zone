@@ -34,6 +34,10 @@ export const permissions = {
 // Rules can return a boolean - yes or no - or a filter which limits which products they can CRUD.
 export const rules = {
   canManageExercises({ session }: ListAccessArgs) {
+    // First check if the user is signed in
+    if (!isSignedIn({ session })) {
+      return false;
+    }
     // 1. Do they have the permission of canManageExercise
     if (permissions.canManageExercises({ session })) {
       return true;
@@ -41,9 +45,7 @@ export const rules = {
     // 2. If not, do they own this item?
     return { user: { id: session.itemId } };
   },
-  canReadExercise({ session }: ListAccessArgs) {
-    return true;
-  },
+  canReadExercise() { return true },
   canTraining({ session }: ListAccessArgs) {
     if (!isSignedIn({ session })) {
       return false;
