@@ -5,7 +5,7 @@ import { isSignedIn, rules } from '../access';
 export const Exercise = list({
   access: {
     create: isSignedIn,
-    read: rules.canReadExercise,
+    read:   () => true,
     update: rules.canManageExercises,
     delete: rules.canManageExercises,
   },
@@ -41,6 +41,9 @@ export const Exercise = list({
     }),
     user: relationship({
       ref: 'User.exercise',
+      create: true,
+      update: true,
+      many: false,
       defaultValue: ({ context }) => ({
         connect: { id: context.session.itemId },
       }),
