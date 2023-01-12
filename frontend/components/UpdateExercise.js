@@ -3,6 +3,7 @@ import gql from 'graphql-tag';
 import useForm from '../lib/useForm';
 import DisplayError from './ErrorMessage';
 import Form from './styles/Form';
+import { useRouter } from 'next/router'
 
 const SINGLE_EXERCISE_QUERY = gql`
   query SINGLE_EXERCISE_QUERY($id: ID!) {
@@ -35,6 +36,7 @@ const UPDATE_EXERCISE_MUTATION = gql`
 `;
 
 export default function UpdateExercise({ id }) {
+  const router = useRouter()
   // get existing exercise
   const { data, loading, error } = useQuery(SINGLE_EXERCISE_QUERY, {
     variables: { id },
@@ -45,28 +47,38 @@ export default function UpdateExercise({ id }) {
     { data: updateData, error: updateError, loading: updateLoading },
   ] = useMutation(UPDATE_EXERCISE_MUTATION);
   // Create some state for the form inputs:
-  const { inputs, handleChange, clearForm, resetForm } = useForm(
-    data?.Exercise
+  const { inputs, handleChange, handleFileChange, clearForm, resetForm } = useForm(
+      data?.Exercise
   );
-  console.log(inputs);
-  if (loading) return <p>loading...</p>;
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>{error.message}</p>;
+  if (!data?.Exercise) return <p>Exercise not found</p>;
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    try {
+      const { data } = await updateExercise({
+        variables: {
+          id,
+          name: inputs.name,
+          description: inputs.description,
+          position: inputs.position,
+        },
+      });
+      if (data) {
+        router.push('/exercises')
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  }
 
   return (
-    <Form
-      onSubmit={async (e) => {
-        e.preventDefault();
-        const res = await updateExercise({
-          variables: {
-            id,
-            name: inputs.name,
-            description: inputs.description,
-            position: inputs.position,
-          },
-        }).catch(console.error);
-        console.log(res);
-      }}
-    >
-      <DisplayError error={error || updateError} />
+      <Form
+          onSubmit={handleSubmit}
+      >
+        <DisplayError error={updateError} />
       <fieldset disabled={loading} aria-busy={loading}>
         <label htmlFor="image">
           Image
