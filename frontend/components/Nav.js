@@ -27,7 +27,11 @@ export default function Nav() {
         <>
           <Link href="/addExercise">Add Exercise</Link>
           <Link href="/calendar">Calendar</Link>
-          <Link href={`/team/${data.id}`}>Team</Link>
+            {user && data && (
+                <>
+                    <Link href={`/team/${data.id}`}>Team</Link>
+                </>
+            )}
           <Link href="/addPlayer">Add Player</Link>
           <Link href="/account">Account</Link>
           <SignOut />
