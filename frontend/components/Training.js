@@ -8,7 +8,7 @@ import RemoveFromTraining from './RemoveFromTraining';
 import Group from './styles/Group'
 import _ from 'lodash';
 import Link from 'next/link';
-
+import { useEffect } from 'react';
 
 const TrainingItemStyles = styled.li`
   padding: 1rem 0;
@@ -37,7 +37,7 @@ function TrainingItem({ trainingItem, closeTraining }) {
     const { exercise } = trainingItem;
     if (!exercise) return null;
     return (
-        <TrainingItemStyles onClick={closeTraining}>
+        <TrainingItemStyles>
             <img
                 width="100"
                 src={exercise.photo.image.publicUrlTransformed}
@@ -52,20 +52,17 @@ function TrainingItem({ trainingItem, closeTraining }) {
         </TrainingItemStyles>
     );
 }
-import { useEffect } from 'react';
+
 export default function Training() {
     const me = useUser();
     const { trainingOpen, closeTraining } = useTraining();
     if (!me) return null;
 
-    useEffect(() => {
-        closeTraining();
-    }, []); // Only run the effect when the component is first rendered
 
     // Group the training items by position
     const groupedTraining = _.groupBy(me.training, 'exercise.position');
 
-    return (
+     return (
         <TrainingStyles open={trainingOpen}>
             <header>
                 <Supreme>{me.name}'s Training</Supreme>

@@ -65,71 +65,63 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-export default function CalendarPage() {
-  const me = useUser();
+function Calendar1({ me }) {
   if (!me) return null;
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [createEvent] = useMutation(CREATE_EVENT_MUTATION);
   const { data, loading, error, refetch } = useQuery(ALL_EVENTS_QUERY, {
     variables: {
       user: me.id,
     },
   });
-
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>;
-
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const [createEvent] = useMutation(CREATE_EVENT_MUTATION, {
-    variables: { userId: me.id },
-    refetchQueries: [{ query: ALL_EVENTS_QUERY }],
-  });
-  console.log(data);
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const myEvents = useMemo(
-    () => data?.allEventsListItems && mapEvents(data.allEventsListItems),
-    [data]
+      () => data?.allEventsListItems && mapEvents(data.allEventsListItems),
+      [data, mapEvents]
   );
 
   // Create event
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const handleSelectSlot = useCallback(
-    ({ start, end }) => {
-      const title = window.prompt('New Event name, enter hours if needed');
-      if (title) {
-        createEvent({
-          variables: {
-            startdate: start,
-            enddate: end,
-            title,
-            userId: me.id,
-          },
-        }).then(() => refetch());
-      }
-    },
-    [createEvent]
+      ({ start, end }) => {
+        const title = window.prompt('New Event name, enter hours if needed');
+        if (title) {
+          createEvent({
+            variables: {
+              startdate: start,
+              enddate: end,
+              title,
+              userId: me.id,
+            },
+          }).then(() => refetch());
+        }
+      },
+      [createEvent, me.id, refetch]
   );
+
   // Show event
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const handleSelectEvent = useCallback(
-    (event) => window.alert(event.title),
-    []
+      (event) => window.alert(event.title),
+      []
   );
 
   return (
-    <div>
-      <Calendar
-        localizer={localizer}
-        events={myEvents}
-        startAccessor="start"
-        endAccessor="end"
-        style={{ height: 500 }}
-        allDayAccessor
-        views={['month']}
-        onSelectEvent={handleSelectEvent}
-        onSelectSlot={handleSelectSlot}
-        selectable
-      />
-    </div>
+      <div>
+        <Calendar
+            localizer={localizer}
+            events={myEvents}
+            startAccessor="start"
+            endAccessor="end"
+            style={{ height: 500 }}
+            allDayAccessor
+            views={['month']}
+            onSelectEvent={handleSelectEvent}
+            onSelectSlot={handleSelectSlot}
+            selectable
+        />
+      </div>
   );
+}
+
+export default function CalendarPage() {
+  const me = useUser();
+  return <Calendar1 me={me} />;
 }
