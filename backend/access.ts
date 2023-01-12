@@ -18,17 +18,10 @@ const generatedPermissions = Object.fromEntries(
 
 export const permissions = {
   ...generatedPermissions,
-  isAwesome({ session }: ListAccessArgs): boolean {
+  isAwesome({session}: ListAccessArgs): boolean {
     return session?.data.name.includes('Szmitek');
-  },
-  canManagePlayerImages({ session }: ListAccessArgs) {
-    // First check if the user is signed in
-    if (!isSignedIn({ session })) {
-      return false;
-    }
-    return true;
-  },
-};
+  }
+}
 
 // Rule based function
 // Rules can return a boolean - yes or no - or a filter which limits which products they can CRUD.

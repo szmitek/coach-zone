@@ -8,7 +8,6 @@ import {useUser} from "./User";
 
 export default function Exercise({ exercise }) {
     const user = useUser();
-    console.log(exercise);
 
     const checkPermissions = (user, exercise) => {
         if (!user) return {update: false, delete: false, add: false, read: true};
@@ -32,9 +31,11 @@ export default function Exercise({ exercise }) {
             <div className="buttonList">
                 {permissions.update && (
                     <Link
-                        href="/exercises/update"
-                        query={{
-                            id: exercise.id,
+                        href={{
+                            pathname: '/update',
+                            query: {
+                                id: exercise.id,
+                            },
                         }}
                     >
                         Edit ✏️
