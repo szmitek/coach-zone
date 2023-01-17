@@ -106,6 +106,16 @@ function Calendar1({ me }) {
   return (
       <div>
         <Calendar
+            eventPropGetter={(event) => {
+                const backgroundColor = event.title = '#DAA520';
+                const textColor = event.title = '#000000';
+                return {
+                    style: {
+                        backgroundColor: backgroundColor,
+                        color: textColor
+                    }
+                };
+            }}
             localizer={localizer}
             events={myEvents}
             startAccessor="start"
