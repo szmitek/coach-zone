@@ -1,6 +1,7 @@
 import { text, select, relationship } from '@keystone-next/fields';
 import { list } from '@keystone-next/keystone/schema';
 import { isSignedIn, rules } from '../access';
+import { Sport } from './Sport';
 
 export const Exercise = list({
   access: {
@@ -25,18 +26,15 @@ export const Exercise = list({
         inlineEdit: { fields: ['image', 'altText'] },
       },
     }),
-    position: select({
-      options: [
-        { label: 'OL', value: 'OL' },
-        { label: 'RB', value: 'RB' },
-        { label: 'WR', value: 'WR' },
-        { label: 'DL', value: 'DL' },
-        { label: 'LB', value: 'LB' },
-        { label: 'DB', value: 'DB' },
-      ],
+    sport: relationship({
+      ref: 'Sport.exercise',
+      many: false
+    }),
+    position: relationship({
+      ref: 'Position.exercise',
+      many: false,
       ui: {
-        displayMode: 'segmented-control',
-        createView: { fieldMode: 'hidden' },
+        displayMode: 'select',
       },
     }),
     user: relationship({

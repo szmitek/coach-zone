@@ -18,6 +18,8 @@ import { Team } from './schemas/Team';
 import { EventsListItem } from './schemas/EventsListItem';
 import { Role } from './schemas/Role';
 import { permissionsList } from './schemas/fields';
+import {Sport} from "./schemas/Sport";
+import {Position} from "./schemas/Positions";
 
 function check(name: string) {}
 
@@ -74,6 +76,8 @@ export default withAuth(
       Team,
       EventsListItem,
       Role,
+        Sport,
+        Position
     }),
     extendGraphqlSchema,
     ui: {
