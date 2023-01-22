@@ -5,9 +5,9 @@ import {isSignedIn, rules} from "../access";
 export const SportCategory = list({
     access: {
         create: isSignedIn,
-        read: rules.canTeam,
-        update: rules.canTeam,
-        delete: rules.canTeam,
+        read:   () => true,
+        update: rules.canManageExercises,
+        delete: rules.canManageExercises,
     },
     ui: {
         listView: {
