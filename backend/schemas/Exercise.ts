@@ -25,19 +25,13 @@ export const Exercise = list({
         inlineEdit: { fields: ['image', 'altText'] },
       },
     }),
-    position: select({
-      options: [
-        { label: 'OL', value: 'OL' },
-        { label: 'RB', value: 'RB' },
-        { label: 'WR', value: 'WR' },
-        { label: 'DL', value: 'DL' },
-        { label: 'LB', value: 'LB' },
-        { label: 'DB', value: 'DB' },
-      ],
-      ui: {
-        displayMode: 'segmented-control',
-        createView: { fieldMode: 'hidden' },
-      },
+    sportCategory: relationship({
+      ref: 'SportCategory.exercise',
+      many: false,
+    }),
+    position: relationship({
+        ref: 'Position.exercise',
+      many: false,
     }),
     user: relationship({
       ref: 'User.exercise',
