@@ -29,7 +29,9 @@ const CURRENT_USER_QUERY = gql`
           id
           name
           description
-          position
+          position {
+            name
+          }
           user {
             id
             name
@@ -48,7 +50,9 @@ const CURRENT_USER_QUERY = gql`
             id
             name
             description
-            position
+            position {
+              name
+            }
             photo {
               image {
                 publicUrlTransformed

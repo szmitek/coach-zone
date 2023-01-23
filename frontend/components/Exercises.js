@@ -11,7 +11,10 @@ export const ALL_EXERCISES_QUERY = gql`
       id
       name
       description
-      position
+      position {
+        id
+        name
+      }
       user{
         id
       }
@@ -30,7 +33,10 @@ const ALL_EXERCISES_QUERY_PUBLIC = gql`
       id
       name
       description
-      position
+      position {
+        id
+        name
+      }
       photo {
         id
         image {
