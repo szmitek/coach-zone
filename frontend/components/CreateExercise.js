@@ -24,7 +24,9 @@ const CREATE_EXERCISE_MUTATION = gql`
       id
       description
       name
-      position
+      position {
+        name
+      }
     }
   }
 `;
@@ -37,70 +39,70 @@ export default function CreateExercise() {
   });
 
   const [createExercise, { loading, error, data }] = useMutation(
-    CREATE_EXERCISE_MUTATION,
-    {
-      variables: inputs,
-      refetchQueries: [{ query: ALL_EXERCISES_QUERY }],
-    }
+      CREATE_EXERCISE_MUTATION,
+      {
+        variables: inputs,
+        refetchQueries: [{ query: ALL_EXERCISES_QUERY }],
+      }
   );
 
   return (
-    <Form
-      onSubmit={async (e) => {
-        e.preventDefault();
-        // submit the inputsfiled to the backend
-        const res = await createExercise();
-        clearForm();
-        Router.push({
-          pathname: `/exercise/${res.data.createExercise.id}`,
-        });
-      }}
-    >
-      <DisplayError error={error} />
-      <fieldset disabled={loading} aria-busy={loading}>
-        <label htmlFor="image">
-          Image
-          <input type="file" id="image" name="image" onChange={handleChange} />
-        </label>
-        <label htmlFor="name">
-          Name
-          <input
-            type="text"
-            id="name"
-            name="name"
-            placeholder="Name"
-            value={inputs.name}
-            onChange={handleChange}
-          />
-        </label>
-        <label htmlFor="description">
-          Description
-          <textarea
-            id="description"
-            name="description"
-            placeholder="Description"
-            onChange={handleChange}
-            value={inputs.description}
-          />
-        </label>
-        <label htmlFor="position">
-          Position
-          <select
-            id="position"
-            name="position"
-            placeholder="Position"
-            onChange={handleChange}
-          >
-            <option value="OL">OL</option>
-            <option value="RB">RB</option>
-            <option value="WR">WR</option>
-            <option value="DL">DL</option>
-            <option value="LB">LB</option>
-            <option value="DB">DB</option>
-          </select>
-        </label>
-        <button type="submit">+ Add Exercise</button>
-      </fieldset>
-    </Form>
+      <Form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            // submit the inputsfiled to the backend
+            const res = await createExercise();
+            clearForm();
+            Router.push({
+              pathname: `/exercise/${res.data.createExercise.id}`,
+            });
+          }}
+      >
+        <DisplayError error={error} />
+        <fieldset disabled={loading} aria-busy={loading}>
+          <label htmlFor="image">
+            Image
+            <input type="file" id="image" name="image" onChange={handleChange} />
+          </label>
+          <label htmlFor="name">
+            Name
+            <input
+                type="text"
+                id="name"
+                name="name"
+                placeholder="Name"
+                value={inputs.name}
+                onChange={handleChange}
+            />
+          </label>
+          <label htmlFor="description">
+            Description
+            <textarea
+                id="description"
+                name="description"
+                placeholder="Description"
+                onChange={handleChange}
+                value={inputs.description}
+            />
+          </label>
+          <label htmlFor="position">
+            Position
+            <select
+                id="position"
+                name="position"
+                placeholder="Position"
+                onChange={handleChange}
+            >
+              <option value="OL">OL</option>
+              <option value="RB">RB</option>
+              <option value="WR">WR</option>
+              <option value="DL">DL</option>
+              <option value="LB">LB</option>
+              <option value="DB">DB</option>
+            </select>
+          </label>
+          <button type="submit">+ Add Exercise</button>
+        </fieldset>
+      </Form>
   );
 }

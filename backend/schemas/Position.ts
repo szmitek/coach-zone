@@ -3,12 +3,6 @@ import { list } from '@keystone-next/keystone/schema';
 import {isSignedIn, rules} from "../access";
 
 export const Position = list({
-    access: {
-        create: isSignedIn,
-        read:   () => true,
-        update: rules.canManageExercises,
-        delete: rules.canManageExercises,
-    },
     ui: {
         listView: {
             initialColumns: ['name', 'sportCategory'],

@@ -26,7 +26,7 @@ export default function Exercise({ exercise }) {
             <Title>
                 <Link href={`/exercise/${exercise.id}`}>{exercise.name}</Link>
             </Title>
-            <Position>{exercise.position}</Position>
+            <Position>{exercise.position.name}</Position>
             <p>{exercise.description}</p>
             <div className="buttonList">
                 {permissions.update && (

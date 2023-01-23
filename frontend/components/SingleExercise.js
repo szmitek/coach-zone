@@ -24,7 +24,9 @@ const SINGLE_ITEM_QUERY = gql`
       name
       description
       id
-      position
+      position {
+        name
+      }
       photo {
         id
         altText

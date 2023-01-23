@@ -11,7 +11,9 @@ const SINGLE_EXERCISE_QUERY = gql`
       id
       name
       description
-      position
+      position {
+        name
+      }
     }
   }
 `;
