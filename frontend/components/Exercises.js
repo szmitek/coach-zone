@@ -6,9 +6,9 @@ import Exercise from './Exercise';
 import {useUser} from "./User";
 
 export const ALL_EXERCISES_QUERY = gql`
-  query ALL_EXERCISES_QUERY($skip: Int = 0, $first: Int) {
-    allExercises(first: $first, skip: $skip) {
-      id
+  query ALL_EXERCISES_QUERY($skip: Int = 0, $first: Int, $sportCategory: SportCategoryWhereInput) {
+    allExercises(first: $first, skip: $skip, where: { sportCategory: $sportCategory } ) {
+    id
       name
       description
       position {
@@ -53,13 +53,14 @@ const ExercisesListStyles = styled.div`
   grid-gap: 60px;
 `;
 
-export default function Exercises({ page }) {
+export default function Exercises({ page, sportCategory }) {
   const user = useUser();
   const query = user ? ALL_EXERCISES_QUERY : ALL_EXERCISES_QUERY_PUBLIC;
   const { data, error, loading } = useQuery(query, {
     variables: {
       skip: page * perPage - perPage,
       first: perPage,
+      sportCategory: { name: sportCategory }
     },
   });
 
