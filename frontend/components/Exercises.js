@@ -8,7 +8,7 @@ import {useUser} from "./User";
 export const ALL_EXERCISES_QUERY = gql`
   query ALL_EXERCISES_QUERY($skip: Int = 0, $first: Int, $sportCategory: SportCategoryWhereInput) {
     allExercises(first: $first, skip: $skip, where: { sportCategory: $sportCategory } ) {
-    id
+      id
       name
       description
       position {

@@ -7,7 +7,7 @@ export default function OrderPage() {
     const { query } = useRouter();
     const page = parseInt(query.page);
     const sportCategory = query.sportCategory;
-
+    console.log(sportCategory, page)
     return (
         <div>
             <Pagination page={page || 1} />

@@ -13,9 +13,9 @@ const ALL_SPORT_CATEGORIES_QUERY = gql`
     }
 `;
 
-export default function SportCategories() {
+export default function SportCategories({selectedCategory}) {
     const router = useRouter();
-    const [selectedSportCategory, setSelectedSportCategory] = useState(null);
+    const [selectedSportCategory, setSelectedSportCategory] = useState(selectedCategory || 'All');
 
     const { data, error, loading } = useQuery(ALL_SPORT_CATEGORIES_QUERY);
 
@@ -26,7 +26,7 @@ export default function SportCategories() {
         setSelectedSportCategory(event.target.value);
         router.push({
             pathname: '/exercises',
-            query: { page: 1, sportCategory: event.target.value },
+            query: { page: 1, sportCategory: event.target.value === 'All' ? undefined : event.target.value },
         });
     }
 
@@ -36,7 +36,7 @@ export default function SportCategories() {
                 <p>
                     Choose sport category:
                     <select value={selectedSportCategory} onChange={handleSportCategoryChange}>
-                        <option value="">All</option>
+                        <option value="All">All</option>
                         {data.allSportCategories.map(category => (
                             <option key={category.id} value={category.name}>
                                 {category.name}
