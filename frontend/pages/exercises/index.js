@@ -5,7 +5,7 @@ import SportCategories from '../../components/SportCategory'
 
 export default function OrderPage() {
     const { query } = useRouter();
-    const page = parseInt(query.page);
+    const page = parseInt(query.page) || 1;
     const sportCategory = query.sportCategory;
     console.log(sportCategory, page)
     return (
