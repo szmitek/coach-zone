@@ -60,7 +60,7 @@ export default function Exercises({ page, sportCategory }) {
     variables: {
       skip: page * perPage - perPage,
       first: perPage,
-      sportCategory: { name: sportCategory }
+      sportCategory: sportCategory === "All" ? undefined : { name: sportCategory }
     },
   });
 

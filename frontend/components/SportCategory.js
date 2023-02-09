@@ -18,17 +18,18 @@ export default function SportCategories({selectedCategory}) {
     const [selectedSportCategory, setSelectedSportCategory] = useState(selectedCategory || 'All');
 
     const { data, error, loading } = useQuery(ALL_SPORT_CATEGORIES_QUERY);
-
     if (loading) return <p>Loading...</p>;
     if (error) return <p>Error: {error.message}</p>;
 
     const handleSportCategoryChange = (event) => {
         setSelectedSportCategory(event.target.value);
+        let sportCategory = event.target.value === 'All' ? undefined : event.target.value;
         router.push({
             pathname: '/exercises',
-            query: { page: 1, sportCategory: event.target.value === 'All' ? undefined : event.target.value },
+            query: { page: 1, sportCategory: sportCategory },
         });
     }
+
 
     return (
         <SportCategoryStyles>
