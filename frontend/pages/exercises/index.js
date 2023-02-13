@@ -10,10 +10,10 @@ export default function OrderPage() {
     console.log(sportCategory, page)
     return (
         <div>
-            <Pagination page={page || 1} />
+            <Pagination page={page || 1} sportCategory={sportCategory} />
             <SportCategories selectedCategory={sportCategory} />
             <Exercises page={page || 1} sportCategory={sportCategory} />
-            <Pagination page={page || 1} />
+            <Pagination page={page || 1} sportCategory={sportCategory} />
         </div>
     );
 }

@@ -16,19 +16,22 @@ const ALL_SPORT_CATEGORIES_QUERY = gql`
 export default function SportCategories({selectedCategory}) {
     const router = useRouter();
     const [selectedSportCategory, setSelectedSportCategory] = useState(selectedCategory || 'All');
+    const [currentPage, setCurrentPage] = useState(1);
 
     const { data, error, loading } = useQuery(ALL_SPORT_CATEGORIES_QUERY);
     if (loading) return <p>Loading...</p>;
     if (error) return <p>Error: {error.message}</p>;
 
-    const handleSportCategoryChange = (event) => {
+    const handleSportCategoryChange = async (event) => {
         setSelectedSportCategory(event.target.value);
-        let sportCategory = event.target.value === 'All' ? undefined : event.target.value;
-        router.push({
+        setCurrentPage(1);
+        await router.push({
             pathname: '/exercises',
-            query: { page: 1, sportCategory: sportCategory },
+            query: {
+                sportCategory: event.target.value === 'All' ? undefined : event.target.value
+            },
         });
-    }
+    };
 
 
     return (
