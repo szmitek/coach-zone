@@ -14,12 +14,13 @@ const PAGINATION_QUERY = gql`
   }
 `;
 
-export default function Pagination({ page }) {
+export default function Pagination({ page, sportCategory }) {
   const { data, loading, error } = useQuery(PAGINATION_QUERY);
   if (loading) return 'Loading...';
   if (error) return <DisplayError error={error} />;
   const { count } = data._allExercisesMeta;
   const pageCount = Math.ceil(count / perPage);
+  console.log(sportCategory)
   return (
     <PaginationStyles>
       <Head>
@@ -27,14 +28,14 @@ export default function Pagination({ page }) {
           Coach Zone - Page {page} of {pageCount}
         </title>
       </Head>
-      <Link href={`/exercises/${page - 1}`}>
+        <Link href={{ pathname: '/exercises', query: { page: page - 1, sportCategory: sportCategory } }}>
         <a aria-disabled={page <= 1}>← Prev</a>
       </Link>
       <p>
         Page {page} of {pageCount}
       </p>
       <p>{count} Items Total</p>
-      <Link href={`/exercises/${page + 1}`}>
+        <Link href={{ pathname: '/exercises', query: { page: page + 1, sportCategory: sportCategory } }}>
         <a aria-disabled={page >= pageCount}>Next →</a>
       </Link>
     </PaginationStyles>
