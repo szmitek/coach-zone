@@ -28,8 +28,8 @@ export const ALL_EXERCISES_QUERY = gql`
   }
 `;
 const ALL_EXERCISES_QUERY_PUBLIC = gql`
-  query ALL_EXERCISES_QUERY($skip: Int = 0, $first: Int) {
-    allExercises(first: $first, skip: $skip) {
+  query ALL_EXERCISES_QUERY_PUBLIC($skip: Int = 0, $first: Int, $sportCategory: SportCategoryWhereInput) {
+    allExercises(first: $first, skip: $skip, where: { sportCategory: $sportCategory }) {
       id
       name
       description
@@ -46,6 +46,7 @@ const ALL_EXERCISES_QUERY_PUBLIC = gql`
     }
   }
 `;
+
 
 const ExercisesListStyles = styled.div`
   display: grid;
