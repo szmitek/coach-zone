@@ -60,9 +60,9 @@ export default function Training() {
 
 
     // Group the training items by position
-    const groupedTraining = _.groupBy(me.training, 'exercise.position');
+    const groupedTraining = _.groupBy(me.training, 'exercise.position.name');
 
-     return (
+    return (
         <TrainingStyles open={trainingOpen}>
             <header>
                 <Supreme>{me.name}'s Training</Supreme>
