@@ -25,6 +25,7 @@ const SINGLE_ITEM_QUERY = gql`
       description
       id
       position {
+        id
         name
       }
       photo {
@@ -58,7 +59,7 @@ export default function SingleExercise({ id }) {
       />
       <div className="details">
         <h2>{Exercise.name}</h2>
-        <h3>Destination: {Exercise.position}</h3>
+        <h3>Destination: {Exercise.position.name}</h3>
         <p>{Exercise.description}</p>
       </div>
     </ExerciseStyles>
