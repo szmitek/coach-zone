@@ -1,16 +1,31 @@
 import gql from 'graphql-tag';
-import { useMutation } from '@apollo/client';
+import {useMutation, useQuery} from '@apollo/client';
 import Router from 'next/router';
 import useForm from '../lib/useForm';
 import Form from './styles/Form';
 import DisplayError from './ErrorMessage';
 import { ALL_EXERCISES_QUERY } from './Exercises';
+import {useState} from "react";
+
+const ALL_SPORTCATEGORY_QUERY = gql`
+  query ALL_SPORTCATEGORY_QUERY {
+    allSportCategories {
+      id
+      name
+      positions {
+        id
+        name
+      }
+    }
+  }
+`;
 
 const CREATE_EXERCISE_MUTATION = gql`
   mutation CREATE_EXERCISE_MUTATION(
     $name: String!
     $description: String!
     $image: Upload!
+    $sportCategory: ID
     $position: String
   ) {
     createExercise(
@@ -18,12 +33,16 @@ const CREATE_EXERCISE_MUTATION = gql`
         name: $name
         description: $description
         photo: { create: { image: $image, altText: $name } }
+        sportCategory: $sportCategory
         position: $position
       }
     ) {
       id
       description
       name
+      sportCategory {
+        name
+      }
       position {
         name
       }
@@ -38,6 +57,10 @@ export default function CreateExercise() {
     description: '',
   });
 
+  const { data: sportsCategoriesData, loading: sportsCategoriesLoading, error: sportsCategoriesError } = useQuery(
+      ALL_SPORTCATEGORY_QUERY
+  );
+
   const [createExercise, { loading, error, data }] = useMutation(
       CREATE_EXERCISE_MUTATION,
       {
@@ -45,6 +68,22 @@ export default function CreateExercise() {
         refetchQueries: [{ query: ALL_EXERCISES_QUERY }],
       }
   );
+
+  const sportsCategories = sportsCategoriesData && sportsCategoriesData.allSportCategories || [];
+  const [positions, setPositions] = useState([]);
+
+  const handleSportCategoryChange = (e) => {
+    const sportCategoryId = e.target.value;
+    const selectedSportCategory = sportsCategories.find(
+        (category) => category.id === sportCategoryId
+    );
+    const selectedPositions = selectedSportCategory
+        ? selectedSportCategory.positions
+        : [];
+    setPositions(selectedPositions);
+    // set the selected sport category id
+    handleChange(e);
+  };
 
   return (
       <Form
@@ -85,6 +124,23 @@ export default function CreateExercise() {
                 value={inputs.description}
             />
           </label>
+          <label htmlFor="sportCategoryId">
+            Sport Category
+            <select
+                id="sportCategoryId"
+                name="sportCategoryId"
+                placeholder="Sport Category"
+                onChange={handleChange}
+                value={inputs.sportCategory}
+            >
+              <option value="">Select a sport category</option>
+              {sportsCategories?.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+              ))}
+            </select>
+          </label>
           <label htmlFor="position">
             Position
             <select
@@ -93,12 +149,12 @@ export default function CreateExercise() {
                 placeholder="Position"
                 onChange={handleChange}
             >
-              <option value="OL">OL</option>
-              <option value="RB">RB</option>
-              <option value="WR">WR</option>
-              <option value="DL">DL</option>
-              <option value="LB">LB</option>
-              <option value="DB">DB</option>
+              <option value="">Select a position</option>
+              {positions.map((position) => (
+                  <option key={position.id} value={position.id}>
+                    {position.name}
+                  </option>
+              ))}
             </select>
           </label>
           <button type="submit">+ Add Exercise</button>
