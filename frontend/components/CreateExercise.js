@@ -130,7 +130,7 @@ export default function CreateExercise() {
                 id="sportCategoryId"
                 name="sportCategoryId"
                 placeholder="Sport Category"
-                onChange={handleChange}
+                onChange={handleSportCategoryChange}
                 value={inputs.sportCategory}
             >
               <option value="">Select a sport category</option>
