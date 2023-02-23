@@ -25,16 +25,16 @@ const CREATE_EXERCISE_MUTATION = gql`
     $name: String!
     $description: String!
     $image: Upload!
-    $sportCategory: ID
-    $position: String
+    $sportCategory: ID!
+    $position: ID!
   ) {
     createExercise(
       data: {
         name: $name
         description: $description
         photo: { create: { image: $image, altText: $name } }
-        sportCategory: $sportCategory
-        position: $position
+        sportCategory: { connect: { id: $sportCategory } }
+        position: { connect: { id: $position } }
       }
     ) {
       id
@@ -55,6 +55,8 @@ export default function CreateExercise() {
     image: '',
     name: '',
     description: '',
+    sportCategory: '',
+    position: ''
   });
 
   const { data: sportsCategoriesData, loading: sportsCategoriesLoading, error: sportsCategoriesError } = useQuery(
@@ -124,11 +126,11 @@ export default function CreateExercise() {
                 value={inputs.description}
             />
           </label>
-          <label htmlFor="sportCategoryId">
+          <label htmlFor="sportCategory">
             Sport Category
             <select
-                id="sportCategoryId"
-                name="sportCategoryId"
+                id="sportCategory"
+                name="sportCategory"
                 placeholder="Sport Category"
                 onChange={handleSportCategoryChange}
                 value={inputs.sportCategory}
