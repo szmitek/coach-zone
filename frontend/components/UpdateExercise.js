@@ -4,6 +4,7 @@ import useForm from '../lib/useForm';
 import DisplayError from './ErrorMessage';
 import Form from './styles/Form';
 import { useRouter } from 'next/router'
+import {useState} from "react";
 
 const SINGLE_EXERCISE_QUERY = gql`
   query SINGLE_EXERCISE_QUERY($id: ID!) {
@@ -18,21 +19,45 @@ const SINGLE_EXERCISE_QUERY = gql`
   }
 `;
 
+const ALL_SPORTCATEGORY_QUERY = gql`
+  query ALL_SPORTCATEGORY_QUERY {
+    allSportCategories {
+      id
+      name
+      positions {
+        id
+        name
+      }
+    }
+  }
+`;
+
 const UPDATE_EXERCISE_MUTATION = gql`
   mutation UPDATE_EXERCISE_MUTATION(
     $id: ID!
     $name: String
     $description: String
-    $position: String
+    $sportCategory: ID!
+    $position: ID!
   ) {
     updateExercise(
       id: $id
-      data: { name: $name, description: $description, position: $position }
+      data: { 
+        name: $name, 
+        description: $description,
+        sportCategory: { connect: { id: $sportCategory } }
+        position: { connect: { id: $position } } 
+      }
     ) {
       id
       name
       description
-      position
+      sportCategory {
+        name
+      }
+      position {
+        name
+      }
     }
   }
 `;
@@ -65,6 +90,7 @@ export default function UpdateExercise({ id }) {
           id,
           name: inputs.name,
           description: inputs.description,
+          sportCategory: inputs.sportCategory,
           position: inputs.position,
         },
       });
@@ -75,6 +101,23 @@ export default function UpdateExercise({ id }) {
       console.log(err);
     }
   }
+  const { data: sportsCategoriesData, loading: sportsCategoriesLoading, error: sportsCategoriesError } = useQuery(
+      ALL_SPORTCATEGORY_QUERY
+  );
+  const sportsCategories = sportsCategoriesData && sportsCategoriesData.allSportCategories || [];
+  const [positions, setPositions] = useState([]);
+  const handleSportCategoryChange = (e) => {
+    const sportCategoryId = e.target.value;
+    const selectedSportCategory = sportsCategories.find(
+        (category) => category.id === sportCategoryId
+    );
+    const selectedPositions = selectedSportCategory
+        ? selectedSportCategory.positions
+        : [];
+    setPositions(selectedPositions);
+    // set the selected sport category id
+    handleChange(e);
+  };
 
   return (
       <Form
@@ -107,20 +150,37 @@ export default function UpdateExercise({ id }) {
             value={inputs.description}
           />
         </label>
+        <label htmlFor="sportCategory">
+          Sport Category
+          <select
+              id="sportCategory"
+              name="sportCategory"
+              placeholder="Sport Category"
+              onChange={handleSportCategoryChange}
+              value={inputs.sportCategory}
+          >
+            <option value="">Select a sport category</option>
+            {sportsCategories?.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+            ))}
+          </select>
+        </label>
         <label htmlFor="position">
           Position
           <select
-            id="position"
-            name="position"
-            placeholder="Position"
-            onChange={handleChange}
+              id="position"
+              name="position"
+              placeholder="Position"
+              onChange={handleChange}
           >
-            <option value="OL">OL</option>
-            <option value="RB">RB</option>
-            <option value="WR">WR</option>
-            <option value="DL">DL</option>
-            <option value="LB">LB</option>
-            <option value="DB">DB</option>
+            <option value="">Select a position</option>
+            {positions.map((position) => (
+                <option key={position.id} value={position.id}>
+                  {position.name}
+                </option>
+            ))}
           </select>
         </label>
         <button type="submit">Update Exercise</button>
