@@ -76,7 +76,7 @@ export default function SignUp() {
   return (
     <Form method="POST" onSubmit={handleSubmit}>
       <h2>Sign Up for an Account</h2>
-      <Error error={signupError || createTeamError} />
+
       <fieldset
         disabled={signupLoading || createTeamLoading}
         aria-busy={signupLoading || createTeamLoading}
