@@ -43,7 +43,7 @@ export const rules = {
     if (!isSignedIn({ session })) {
       return false;
     }
-    // 1. Do they have the permission of canManageProducts
+    // 1. Do they have the permission of canManageTraining
     if (permissions.canManageTraining({ session })) {
       return true;
     }
@@ -54,7 +54,7 @@ export const rules = {
     if (!isSignedIn({ session })) {
       return false;
     }
-    // 1. Do they have the permission of canManageProducts
+    // 1. Do they have the permission of canManageTeam
     if (permissions.canManageTeam({ session })) {
       return true;
     }
@@ -65,7 +65,7 @@ export const rules = {
     if (!isSignedIn({ session })) {
       return false;
     }
-    // 1. Do they have the permission of canManageProducts
+    // 1. Do they have the permission of canManageEvents
     if (permissions.canManageEvents({ session })) {
       return true;
     }
