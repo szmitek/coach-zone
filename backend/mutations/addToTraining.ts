@@ -27,7 +27,7 @@ async function addToTraining(
     // if itis, make it single item
     return context.lists.TrainingItem.updateOne({
       id: existingTrainingItem.id,
-      data: { quantity: existingTrainingItem.quantity + 1 - 1 },
+      data: { quantity: existingTrainingItem.quantity },
       resolveFields: false,
     });
   }
