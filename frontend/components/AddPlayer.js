@@ -146,6 +146,25 @@ export default function CreatePlayer() {
             <option value="DL">DL</option>
             <option value="LB">LB</option>
             <option value="DB">DB</option>
+            <option value="Point Guard">Point Guard</option>
+            <option value="Shooting Guard">Shooting Guard</option>
+            <option value="Small Forward">Small Forward</option>
+            <option value="Power Forward">Power Forward</option>
+            <option value="Center">Center</option>
+            <option value="Pitcher">Pitcher</option>
+            <option value="Catcher">Catcher</option>
+            <option value="First Base">First Base</option>
+            <option value="Second Base">Second Base</option>
+            <option value="Third Base">Third Base</option>
+            <option value="Shortstop">Shortstop</option>
+            <option value="Outfield">Outfield</option>
+            <option value="Forward">Forward</option>
+            <option value="Defenseman">Defenseman</option>
+            <option value="Goalie">Goalie</option>
+            <option value="Goalkeeper">Goalkeeper</option>
+            <option value="Defender">Defender</option>
+            <option value="Midfielder">Midfielder</option>
+            <option value="Forward">Forward</option>
           </select>
         </label>
         <button type="submit">+ Add Player</button>
