@@ -29,4 +29,7 @@ Coach Zone is a web application that allows coaches to manage their team, player
 * Frontend: React, Next.js, Apollo Client, GraphQL, styled-components
 * Backend: Node.js, Apollo Server, GraphQL, MongoDB
 
-![image](![image](https://github.com/szmitek/coach-zone/assets/61392709/5594d678-99c7-42dd-a1f5-3166ab1c2052))
+### Application preview: 
+
+![image](https://github.com/szmitek/coach-zone/assets/61392709/4116a6d9-8c95-4d4c-abbe-a5429900bc48)
+
