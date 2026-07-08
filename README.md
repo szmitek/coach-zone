@@ -1,35 +1,51 @@
 # Coach Zone
-Coach Zone is a web application that allows coaches to manage their team, players and exercises. It provides a platform for coaches to create, edit and delete exercises, and training plans. Coaches can infect their players by adding their strengths and weaknesses, which will allow you to track the player's progress. It also includes a stopwatch and calendar to help coaches keep track of training sessions and events.
 
-## Features
-* Players: coaches can view, add, update, and delete players in their team. Each player has a name, position, number, strengths, weaknesses, description, and photo.
-* Exercises: coaches can view, add, update, and delete exercises in their training plan. Each exercise has a name, position, description, and photo.
-* Training: coaches can view, add, update, and delete training sessions. Each session consists of a date, a list of exercises, and notes.
-* Calendar: Coaches can view and add their events like trainings or matches added to calendar.
-* Stopwatch: Coaches can instantly set a countdown for how long an drill should last.
-## Prerequisites
-* Node.js and npm
-* A GraphQL API endpoint (provided by the backend server)
-## Getting Started
-1. Clone the repository: git clone https://github.com/szmitek/coach-zone.git
-2. Go to the root directory: cd coach-zone
-3. Install the dependencies: npm install
-4. Start the backend and frontend servers: npm start
-5. Open a web browser and go to http://localhost:7777
-## Structure
-* The project consists of a frontend (in the frontend directory) and a backend (in the backend directory).
+> **Work in progress — rebuilding into a full product.**
 
-* The frontend is a Next.js application that uses Apollo Client to communicate with the GraphQL API. It is built with React, TypeScript, and styled-components.
+Coach Zone is a web app for coaches: build training sessions from a reusable
+exercise library, export them to PDF, and share them with your team. The
+longer-term vision also covers full team and player management, where
+coaches can affect their players by adding their strengths and weaknesses,
+allowing progress to be tracked over time, alongside a calendar and
+stopwatch for running sessions.
 
-* The backend is a GraphQL server that uses Prisma to store and retrieve data from a database. It is built with Node.js, TypeScript, and GraphQL.
+This repository is being rebuilt from the ground up as a public product,
+starting from a university thesis project. Backend integration (Supabase)
+is coming in a follow-up phase.
 
-* The backend server will be running on port 3000 and the frontend client will be running on port 7777.
+## Tech stack
 
-## Tech Stack
-* Frontend: React, Next.js, Apollo Client, GraphQL, styled-components
-* Backend: Node.js, Apollo Server, GraphQL, MongoDB
+- [Next.js 15](https://nextjs.org) - App Router, TypeScript (strict mode)
+- [Tailwind CSS](https://tailwindcss.com)
+- [Supabase](https://supabase.com) - Postgres, Auth, Storage (coming soon)
+- Deployed on [Vercel](https://vercel.com)
 
-### Application preview: 
+## Getting started
 
-![image](https://github.com/szmitek/coach-zone/assets/61392709/4116a6d9-8c95-4d4c-abbe-a5429900bc48)
+Requires [pnpm](https://pnpm.io).
 
+```bash
+pnpm install
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) to see the result.
+
+## Scripts
+
+| Script           | Purpose                                   |
+| ---------------- | ----------------------------------------- |
+| `pnpm dev`       | Start the development server              |
+| `pnpm build`     | Production build                          |
+| `pnpm lint`      | Run ESLint                                |
+| `pnpm typecheck` | Run the TypeScript compiler in check mode |
+| `pnpm format`    | Format the codebase with Prettier         |
+
+## History
+
+The original thesis implementation (Next.js 10 + Keystone.js + MongoDB) is
+preserved for reference on the [`legacy`](../../tree/legacy) branch.
+
+## License
+
+[MIT](./LICENSE)
