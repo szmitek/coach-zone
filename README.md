@@ -1,35 +1,36 @@
-# Coach Zone
-Coach Zone is a web application that allows coaches to manage their team, players and exercises. It provides a platform for coaches to create, edit and delete exercises, and training plans. Coaches can infect their players by adding their strengths and weaknesses, which will allow you to track the player's progress. It also includes a stopwatch and calendar to help coaches keep track of training sessions and events.
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Features
-* Players: coaches can view, add, update, and delete players in their team. Each player has a name, position, number, strengths, weaknesses, description, and photo.
-* Exercises: coaches can view, add, update, and delete exercises in their training plan. Each exercise has a name, position, description, and photo.
-* Training: coaches can view, add, update, and delete training sessions. Each session consists of a date, a list of exercises, and notes.
-* Calendar: Coaches can view and add their events like trainings or matches added to calendar.
-* Stopwatch: Coaches can instantly set a countdown for how long an drill should last.
-## Prerequisites
-* Node.js and npm
-* A GraphQL API endpoint (provided by the backend server)
 ## Getting Started
-1. Clone the repository: git clone https://github.com/szmitek/coach-zone.git
-2. Go to the root directory: cd coach-zone
-3. Install the dependencies: npm install
-4. Start the backend and frontend servers: npm start
-5. Open a web browser and go to http://localhost:7777
-## Structure
-* The project consists of a frontend (in the frontend directory) and a backend (in the backend directory).
 
-* The frontend is a Next.js application that uses Apollo Client to communicate with the GraphQL API. It is built with React, TypeScript, and styled-components.
+First, run the development server:
 
-* The backend is a GraphQL server that uses Prisma to store and retrieve data from a database. It is built with Node.js, TypeScript, and GraphQL.
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-* The backend server will be running on port 3000 and the frontend client will be running on port 7777.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Tech Stack
-* Frontend: React, Next.js, Apollo Client, GraphQL, styled-components
-* Backend: Node.js, Apollo Server, GraphQL, MongoDB
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-### Application preview: 
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-![image](https://github.com/szmitek/coach-zone/assets/61392709/4116a6d9-8c95-4d4c-abbe-a5429900bc48)
+## Learn More
 
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
