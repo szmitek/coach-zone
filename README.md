@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Coach Zone
 
-## Getting Started
+> **Work in progress — rebuilding into a full product.**
 
-First, run the development server:
+Coach Zone is a web app for coaches: build training sessions from a reusable
+exercise library, export them to PDF, and share them with your team. The
+longer-term vision also covers full team and player management, where
+coaches can affect their players by adding their strengths and weaknesses,
+allowing progress to be tracked over time, alongside a calendar and
+stopwatch for running sessions.
+
+This repository is being rebuilt from the ground up as a public product,
+starting from a university thesis project. Backend integration (Supabase)
+is coming in a follow-up phase.
+
+## Tech stack
+
+- [Next.js 15](https://nextjs.org) - App Router, TypeScript (strict mode)
+- [Tailwind CSS](https://tailwindcss.com)
+- [Supabase](https://supabase.com) - Postgres, Auth, Storage (coming soon)
+- Deployed on [Vercel](https://vercel.com)
+
+## Getting started
+
+Requires [pnpm](https://pnpm.io).
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Script           | Purpose                                   |
+| ---------------- | ----------------------------------------- |
+| `pnpm dev`       | Start the development server              |
+| `pnpm build`     | Production build                          |
+| `pnpm lint`      | Run ESLint                                |
+| `pnpm typecheck` | Run the TypeScript compiler in check mode |
+| `pnpm format`    | Format the codebase with Prettier         |
 
-## Learn More
+## History
 
-To learn more about Next.js, take a look at the following resources:
+The original thesis implementation (Next.js 10 + Keystone.js + MongoDB) is
+preserved for reference on the [`legacy`](../../tree/legacy) branch.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## License
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+[MIT](./LICENSE)
