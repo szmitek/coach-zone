@@ -218,3 +218,6 @@ export interface Database {
     Enums: Record<string, never>;
   };
 }
+
+export type Exercise = Database["public"]["Tables"]["exercises"]["Row"];
+export type Category = Database["public"]["Tables"]["categories"]["Row"];
