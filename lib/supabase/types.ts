@@ -221,3 +221,5 @@ export interface Database {
 
 export type Exercise = Database["public"]["Tables"]["exercises"]["Row"];
 export type Category = Database["public"]["Tables"]["categories"]["Row"];
+export type Workout = Database["public"]["Tables"]["workouts"]["Row"];
+export type WorkoutItem = Database["public"]["Tables"]["workout_items"]["Row"];
