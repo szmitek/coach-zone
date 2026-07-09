@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 
 export default function WorkoutsPlaceholder() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-white px-6 text-center text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
+    <div className="flex min-h-[calc(100vh-65px)] flex-col items-center justify-center px-6 text-center">
       <h1 className="text-2xl font-semibold tracking-tight">
         Workouts are coming in Round 4
       </h1>

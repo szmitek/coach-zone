@@ -25,6 +25,11 @@ const MESSAGES_BY_CODE: Record<string, string> = {
   user_not_found: "Incorrect email or password.",
 };
 
+// Fallback for cases where Supabase doesn't populate error.code - notably
+// signInWithPassword's "Invalid login credentials", which auth-js currently
+// surfaces via the legacy invalid_grant response shape with code: undefined
+// (supabase/auth-js#937). email_not_confirmed is unaffected and matches via
+// error.code above, so the two cases still get distinct messages.
 const MESSAGES_BY_TEXT: Array<[RegExp, string]> = [
   [/already registered/i, MESSAGES_BY_CODE.user_already_exists],
   [/invalid login credentials/i, MESSAGES_BY_CODE.invalid_credentials],
