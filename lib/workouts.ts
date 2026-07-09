@@ -1,0 +1,65 @@
+import type { WorkoutItem, WorkoutSection } from "@/lib/supabase/types";
+
+export type SaveState = "idle" | "saving" | "saved" | "error";
+
+export const SECTION_ORDER: WorkoutSection[] = [
+  "warmup",
+  "main",
+  "positional",
+  "cooldown",
+];
+
+export const SECTION_LABELS: Record<WorkoutSection, string> = {
+  warmup: "Rozgrzewka",
+  main: "Część główna",
+  positional: "Ćwiczenia pozycyjne",
+  cooldown: "Schłodzenie",
+};
+
+export const SECTION_HINTS: Record<WorkoutSection, string> = {
+  warmup: "Brak ćwiczeń — dodaj rozgrzewkę, od której zacznie się trening.",
+  main: "Brak ćwiczeń — dodaj ćwiczenia stanowiące trzon treningu.",
+  positional:
+    "Brak ćwiczeń — tu przyda się przypisanie do pozycji lub zawodnika.",
+  cooldown: "Brak ćwiczeń — dodaj ćwiczenia kończące i schładzające.",
+};
+
+// Used when adding an exercise with no duration_min of its own set.
+export const DEFAULT_ITEM_DURATION_MIN = 10;
+
+// Positions are scoped per section and kept as small non-negative integers,
+// but not assumed contiguous (deleting an item leaves a gap on purpose, to
+// avoid renumbering the rest of the section on every removal). Basing the
+// next slot on the current max avoids colliding with a stale gap.
+export function nextPosition(sectionItems: WorkoutItem[]): number {
+  if (sectionItems.length === 0) return 0;
+  return Math.max(...sectionItems.map((item) => item.position)) + 1;
+}
+
+// scheduled_for is a plain `date` column (no time/timezone). Parsing it with
+// `new Date(string)` reads it as UTC midnight, which can render as the
+// previous day in timezones behind UTC - build the Date from components
+// instead so formatting stays in local time throughout.
+export function formatScheduledDate(value: string | null): string {
+  if (!value) return "Brak daty";
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  return date.toLocaleDateString("pl-PL", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+// created_at is a timestamptz, a real instant - safe to parse directly.
+export function formatCreatedDate(value: string): string {
+  return new Date(value).toLocaleDateString("pl-PL", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+export function formatTotalDuration(totalMinutes: number): string {
+  return `${totalMinutes} min`;
+}
