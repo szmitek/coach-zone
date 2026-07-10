@@ -78,6 +78,30 @@ export interface PdfWorkoutItem {
   exerciseDescription: string | null;
 }
 
+export interface WorkoutStats {
+  itemCount: number;
+  totalMinutes: number;
+}
+
+// Shared by the workouts list (item counts) and the calendar view (item
+// counts + total duration) - both derive per-workout stats from the same
+// flat workout_items rows.
+export function summarizeWorkoutItems(
+  items: { workout_id: string; duration_min: number | null }[],
+): Record<string, WorkoutStats> {
+  const stats: Record<string, WorkoutStats> = {};
+  for (const item of items) {
+    const current = stats[item.workout_id] ?? {
+      itemCount: 0,
+      totalMinutes: 0,
+    };
+    current.itemCount += 1;
+    current.totalMinutes += item.duration_min ?? 0;
+    stats[item.workout_id] = current;
+  }
+  return stats;
+}
+
 export function groupItemsBySection<
   T extends { section: WorkoutSection; position: number },
 >(items: T[]): Map<WorkoutSection, T[]> {

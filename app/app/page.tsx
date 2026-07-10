@@ -19,6 +19,11 @@ const navItems = [
     title: "Treningi",
     description: "Planuj sesje treningowe i buduj je z biblioteki ćwiczeń.",
   },
+  {
+    href: "/app/calendar",
+    title: "Kalendarz",
+    description: "Zobacz treningi w widoku tygodnia i planuj mikrocykle.",
+  },
 ];
 
 export default async function AppHomePage() {
@@ -49,7 +54,7 @@ export default async function AppHomePage() {
         To Twoja strona startowa w Coach Zone.
       </p>
 
-      <div className="mt-10 grid gap-6 sm:grid-cols-2">
+      <div className="mt-10 grid gap-6 sm:grid-cols-3">
         {navItems.map((item) => (
           <Link
             key={item.href}

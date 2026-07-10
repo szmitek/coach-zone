@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { Workout } from "@/lib/supabase/types";
 
 type WorkoutBasicsFormProps =
-  | { mode: "create"; userId: string }
+  | { mode: "create"; userId: string; initialScheduledFor?: string }
   | {
       mode: "edit";
       workout: Workout;
@@ -34,7 +34,8 @@ export function WorkoutBasicsForm(props: WorkoutBasicsFormProps) {
   const [title, setTitle] = useState(initial?.title ?? "");
   const [teamName, setTeamName] = useState(initial?.team_name ?? "");
   const [scheduledFor, setScheduledFor] = useState(
-    initial?.scheduled_for ?? "",
+    initial?.scheduled_for ??
+      (props.mode === "create" ? (props.initialScheduledFor ?? "") : ""),
   );
   const [notes, setNotes] = useState(initial?.notes ?? "");
 
