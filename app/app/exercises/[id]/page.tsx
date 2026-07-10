@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CategoryBadge } from "@/components/exercises/CategoryBadge";
+import { SportBadge } from "@/components/exercises/SportBadge";
 import { DifficultyIndicator } from "@/components/exercises/DifficultyIndicator";
 import { DeleteExerciseButton } from "@/components/exercises/DeleteExerciseButton";
 import { formatDuration } from "@/lib/exercises";
@@ -47,11 +48,18 @@ export default async function ExerciseDetailPage({
     );
   }
 
-  const { data: category } = await supabase
-    .from("categories")
-    .select("*")
-    .eq("id", exercise.category_id)
-    .maybeSingle();
+  const [{ data: category }, { data: sport }] = await Promise.all([
+    supabase
+      .from("categories")
+      .select("*")
+      .eq("id", exercise.category_id)
+      .maybeSingle(),
+    supabase
+      .from("sports")
+      .select("*")
+      .eq("id", exercise.sport_id)
+      .maybeSingle(),
+  ]);
 
   const isOwner = userData.user?.id === exercise.author_id;
 
@@ -70,6 +78,7 @@ export default async function ExerciseDetailPage({
             {exercise.title}
           </h1>
           <div className="mt-3 flex flex-wrap items-center gap-3">
+            {sport && <SportBadge name={sport.name_pl} />}
             {category && (
               <CategoryBadge name={category.name_pl} slug={category.slug} />
             )}

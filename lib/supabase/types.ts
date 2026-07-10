@@ -58,11 +58,33 @@ export interface Database {
         };
         Relationships: [];
       };
+      sports: {
+        Row: {
+          id: number;
+          slug: string;
+          name_pl: string;
+          name_en: string;
+        };
+        Insert: {
+          id?: number;
+          slug: string;
+          name_pl: string;
+          name_en: string;
+        };
+        Update: {
+          id?: number;
+          slug?: string;
+          name_pl?: string;
+          name_en?: string;
+        };
+        Relationships: [];
+      };
       exercises: {
         Row: {
           id: string;
           author_id: string | null;
           category_id: number;
+          sport_id: number;
           title: string;
           description: string | null;
           steps: string[];
@@ -78,6 +100,7 @@ export interface Database {
           id?: string;
           author_id?: string | null;
           category_id: number;
+          sport_id: number;
           title: string;
           description?: string | null;
           steps?: string[];
@@ -93,6 +116,7 @@ export interface Database {
           id?: string;
           author_id?: string | null;
           category_id?: number;
+          sport_id?: number;
           title?: string;
           description?: string | null;
           steps?: string[];
@@ -117,6 +141,13 @@ export interface Database {
             columns: ["category_id"];
             isOneToOne: false;
             referencedRelation: "categories";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "exercises_sport_id_fkey";
+            columns: ["sport_id"];
+            isOneToOne: false;
+            referencedRelation: "sports";
             referencedColumns: ["id"];
           },
         ];
@@ -214,6 +245,10 @@ export interface Database {
         Args: { p_share_id: string };
         Returns: SharedWorkoutPayload | null;
       };
+      duplicate_workout: {
+        Args: { p_workout_id: string };
+        Returns: Database["public"]["Tables"]["workouts"]["Row"];
+      };
     };
     Enums: Record<string, never>;
   };
@@ -221,6 +256,7 @@ export interface Database {
 
 export type Exercise = Database["public"]["Tables"]["exercises"]["Row"];
 export type Category = Database["public"]["Tables"]["categories"]["Row"];
+export type Sport = Database["public"]["Tables"]["sports"]["Row"];
 export type Workout = Database["public"]["Tables"]["workouts"]["Row"];
 export type WorkoutItem = Database["public"]["Tables"]["workout_items"]["Row"];
 

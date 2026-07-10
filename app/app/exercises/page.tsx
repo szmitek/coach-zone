@@ -10,10 +10,12 @@ export const metadata: Metadata = {
 
 export default async function ExercisesPage() {
   const supabase = await createClient();
-  const { data: categories } = await supabase
-    .from("categories")
-    .select("*")
-    .order("id", { ascending: true });
+  const [{ data: categories }, { data: sports }] = await Promise.all([
+    supabase.from("categories").select("*").order("id", { ascending: true }),
+    supabase.from("sports").select("*").order("id", { ascending: true }),
+  ]);
 
-  return <ExercisesLibrary categories={categories ?? []} />;
+  return (
+    <ExercisesLibrary categories={categories ?? []} sports={sports ?? []} />
+  );
 }

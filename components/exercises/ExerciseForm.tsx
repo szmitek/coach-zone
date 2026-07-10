@@ -7,15 +7,26 @@ import { FormField } from "@/components/auth/FormField";
 import { SubmitButton } from "@/components/auth/SubmitButton";
 import { DIFFICULTY_LABELS, DIFFICULTY_OPTIONS } from "@/lib/exercises";
 import { createClient } from "@/lib/supabase/client";
-import type { Category, Difficulty, Exercise } from "@/lib/supabase/types";
+import type {
+  Category,
+  Difficulty,
+  Exercise,
+  Sport,
+} from "@/lib/supabase/types";
 
 type ExerciseFormProps =
-  | { mode: "create"; categories: Category[]; userId: string }
-  | { mode: "edit"; categories: Category[]; exercise: Exercise };
+  | { mode: "create"; categories: Category[]; sports: Sport[]; userId: string }
+  | {
+      mode: "edit";
+      categories: Category[];
+      sports: Sport[];
+      exercise: Exercise;
+    };
 
 interface FieldErrors {
   title?: string;
   category?: string;
+  sport?: string;
   steps?: string;
   duration?: string;
   mediaUrl?: string;
@@ -48,6 +59,11 @@ export function ExerciseForm(props: ExerciseFormProps) {
   const [categoryId, setCategoryId] = useState<number | "">(
     initial?.category_id ?? "",
   );
+  const [sportId, setSportId] = useState<number | "">(
+    initial?.sport_id ??
+      props.sports.find((sport) => sport.slug === "football")?.id ??
+      "",
+  );
   const [description, setDescription] = useState(initial?.description ?? "");
   const [steps, setSteps] = useState<string[]>(
     initial?.steps && initial.steps.length > 0 ? initial.steps : [""],
@@ -73,6 +89,7 @@ export function ExerciseForm(props: ExerciseFormProps) {
     const errors: FieldErrors = {};
     if (!title.trim()) errors.title = "Podaj nazwę ćwiczenia.";
     if (!categoryId) errors.category = "Wybierz kategorię.";
+    if (!sportId) errors.sport = "Wybierz dyscyplinę.";
     if (steps.every((step) => !step.trim())) {
       errors.steps = "Dodaj co najmniej jeden krok.";
     }
@@ -138,6 +155,7 @@ export function ExerciseForm(props: ExerciseFormProps) {
     const payload = {
       title: title.trim(),
       category_id: categoryId as number,
+      sport_id: sportId as number,
       description: description.trim() || null,
       steps: steps.map((step) => step.trim()).filter(Boolean),
       duration_min: durationMin.trim() ? Number(durationMin) : null,
@@ -190,6 +208,32 @@ export function ExerciseForm(props: ExerciseFormProps) {
         onChange={(e) => setTitle(e.target.value)}
         error={fieldErrors.title}
       />
+
+      <div>
+        <label htmlFor="sport" className={labelClasses}>
+          Dyscyplina
+        </label>
+        <select
+          id="sport"
+          value={sportId}
+          onChange={(e) =>
+            setSportId(e.target.value ? Number(e.target.value) : "")
+          }
+          className={`mt-1.5 ${fieldClasses(Boolean(fieldErrors.sport))}`}
+        >
+          <option value="">Wybierz dyscyplinę…</option>
+          {props.sports.map((sport) => (
+            <option key={sport.id} value={sport.id}>
+              {sport.name_pl}
+            </option>
+          ))}
+        </select>
+        {fieldErrors.sport && (
+          <p className="mt-1.5 text-sm text-red-600 dark:text-red-400">
+            {fieldErrors.sport}
+          </p>
+        )}
+      </div>
 
       <div>
         <label htmlFor="category" className={labelClasses}>

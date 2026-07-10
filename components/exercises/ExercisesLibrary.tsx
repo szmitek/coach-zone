@@ -3,19 +3,31 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { Category, Difficulty, Exercise } from "@/lib/supabase/types";
+import type {
+  Category,
+  Difficulty,
+  Exercise,
+  Sport,
+} from "@/lib/supabase/types";
 import { DIFFICULTY_LABELS, DIFFICULTY_OPTIONS } from "@/lib/exercises";
 import { ExerciseCard } from "./ExerciseCard";
 import { ExerciseCardSkeleton } from "./ExerciseCardSkeleton";
 
 const ALL = "all" as const;
 
-export function ExercisesLibrary({ categories }: { categories: Category[] }) {
+export function ExercisesLibrary({
+  categories,
+  sports,
+}: {
+  categories: Category[];
+  sports: Sport[];
+}) {
   const [exercises, setExercises] = useState<Exercise[] | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [reloadToken, setReloadToken] = useState(0);
 
   const [search, setSearch] = useState("");
+  const [sportFilter, setSportFilter] = useState<number | typeof ALL>(ALL);
   const [categoryFilter, setCategoryFilter] = useState<number | typeof ALL>(
     ALL,
   );
@@ -54,6 +66,12 @@ export function ExercisesLibrary({ categories }: { categories: Category[] }) {
     return map;
   }, [categories]);
 
+  const sportsById = useMemo(() => {
+    const map = new Map<number, Sport>();
+    for (const sport of sports) map.set(sport.id, sport);
+    return map;
+  }, [sports]);
+
   const equipmentOptions = useMemo(() => {
     const values = new Set<string>();
     for (const exercise of exercises ?? []) {
@@ -70,6 +88,8 @@ export function ExercisesLibrary({ categories }: { categories: Category[] }) {
           `${exercise.title} ${exercise.description ?? ""}`.toLowerCase();
         if (!haystack.includes(query)) return false;
       }
+      if (sportFilter !== ALL && exercise.sport_id !== sportFilter)
+        return false;
       if (categoryFilter !== ALL && exercise.category_id !== categoryFilter)
         return false;
       if (difficultyFilter !== ALL && exercise.difficulty !== difficultyFilter)
@@ -82,10 +102,18 @@ export function ExercisesLibrary({ categories }: { categories: Category[] }) {
       }
       return true;
     });
-  }, [exercises, search, categoryFilter, difficultyFilter, equipmentFilter]);
+  }, [
+    exercises,
+    search,
+    sportFilter,
+    categoryFilter,
+    difficultyFilter,
+    equipmentFilter,
+  ]);
 
   function clearAll() {
     setSearch("");
+    setSportFilter(ALL);
     setCategoryFilter(ALL);
     setDifficultyFilter(ALL);
     setEquipmentFilter(ALL);
@@ -97,6 +125,12 @@ export function ExercisesLibrary({ categories }: { categories: Category[] }) {
     activeFilters.push({
       label: `Szukaj: „${trimmedSearch}”`,
       onClear: () => setSearch(""),
+    });
+  }
+  if (sportFilter !== ALL) {
+    activeFilters.push({
+      label: `Dyscyplina: ${sportsById.get(sportFilter)?.name_pl ?? sportFilter}`,
+      onClear: () => setSportFilter(ALL),
     });
   }
   if (categoryFilter !== ALL) {
@@ -155,7 +189,19 @@ export function ExercisesLibrary({ categories }: { categories: Category[] }) {
           />
         </div>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <FilterSelect
+            id="sport-filter"
+            label="Dyscyplina"
+            value={sportFilter === ALL ? ALL : String(sportFilter)}
+            onChange={(value) =>
+              setSportFilter(value === ALL ? ALL : Number(value))
+            }
+            options={[
+              { value: ALL, label: "Wszystkie dyscypliny" },
+              ...sports.map((s) => ({ value: String(s.id), label: s.name_pl })),
+            ]}
+          />
           <FilterSelect
             id="category-filter"
             label="Kategoria"

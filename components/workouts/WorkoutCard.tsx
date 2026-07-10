@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Workout } from "@/lib/supabase/types";
 import { formatCreatedDate, formatScheduledDate } from "@/lib/workouts";
 import { DeleteWorkoutButton } from "./DeleteWorkoutButton";
+import { DuplicateWorkoutButton } from "./DuplicateWorkoutButton";
 
 export function WorkoutCard({
   workout,
@@ -31,7 +32,8 @@ export function WorkoutCard({
         </div>
       </Link>
 
-      <div className="mt-4 flex justify-end">
+      <div className="mt-4 flex flex-wrap justify-end gap-2">
+        <DuplicateWorkoutButton workoutId={workout.id} />
         <DeleteWorkoutButton workoutId={workout.id} onDeleted={onDeleted} />
       </div>
     </div>
