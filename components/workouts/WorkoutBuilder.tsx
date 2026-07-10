@@ -21,8 +21,10 @@ import {
   type SaveState,
 } from "@/lib/workouts";
 import { DeleteWorkoutButton } from "./DeleteWorkoutButton";
+import { DownloadPdfButton } from "./DownloadPdfButton";
 import { ExercisePicker } from "./ExercisePicker";
 import { SaveIndicator } from "./SaveIndicator";
+import { ShareWorkoutButton } from "./ShareWorkoutButton";
 import { WorkoutBasicsForm } from "./WorkoutBasicsForm";
 import { WorkoutSectionColumn } from "./WorkoutSectionColumn";
 
@@ -104,6 +106,22 @@ export function WorkoutBuilder({
   const totalDuration = useMemo(
     () => items.reduce((sum, item) => sum + (item.duration_min ?? 0), 0),
     [items],
+  );
+
+  const pdfItems = useMemo(
+    () =>
+      items.map((item) => ({
+        id: item.id,
+        section: item.section,
+        position: item.position,
+        duration_min: item.duration_min,
+        assigned_to: item.assigned_to,
+        exerciseTitle:
+          exercisesById[item.exercise_id]?.title ?? "Ćwiczenie niedostępne",
+        exerciseDescription:
+          exercisesById[item.exercise_id]?.description ?? null,
+      })),
+    [items, exercisesById],
   );
 
   // Optimistic-update helper shared by every mutation: apply the new items
@@ -333,10 +351,14 @@ export function WorkoutBuilder({
 
         <div className="flex shrink-0 flex-col items-end gap-3">
           <SaveIndicator state={saveState} />
-          <DeleteWorkoutButton
-            workoutId={workout.id}
-            onDeleted={handleWorkoutDeleted}
-          />
+          <div className="flex flex-wrap items-start justify-end gap-2">
+            <DownloadPdfButton workout={workout} items={pdfItems} />
+            <ShareWorkoutButton shareId={workout.share_id} />
+            <DeleteWorkoutButton
+              workoutId={workout.id}
+              onDeleted={handleWorkoutDeleted}
+            />
+          </div>
         </div>
       </div>
 

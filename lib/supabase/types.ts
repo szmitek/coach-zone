@@ -212,7 +212,7 @@ export interface Database {
     Functions: {
       get_shared_workout: {
         Args: { p_share_id: string };
-        Returns: Json;
+        Returns: SharedWorkoutPayload | null;
       };
     };
     Enums: Record<string, never>;
@@ -223,3 +223,23 @@ export type Exercise = Database["public"]["Tables"]["exercises"]["Row"];
 export type Category = Database["public"]["Tables"]["categories"]["Row"];
 export type Workout = Database["public"]["Tables"]["workouts"]["Row"];
 export type WorkoutItem = Database["public"]["Tables"]["workout_items"]["Row"];
+
+// Shape returned by the get_shared_workout() RPC (see
+// supabase/migrations/20260709100400_shared_workout_exercise_details.sql).
+// exercise is null only if the item's exercise row was somehow removed -
+// the FK normally prevents this, but the left join guards against it.
+export interface SharedWorkoutItem {
+  id: string;
+  workout_id: string;
+  exercise_id: string;
+  section: WorkoutSection;
+  position: number;
+  duration_min: number | null;
+  assigned_to: string | null;
+  exercise: { id: string; title: string; description: string | null } | null;
+}
+
+export interface SharedWorkoutPayload {
+  workout: Workout;
+  items: SharedWorkoutItem[];
+}

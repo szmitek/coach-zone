@@ -63,3 +63,29 @@ export function formatCreatedDate(value: string): string {
 export function formatTotalDuration(totalMinutes: number): string {
   return `${totalMinutes} min`;
 }
+
+// Shared shape for anything that renders a workout's items read-only - the
+// PDF export and the public share page both consume this, one built from
+// the owner's WorkoutItem[] + exercise lookup, the other straight from the
+// get_shared_workout() RPC payload.
+export interface PdfWorkoutItem {
+  id: string;
+  section: WorkoutSection;
+  position: number;
+  duration_min: number | null;
+  assigned_to: string | null;
+  exerciseTitle: string;
+  exerciseDescription: string | null;
+}
+
+export function groupItemsBySection<
+  T extends { section: WorkoutSection; position: number },
+>(items: T[]): Map<WorkoutSection, T[]> {
+  const map = new Map<WorkoutSection, T[]>();
+  for (const section of SECTION_ORDER) map.set(section, []);
+  for (const item of items) map.get(item.section)?.push(item);
+  for (const section of SECTION_ORDER) {
+    map.get(section)?.sort((a, b) => a.position - b.position);
+  }
+  return map;
+}
