@@ -11,10 +11,12 @@ export const metadata: Metadata = {
 
 export default async function NewExercisePage() {
   const supabase = await createClient();
-  const [{ data: userData }, { data: categories }] = await Promise.all([
-    supabase.auth.getUser(),
-    supabase.from("categories").select("*").order("id", { ascending: true }),
-  ]);
+  const [{ data: userData }, { data: categories }, { data: sports }] =
+    await Promise.all([
+      supabase.auth.getUser(),
+      supabase.from("categories").select("*").order("id", { ascending: true }),
+      supabase.from("sports").select("*").order("id", { ascending: true }),
+    ]);
 
   // Middleware already guarantees a user for any /app/* route; this is a
   // defensive fallback since userId below is required for the insert.
@@ -32,6 +34,7 @@ export default async function NewExercisePage() {
         <ExerciseForm
           mode="create"
           categories={categories ?? []}
+          sports={sports ?? []}
           userId={userData.user.id}
         />
       </div>

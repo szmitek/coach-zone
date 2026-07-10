@@ -22,10 +22,12 @@ export default async function EditExercisePage({
     { data: exercise, error: exerciseError },
     { data: userData },
     { data: categories },
+    { data: sports },
   ] = await Promise.all([
     supabase.from("exercises").select("*").eq("id", id).maybeSingle(),
     supabase.auth.getUser(),
     supabase.from("categories").select("*").order("id", { ascending: true }),
+    supabase.from("sports").select("*").order("id", { ascending: true }),
   ]);
 
   if (!userData.user) {
@@ -77,6 +79,7 @@ export default async function EditExercisePage({
         <ExerciseForm
           mode="edit"
           categories={categories ?? []}
+          sports={sports ?? []}
           exercise={exercise}
         />
       </div>
