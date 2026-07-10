@@ -76,12 +76,20 @@ export function WorkoutsList() {
             Planuj sesje treningowe i buduj je z biblioteki ćwiczeń.
           </p>
         </div>
-        <Link
-          href="/app/workouts/new"
-          className="rounded-full bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-500"
-        >
-          Nowy trening
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/app/calendar"
+            className="rounded-full border border-neutral-300 px-4 py-2.5 text-sm font-medium transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+          >
+            Kalendarz
+          </Link>
+          <Link
+            href="/app/workouts/new"
+            className="rounded-full bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-500"
+          >
+            Nowy trening
+          </Link>
+        </div>
       </div>
 
       <div className="mt-8">

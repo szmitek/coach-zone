@@ -9,7 +9,13 @@ export const metadata: Metadata = {
   title: "Nowy trening — Coach Zone",
 };
 
-export default async function NewWorkoutPage() {
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+export default async function NewWorkoutPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string }>;
+}) {
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
 
@@ -19,6 +25,9 @@ export default async function NewWorkoutPage() {
     redirect("/login");
   }
 
+  const { date } = await searchParams;
+  const initialScheduledFor = date && DATE_PATTERN.test(date) ? date : undefined;
+
   return (
     <main className="mx-auto max-w-2xl px-6 pt-8 pb-20">
       <h1 className="text-3xl font-bold tracking-tight">Nowy trening</h1>
@@ -26,7 +35,11 @@ export default async function NewWorkoutPage() {
         Podaj podstawowe informacje — szczegóły ćwiczeń dodasz w kolejnym kroku.
       </p>
       <div className="mt-8">
-        <WorkoutBasicsForm mode="create" userId={userData.user.id} />
+        <WorkoutBasicsForm
+          mode="create"
+          userId={userData.user.id}
+          initialScheduledFor={initialScheduledFor}
+        />
       </div>
     </main>
   );

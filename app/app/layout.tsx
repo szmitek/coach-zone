@@ -5,6 +5,7 @@ import { logout } from "./actions";
 const navItems = [
   { href: "/app/exercises", label: "Ćwiczenia" },
   { href: "/app/workouts", label: "Treningi" },
+  { href: "/app/calendar", label: "Kalendarz" },
 ];
 
 export default function AppLayout({ children }: { children: ReactNode }) {
