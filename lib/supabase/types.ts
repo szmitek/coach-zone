@@ -245,6 +245,10 @@ export interface Database {
         Args: { p_share_id: string };
         Returns: SharedWorkoutPayload | null;
       };
+      duplicate_workout: {
+        Args: { p_workout_id: string };
+        Returns: Database["public"]["Tables"]["workouts"]["Row"];
+      };
     };
     Enums: Record<string, never>;
   };
