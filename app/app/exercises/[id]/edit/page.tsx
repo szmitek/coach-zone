@@ -18,12 +18,15 @@ export default async function EditExercisePage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: exercise }, { data: userData }, { data: categories }] =
-    await Promise.all([
-      supabase.from("exercises").select("*").eq("id", id).maybeSingle(),
-      supabase.auth.getUser(),
-      supabase.from("categories").select("*").order("id", { ascending: true }),
-    ]);
+  const [
+    { data: exercise, error: exerciseError },
+    { data: userData },
+    { data: categories },
+  ] = await Promise.all([
+    supabase.from("exercises").select("*").eq("id", id).maybeSingle(),
+    supabase.auth.getUser(),
+    supabase.from("categories").select("*").order("id", { ascending: true }),
+  ]);
 
   if (!userData.user) {
     redirect("/login");
@@ -33,13 +36,18 @@ export default async function EditExercisePage({
     return (
       <main className="mx-auto max-w-2xl px-6 pt-8 pb-20 text-center">
         <h1 className="text-2xl font-semibold tracking-tight">
-          Nie znaleziono ćwiczenia
+          {exerciseError ? "Wystąpił błąd" : "Nie znaleziono ćwiczenia"}
         </h1>
+        <p className="mt-3 text-neutral-600 dark:text-neutral-400">
+          {exerciseError
+            ? "Nie udało się wczytać ćwiczenia. Spróbuj ponownie."
+            : "To ćwiczenie nie istnieje albo nie masz do niego dostępu."}
+        </p>
         <Link
-          href="/app/exercises"
+          href={exerciseError ? `/app/exercises/${id}/edit` : "/app/exercises"}
           className="mt-6 inline-block rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-500"
         >
-          Powrót do listy
+          {exerciseError ? "Spróbuj ponownie" : "Powrót do listy"}
         </Link>
       </main>
     );

@@ -111,7 +111,7 @@ export function WorkoutItemRow({
               />
             </label>
 
-            <label className="text-xs text-neutral-500 dark:text-neutral-500">
+            <label className="col-span-2 text-xs text-neutral-500 dark:text-neutral-500 sm:col-span-1">
               Sekcja
               <select
                 value={item.section}
