@@ -3,20 +3,20 @@ import type { ReactNode } from "react";
 import { logout } from "./actions";
 
 const navItems = [
-  { href: "/app/exercises", label: "Exercises" },
-  { href: "/app/workouts", label: "Workouts" },
+  { href: "/app/exercises", label: "Ćwiczenia" },
+  { href: "/app/workouts", label: "Treningi" },
 ];
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
       <header className="border-b border-neutral-200 dark:border-neutral-800">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-6 sm:gap-8">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-4 sm:px-6">
+          <div className="flex items-center gap-4 sm:gap-8">
             <Link href="/app" className="text-lg font-semibold tracking-tight">
               Coach Zone
             </Link>
-            <nav className="flex gap-4 sm:gap-6">
+            <nav className="flex gap-3 sm:gap-6">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
@@ -31,9 +31,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           <form action={logout}>
             <button
               type="submit"
-              className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+              className="rounded-full border border-neutral-300 px-3 py-1.5 text-sm font-medium transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900 sm:px-4 sm:py-2"
             >
-              Log out
+              Wyloguj się
             </button>
           </form>
         </div>

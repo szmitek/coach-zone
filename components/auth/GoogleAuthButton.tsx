@@ -48,14 +48,14 @@ export function GoogleAuthButton() {
           type="button"
           disabled
           aria-disabled="true"
-          title="Google sign-in isn't configured yet"
+          title="Logowanie przez Google nie jest jeszcze skonfigurowane"
           className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-full border border-neutral-200 px-4 py-2.5 text-sm font-medium text-neutral-400 dark:border-neutral-800 dark:text-neutral-600"
         >
           <GoogleIcon />
-          Continue with Google
+          Kontynuuj z Google
         </button>
         <p className="mt-1.5 text-center text-xs text-neutral-500 dark:text-neutral-500">
-          Not yet configured
+          Jeszcze nieskonfigurowane
         </p>
       </div>
     );
@@ -68,7 +68,7 @@ export function GoogleAuthButton() {
       className="flex w-full items-center justify-center gap-2 rounded-full border border-neutral-300 px-4 py-2.5 text-sm font-medium transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
     >
       <GoogleIcon />
-      Continue with Google
+      Kontynuuj z Google
     </button>
   );
 }

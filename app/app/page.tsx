@@ -11,13 +11,13 @@ export const metadata: Metadata = {
 const navItems = [
   {
     href: "/app/exercises",
-    title: "Exercises",
-    description: "Browse the official library and build your own drills.",
+    title: "Ćwiczenia",
+    description: "Przeglądaj oficjalną bibliotekę i twórz własne ćwiczenia.",
   },
   {
     href: "/app/workouts",
-    title: "Workouts",
-    description: "Plan training sessions and share them with your team.",
+    title: "Treningi",
+    description: "Planuj sesje treningowe i buduj je z biblioteki ćwiczeń.",
   },
 ];
 
@@ -41,12 +41,12 @@ export default async function AppHomePage() {
     profile?.display_name ?? user?.email?.split("@")[0] ?? "Coach";
 
   return (
-    <main className="mx-auto max-w-6xl px-6 pt-8 pb-20">
+    <main className="mx-auto max-w-3xl px-6 pt-8 pb-20">
       <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-        Welcome, {displayName}
+        Witaj, {displayName}
       </h1>
       <p className="mt-3 text-neutral-600 dark:text-neutral-400">
-        Here&rsquo;s your Coach Zone home base.
+        To Twoja strona startowa w Coach Zone.
       </p>
 
       <div className="mt-10 grid gap-6 sm:grid-cols-2">

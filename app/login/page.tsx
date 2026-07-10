@@ -5,13 +5,13 @@ import { LoginForm } from "@/components/auth/LoginForm";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Log in — Coach Zone",
+  title: "Zaloguj się — Coach Zone",
 };
 
 const QUERY_ERROR_MESSAGES: Record<string, string> = {
   confirmation_failed:
-    "That confirmation link is invalid or has expired. Try logging in, or sign up again to get a new one.",
-  oauth_failed: "Google sign-in didn't complete. Please try again.",
+    "Ten link potwierdzający jest nieprawidłowy albo wygasł. Spróbuj się zalogować albo zarejestruj się ponownie, aby otrzymać nowy.",
+  oauth_failed: "Logowanie przez Google nie powiodło się. Spróbuj ponownie.",
 };
 
 export default async function LoginPage({
@@ -24,8 +24,8 @@ export default async function LoginPage({
 
   return (
     <AuthShell
-      title="Welcome back"
-      subtitle="Log in to plan your next training session."
+      title="Witaj ponownie"
+      subtitle="Zaloguj się, aby zaplanować kolejny trening."
     >
       <LoginForm initialError={initialError} />
     </AuthShell>

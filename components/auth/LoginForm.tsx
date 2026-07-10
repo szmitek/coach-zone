@@ -30,10 +30,10 @@ export function LoginForm({ initialError }: { initialError?: string | null }) {
   function validate(): FieldErrors {
     const errors: FieldErrors = {};
     if (!EMAIL_PATTERN.test(email)) {
-      errors.email = "Please enter a valid email address.";
+      errors.email = "Podaj poprawny adres email.";
     }
     if (!password) {
-      errors.password = "Please enter your password.";
+      errors.password = "Podaj hasło.";
     }
     return errors;
   }
@@ -71,13 +71,13 @@ export function LoginForm({ initialError }: { initialError?: string | null }) {
 
       <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-500">
         <div className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
-        or log in with email
+        lub zaloguj się emailem
         <div className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
       </div>
 
       <FormField
         id="email"
-        label="Email"
+        label="Adres e-mail"
         type="email"
         autoComplete="email"
         value={email}
@@ -87,7 +87,7 @@ export function LoginForm({ initialError }: { initialError?: string | null }) {
       <div>
         <FormField
           id="password"
-          label="Password"
+          label="Hasło"
           type="password"
           autoComplete="current-password"
           value={password}
@@ -99,22 +99,22 @@ export function LoginForm({ initialError }: { initialError?: string | null }) {
             href="/forgot-password"
             className="text-sm font-medium text-emerald-600 hover:text-emerald-500"
           >
-            Forgot password?
+            Nie pamiętasz hasła?
           </Link>
         </div>
       </div>
 
-      <SubmitButton loading={loading} loadingText="Logging in…">
-        Log in
+      <SubmitButton loading={loading} loadingText="Logowanie…">
+        Zaloguj się
       </SubmitButton>
 
       <p className="text-center text-sm text-neutral-600 dark:text-neutral-400">
-        Don&rsquo;t have an account?{" "}
+        Nie masz konta?{" "}
         <Link
           href="/signup"
           className="font-medium text-emerald-600 hover:text-emerald-500"
         >
-          Sign up
+          Zarejestruj się
         </Link>
       </p>
     </form>

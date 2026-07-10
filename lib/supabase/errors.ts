@@ -2,34 +2,36 @@ import { isAuthError } from "@supabase/supabase-js";
 
 const MESSAGES_BY_CODE: Record<string, string> = {
   user_already_exists:
-    "An account with this email already exists. Try logging in instead.",
+    "Konto z tym adresem email już istnieje. Spróbuj się zalogować.",
   email_exists:
-    "An account with this email already exists. Try logging in instead.",
-  invalid_credentials: "Incorrect email or password.",
+    "Konto z tym adresem email już istnieje. Spróbuj się zalogować.",
+  invalid_credentials: "Nieprawidłowy email lub hasło.",
   email_not_confirmed:
-    "Please confirm your email address before logging in. Check your inbox for the confirmation link.",
-  email_address_invalid: "Please enter a valid email address.",
-  email_address_not_authorized: "This email address isn't allowed to sign up.",
-  signup_disabled: "Sign-ups are currently disabled.",
-  user_banned:
-    "This account has been disabled. Contact support if you think this is a mistake.",
-  weak_password: "Password must be at least 6 characters.",
-  same_password:
-    "Your new password must be different from your current password.",
+    "Potwierdź adres email, zanim się zalogujesz. Sprawdź skrzynkę — wysłaliśmy link potwierdzający.",
+  email_address_invalid: "Podaj poprawny adres email.",
+  email_address_not_authorized: "Ten adres email nie może się zarejestrować.",
+  signup_disabled: "Rejestracja jest obecnie wyłączona.",
+  user_banned: "To konto zostało zablokowane.",
+  weak_password: "Hasło musi mieć co najmniej 6 znaków.",
+  same_password: "Nowe hasło musi różnić się od obecnego.",
   over_email_send_rate_limit:
-    "Too many attempts. Please wait a moment and try again.",
+    "Zbyt wiele prób. Odczekaj chwilę i spróbuj ponownie.",
   over_request_rate_limit:
-    "Too many attempts. Please wait a moment and try again.",
-  validation_failed: "Please check the form for errors and try again.",
-  session_not_found: "Your session has expired. Please log in again.",
-  user_not_found: "Incorrect email or password.",
+    "Zbyt wiele prób. Odczekaj chwilę i spróbuj ponownie.",
+  validation_failed: "Sprawdź formularz i spróbuj ponownie.",
+  session_not_found: "Twoja sesja wygasła. Zaloguj się ponownie.",
+  user_not_found: "Nieprawidłowy email lub hasło.",
 };
 
-// Fallback for cases where Supabase doesn't populate error.code - notably
-// signInWithPassword's "Invalid login credentials", which auth-js currently
-// surfaces via the legacy invalid_grant response shape with code: undefined
-// (supabase/auth-js#937). email_not_confirmed is unaffected and matches via
-// error.code above, so the two cases still get distinct messages.
+// Fallback for responses that predate structured error codes, or that never
+// carry one client-side (e.g. AuthRetryableFetchError from a network blip).
+// Verified directly against the installed auth-js (2.110.1): every request
+// sends the `X-Supabase-Api-Version: 2024-01-01` header, and handleError()
+// in lib/fetch.js reads `code` straight from the JSON error body whenever
+// the server echoes back that version or later - which a current hosted
+// Supabase project always does. So invalid_credentials and
+// email_not_confirmed both already arrive as populated error.code values
+// via MESSAGES_BY_CODE above; this regex list is defense-in-depth only.
 const MESSAGES_BY_TEXT: Array<[RegExp, string]> = [
   [/already registered/i, MESSAGES_BY_CODE.user_already_exists],
   [/invalid login credentials/i, MESSAGES_BY_CODE.invalid_credentials],
@@ -39,7 +41,7 @@ const MESSAGES_BY_TEXT: Array<[RegExp, string]> = [
   [/rate limit/i, MESSAGES_BY_CODE.over_email_send_rate_limit],
 ];
 
-const FALLBACK_MESSAGE = "Something went wrong. Please try again.";
+const FALLBACK_MESSAGE = "Coś poszło nie tak. Spróbuj ponownie.";
 
 /**
  * Maps a Supabase Auth error to a short, user-facing message. Never returns
