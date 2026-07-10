@@ -6,6 +6,7 @@ const navItems = [
   { href: "/app/exercises", label: "Ćwiczenia" },
   { href: "/app/workouts", label: "Treningi" },
   { href: "/app/calendar", label: "Kalendarz" },
+  { href: "/app/board", label: "Tablica taktyczna" },
 ];
 
 export default function AppLayout({ children }: { children: ReactNode }) {
