@@ -1,17 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { SITE_URL } from "@/lib/site";
 
 export function ShareWorkoutButton({ shareId }: { shareId: string }) {
   const [open, setOpen] = useState(false);
-  const [shareUrl, setShareUrl] = useState("");
   const [copied, setCopied] = useState(false);
 
-  // Computed after mount, not during render, so server and client markup
-  // match on first paint - window.location isn't available on the server.
-  useEffect(() => {
-    setShareUrl(`${window.location.origin}/w/${shareId}`);
-  }, [shareId]);
+  // Always the stable production origin, never window.location.origin -
+  // see lib/site.ts. Same value on server and client, so no mount-effect
+  // is needed to avoid a hydration mismatch.
+  const shareUrl = `${SITE_URL}/w/${shareId}`;
 
   async function handleCopy() {
     try {
@@ -37,15 +36,15 @@ export function ShareWorkoutButton({ shareId }: { shareId: string }) {
   }
 
   return (
-    <div className="flex flex-col items-end gap-2">
-      <div className="flex items-center gap-2">
+    <div className="flex w-full flex-col items-end gap-2 sm:w-auto">
+      <div className="flex w-full flex-wrap items-center justify-end gap-2">
         <input
           type="text"
           readOnly
           value={shareUrl}
           onFocus={(e) => e.target.select()}
           aria-label="Publiczny link do treningu"
-          className="w-48 truncate rounded-lg border border-neutral-300 bg-white px-2.5 py-1.5 text-xs outline-none dark:border-neutral-700 dark:bg-neutral-900 sm:w-72"
+          className="w-full min-w-0 flex-1 truncate rounded-lg border border-neutral-300 bg-white px-2.5 py-1.5 text-xs outline-none dark:border-neutral-700 dark:bg-neutral-900 sm:w-72 sm:flex-none"
         />
         <button
           type="button"

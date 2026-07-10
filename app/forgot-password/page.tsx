@@ -5,14 +5,14 @@ import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Reset password — Coach Zone",
+  title: "Reset hasła — Coach Zone",
 };
 
 export default function ForgotPasswordPage() {
   return (
     <AuthShell
-      title="Reset your password"
-      subtitle="Enter your email and we'll send you a reset link."
+      title="Zresetuj hasło"
+      subtitle="Podaj swój email, a wyślemy Ci link do zresetowania hasła."
     >
       <ForgotPasswordForm />
     </AuthShell>

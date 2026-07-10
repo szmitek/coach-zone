@@ -34,15 +34,15 @@ export function SignupForm() {
 
   function validate(): FieldErrors {
     const errors: FieldErrors = {};
-    if (!fullName.trim()) errors.fullName = "Please enter your name.";
+    if (!fullName.trim()) errors.fullName = "Podaj swoje imię i nazwisko.";
     if (!EMAIL_PATTERN.test(email)) {
-      errors.email = "Please enter a valid email address.";
+      errors.email = "Podaj poprawny adres email.";
     }
     if (password.length < 6) {
-      errors.password = "Password must be at least 6 characters.";
+      errors.password = "Hasło musi mieć co najmniej 6 znaków.";
     }
     if (confirmPassword !== password) {
-      errors.confirmPassword = "Passwords don't match.";
+      errors.confirmPassword = "Hasła nie są takie same.";
     }
     return errors;
   }
@@ -77,7 +77,7 @@ export function SignupForm() {
     // anti-enumeration behavior, not a real new signup.
     if (data.user && data.user.identities?.length === 0) {
       setFormError(
-        "An account with this email may already exist. Try logging in or resetting your password.",
+        "Konto z tym adresem email może już istnieć. Spróbuj się zalogować albo zresetować hasło.",
       );
       return;
     }
@@ -96,13 +96,13 @@ export function SignupForm() {
       <div className="space-y-4 text-center">
         <FormBanner
           variant="success"
-          message={`We've sent a confirmation link to ${confirmationSentTo}. Open it to activate your account.`}
+          message={`Wysłaliśmy link potwierdzający na adres ${confirmationSentTo}. Otwórz go, aby aktywować konto.`}
         />
         <Link
           href="/login"
           className="inline-block text-sm font-medium text-emerald-600 hover:text-emerald-500"
         >
-          Back to log in
+          Powrót do logowania
         </Link>
       </div>
     );
@@ -116,13 +116,13 @@ export function SignupForm() {
 
       <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-500">
         <div className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
-        or sign up with email
+        lub zarejestruj się emailem
         <div className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
       </div>
 
       <FormField
         id="fullName"
-        label="Full name"
+        label="Imię i nazwisko"
         type="text"
         autoComplete="name"
         value={fullName}
@@ -131,7 +131,7 @@ export function SignupForm() {
       />
       <FormField
         id="email"
-        label="Email"
+        label="Adres e-mail"
         type="email"
         autoComplete="email"
         value={email}
@@ -140,7 +140,7 @@ export function SignupForm() {
       />
       <FormField
         id="password"
-        label="Password"
+        label="Hasło"
         type="password"
         autoComplete="new-password"
         value={password}
@@ -149,7 +149,7 @@ export function SignupForm() {
       />
       <FormField
         id="confirmPassword"
-        label="Confirm password"
+        label="Powtórz hasło"
         type="password"
         autoComplete="new-password"
         value={confirmPassword}
@@ -157,17 +157,17 @@ export function SignupForm() {
         error={fieldErrors.confirmPassword}
       />
 
-      <SubmitButton loading={loading} loadingText="Creating account…">
-        Create account
+      <SubmitButton loading={loading} loadingText="Tworzenie konta…">
+        Utwórz konto
       </SubmitButton>
 
       <p className="text-center text-sm text-neutral-600 dark:text-neutral-400">
-        Already have an account?{" "}
+        Masz już konto?{" "}
         <Link
           href="/login"
           className="font-medium text-emerald-600 hover:text-emerald-500"
         >
-          Log in
+          Zaloguj się
         </Link>
       </p>
     </form>

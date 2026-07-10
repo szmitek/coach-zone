@@ -24,10 +24,10 @@ export function ResetPasswordForm() {
   function validate(): FieldErrors {
     const errors: FieldErrors = {};
     if (password.length < 6) {
-      errors.password = "Password must be at least 6 characters.";
+      errors.password = "Hasło musi mieć co najmniej 6 znaków.";
     }
     if (confirmPassword !== password) {
-      errors.confirmPassword = "Passwords don't match.";
+      errors.confirmPassword = "Hasła nie są takie same.";
     }
     return errors;
   }
@@ -60,7 +60,7 @@ export function ResetPasswordForm() {
 
       <FormField
         id="password"
-        label="New password"
+        label="Nowe hasło"
         type="password"
         autoComplete="new-password"
         value={password}
@@ -69,7 +69,7 @@ export function ResetPasswordForm() {
       />
       <FormField
         id="confirmPassword"
-        label="Confirm new password"
+        label="Powtórz nowe hasło"
         type="password"
         autoComplete="new-password"
         value={confirmPassword}
@@ -77,8 +77,8 @@ export function ResetPasswordForm() {
         error={fieldErrors.confirmPassword}
       />
 
-      <SubmitButton loading={loading} loadingText="Saving…">
-        Save new password
+      <SubmitButton loading={loading} loadingText="Zapisywanie…">
+        Zapisz nowe hasło
       </SubmitButton>
     </form>
   );

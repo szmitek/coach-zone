@@ -32,7 +32,7 @@ export function ResetPasswordGate() {
   if (status === "checking") {
     return (
       <p className="text-center text-sm text-neutral-500 dark:text-neutral-500">
-        Checking your link…
+        Sprawdzanie linku…
       </p>
     );
   }
@@ -41,13 +41,13 @@ export function ResetPasswordGate() {
     return (
       <div className="space-y-4 text-center">
         <p className="text-sm text-neutral-600 dark:text-neutral-400">
-          This password reset link is invalid or has expired.
+          Ten link do resetowania hasła jest nieprawidłowy albo wygasł.
         </p>
         <Link
           href="/forgot-password"
           className="block w-full rounded-full bg-emerald-600 px-4 py-2.5 text-center text-sm font-medium text-white transition-colors hover:bg-emerald-500"
         >
-          Request a new link
+          Poproś o nowy link
         </Link>
       </div>
     );
@@ -56,7 +56,7 @@ export function ResetPasswordGate() {
   return (
     <div className="space-y-4">
       <p className="text-center text-sm text-neutral-600 dark:text-neutral-400">
-        Choose a new password for your account.
+        Wybierz nowe hasło dla swojego konta.
       </p>
       <ResetPasswordForm />
     </div>

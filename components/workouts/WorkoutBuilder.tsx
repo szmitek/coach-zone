@@ -305,7 +305,7 @@ export function WorkoutBuilder({
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-6 pt-8 pb-24">
+    <main className="mx-auto max-w-5xl px-6 pt-8 pb-24">
       <Link
         href="/app/workouts"
         className="text-sm font-medium text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100"

@@ -3,34 +3,34 @@ import Link from "next/link";
 const steps = [
   {
     number: "1",
-    title: "Build your exercise library",
+    title: "Zbuduj bibliotekę ćwiczeń",
     description:
-      "Add drills once, organized by sport, position, and category, and reuse them in every training session you plan.",
+      "Dodaj ćwiczenia do swojej biblioteki raz — pogrupowane według kategorii i poziomu trudności — i korzystaj z nich w każdym kolejnym treningu.",
   },
   {
     number: "2",
-    title: "Assemble a session",
+    title: "Zbuduj trening",
     description:
-      "Pull exercises from your library into a session plan tailored to today's practice, in whatever order works for your team.",
+      "Wybieraj ćwiczenia z biblioteki i układaj je w plan dopasowany do dzisiejszych zajęć, w dowolnej kolejności.",
   },
   {
     number: "3",
-    title: "Export and share",
+    title: "Eksportuj i udostępniaj",
     description:
-      "Turn any session into a clean PDF and share it with players or coaching staff in one click.",
+      "Zamień dowolny trening w czytelny PDF i udostępnij go zawodnikom albo sztabowi jednym kliknięciem.",
   },
 ];
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
+      <header className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-6">
         <span className="text-lg font-semibold tracking-tight">Coach Zone</span>
         <Link
           href="/login"
           className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-500"
         >
-          Log in
+          Zaloguj się
         </Link>
       </header>
 
@@ -40,15 +40,15 @@ export default function Home() {
             Coach Zone
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-neutral-600 sm:text-xl dark:text-neutral-400">
-            Build training sessions from a reusable exercise library, export
-            them to PDF, and share them with your team in minutes.
+            Twórz treningi z biblioteki ćwiczeń, eksportuj je do PDF i
+            udostępniaj swojej drużynie w kilka minut.
           </p>
           <div className="mt-10 flex justify-center">
             <Link
               href="/login"
               className="rounded-full bg-emerald-600 px-6 py-3 text-base font-medium text-white transition-colors hover:bg-emerald-500"
             >
-              Log in
+              Zaloguj się
             </Link>
           </div>
         </section>
@@ -56,7 +56,7 @@ export default function Home() {
         <section className="border-t border-neutral-200 dark:border-neutral-800">
           <div className="mx-auto max-w-6xl px-6 py-16 sm:py-24">
             <h2 className="text-center text-2xl font-semibold tracking-tight sm:text-3xl">
-              How it works
+              Jak to działa
             </h2>
             <div className="mt-12 grid gap-10 sm:grid-cols-3 sm:gap-8">
               {steps.map((step) => (

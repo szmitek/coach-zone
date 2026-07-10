@@ -5,14 +5,14 @@ import { SignupForm } from "@/components/auth/SignupForm";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Sign up — Coach Zone",
+  title: "Zarejestruj się — Coach Zone",
 };
 
 export default function SignupPage() {
   return (
     <AuthShell
-      title="Create your account"
-      subtitle="Build your exercise library and start planning sessions."
+      title="Utwórz konto"
+      subtitle="Zbuduj bibliotekę ćwiczeń i zacznij planować treningi."
     >
       <SignupForm />
     </AuthShell>

@@ -22,7 +22,7 @@ export function ForgotPasswordForm() {
     setFormError(null);
 
     if (!EMAIL_PATTERN.test(email)) {
-      setFieldError("Please enter a valid email address.");
+      setFieldError("Podaj poprawny adres email.");
       return;
     }
     setFieldError(undefined);
@@ -49,13 +49,13 @@ export function ForgotPasswordForm() {
       <div className="space-y-4 text-center">
         <FormBanner
           variant="success"
-          message="If an account exists for that email, we've sent a password reset link."
+          message="Jeśli konto z tym adresem email istnieje, wysłaliśmy na nie link do zresetowania hasła."
         />
         <Link
           href="/login"
           className="inline-block text-sm font-medium text-emerald-600 hover:text-emerald-500"
         >
-          Back to log in
+          Powrót do logowania
         </Link>
       </div>
     );
@@ -67,7 +67,7 @@ export function ForgotPasswordForm() {
 
       <FormField
         id="email"
-        label="Email"
+        label="Adres e-mail"
         type="email"
         autoComplete="email"
         value={email}
@@ -75,17 +75,17 @@ export function ForgotPasswordForm() {
         error={fieldError}
       />
 
-      <SubmitButton loading={loading} loadingText="Sending link…">
-        Send reset link
+      <SubmitButton loading={loading} loadingText="Wysyłanie linku…">
+        Wyślij link
       </SubmitButton>
 
       <p className="text-center text-sm text-neutral-600 dark:text-neutral-400">
-        Remembered your password?{" "}
+        Pamiętasz hasło?{" "}
         <Link
           href="/login"
           className="font-medium text-emerald-600 hover:text-emerald-500"
         >
-          Log in
+          Zaloguj się
         </Link>
       </p>
     </form>
