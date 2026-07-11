@@ -14,7 +14,12 @@ import {
   boardHistoryReducer,
   initialBoardHistoryState,
 } from "@/lib/board/historyReducer";
-import { distance, flattenPoints, translatePoints } from "@/lib/board/path";
+import {
+  distance,
+  flattenPoints,
+  smoothPathPoints,
+  translatePoints,
+} from "@/lib/board/path";
 import { getSportConfig } from "@/lib/board/sports/registry";
 import type { PathToolStyle, ToolDef } from "@/lib/board/sports/types";
 import {
@@ -39,6 +44,7 @@ interface DrawingPath {
   toolId: string;
   style: PathToolStyle;
   points: BoardPoint[];
+  curved: boolean;
 }
 
 function pickDefaultSportId(sports: Sport[]): number | null {
@@ -74,6 +80,7 @@ export function TacticsBoard({ sports }: { sports: Sport[] }) {
     null,
   );
   const [drawingPath, setDrawingPath] = useState<DrawingPath | null>(null);
+  const [curveMode, setCurveMode] = useState<"sharp" | "smooth">("sharp");
   const [previewCursor, setPreviewCursor] = useState<BoardPoint | null>(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
 
@@ -180,6 +187,7 @@ export function TacticsBoard({ sports }: { sports: Sport[] }) {
         drawingPath.toolId,
         drawingPath.style,
         drawingPath.points,
+        drawingPath.curved,
       );
       dispatch({ type: "add", element: el });
       setSelectedId(el.id);
@@ -187,6 +195,13 @@ export function TacticsBoard({ sports }: { sports: Sport[] }) {
     }
     cancelDrawingPath();
     setActiveTool("select");
+  }
+
+  function handleCurveModeChange(mode: "sharp" | "smooth") {
+    setCurveMode(mode);
+    setDrawingPath((current) =>
+      current ? { ...current, curved: mode === "smooth" } : current,
+    );
   }
 
   function undoLastPathPoint() {
@@ -216,7 +231,12 @@ export function TacticsBoard({ sports }: { sports: Sport[] }) {
       return;
     }
 
-    setDrawingPath({ toolId: tool.id, style: tool.kind.style, points: [pos] });
+    setDrawingPath({
+      toolId: tool.id,
+      style: tool.kind.style,
+      points: [pos],
+      curved: Boolean(tool.kind.curvable) && curveMode === "smooth",
+    });
     lastTapRef.current = { time: now, pos };
   }
 
@@ -244,13 +264,25 @@ export function TacticsBoard({ sports }: { sports: Sport[] }) {
       dispatch({ type: "add", element: el });
       setSelectedId(el.id);
       setSelectedPointIndex(null);
+      // One placement per tool choice, then back to the pointer - so the
+      // very next tap can select/move/delete what was just placed instead
+      // of stacking another element on top of it.
+      setActiveTool("select");
       return;
     }
     if (tool.kind.create === "fullWidthLine") {
-      const el = createFullWidthLine(tool.id, tool.kind.style, pos.y, dims.width);
+      const el = createFullWidthLine(
+        tool.id,
+        tool.kind.style,
+        tool.kind.orientation,
+        pos,
+        dims.width,
+        dims.height,
+      );
       dispatch({ type: "add", element: el });
       setSelectedId(el.id);
       setSelectedPointIndex(null);
+      setActiveTool("select");
       return;
     }
     handlePathTap(tool, pos);
@@ -263,6 +295,23 @@ export function TacticsBoard({ sports }: { sports: Sport[] }) {
     e.evt.preventDefault();
     const pos = getPointer();
     if (pos) setPreviewCursor(pos);
+  }
+
+  // Mobile browsers synthesize a full mousedown/mouseup/click sequence
+  // after every touchstart/touchend unless that default is prevented -
+  // Konva itself only calls preventDefault() when the touch lands on a
+  // listening shape (see Konva's Stage._pointerdown), so a tap on empty
+  // canvas or on a shape that isn't listening (e.g. every element while a
+  // placement tool is active) falls through and fires twice: once as a
+  // real "tap", once again moments later as a synthesized "click". That
+  // stray second click on the Stage is what silently doubled up path
+  // points and placed duplicate elements. Preventing the default here, at
+  // the very start of the touch, stops the browser from ever emitting
+  // that synthetic follow-up.
+  function handleStageTouchStart(
+    e: Konva.KonvaEventObject<TouchEvent>,
+  ) {
+    if (e.evt.cancelable) e.evt.preventDefault();
   }
 
   function handleElementDragEnd(id: string, pos: { x: number; y: number }) {
@@ -372,6 +421,14 @@ export function TacticsBoard({ sports }: { sports: Sport[] }) {
     drawingPath && previewCursor
       ? [...drawingPath.points, previewCursor]
       : (drawingPath?.points ?? []);
+  const drawingPreviewRenderPoints =
+    drawingPath?.curved && drawingPreviewPoints.length >= 3
+      ? smoothPathPoints(drawingPreviewPoints)
+      : drawingPreviewPoints;
+
+  const drawingTool = drawingPath ? findTool(drawingPath.toolId) : null;
+  const drawingToolCurvable =
+    drawingTool?.kind.create === "path" && Boolean(drawingTool.kind.curvable);
 
   return (
     <div className="flex flex-col gap-3">
@@ -443,6 +500,8 @@ export function TacticsBoard({ sports }: { sports: Sport[] }) {
             cancelDrawingPath();
             setActiveTool("select");
           }}
+          curveMode={drawingToolCurvable ? curveMode : null}
+          onCurveModeChange={handleCurveModeChange}
         />
       )}
 
@@ -460,6 +519,7 @@ export function TacticsBoard({ sports }: { sports: Sport[] }) {
             scaleY={scale}
             onClick={handleStageClick}
             onTap={handleStageClick}
+            onTouchStart={handleStageTouchStart}
             onMouseMove={handleStagePointerMove}
           >
             <config.FieldComponent
@@ -498,8 +558,8 @@ export function TacticsBoard({ sports }: { sports: Sport[] }) {
               )}
               {drawingPath && drawingPreviewPoints.length >= 2 && (
                 <Line
-                  points={flattenPoints(drawingPreviewPoints)}
-                  tension={drawingPath.points.length > 2 ? 0.35 : 0}
+                  points={flattenPoints(drawingPreviewRenderPoints)}
+                  tension={0}
                   stroke={drawingPath.style.color}
                   strokeWidth={drawingPath.style.strokeWidth}
                   dash={drawingPath.style.dash}
@@ -528,10 +588,13 @@ export function TacticsBoard({ sports }: { sports: Sport[] }) {
       </div>
 
       <p className="text-xs text-neutral-500 dark:text-neutral-400">
-        Wskazówka: dwukrotne dotknięcie zawodnika nadaje mu numer. Rysując
-        trasę, stukaj kolejne punkty i zakończ dwukrotnym dotknięciem lub
-        przyciskiem „Gotowe”. Zaznaczoną trasę przeciągasz jako całość albo
-        za pojedyncze punkty, żeby ją przekształcić.
+        Wskazówka: każde narzędzie umieszcza jeden element i od razu wraca do
+        Wskaźnika - dotknij zawodnika albo trasę, żeby ją zaznaczyć,
+        przeciągnij, żeby przesunąć, i użyj „Usuń”, żeby skasować. Dwukrotne
+        dotknięcie zawodnika nadaje mu numer. Rysując trasę, stukaj kolejne
+        punkty i zakończ dwukrotnym dotknięciem lub przyciskiem „Gotowe”.
+        Zaznaczoną trasę przeciągasz jako całość albo za pojedyncze punkty,
+        żeby ją przekształcić.
       </p>
     </div>
   );

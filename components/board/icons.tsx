@@ -130,10 +130,10 @@ export function ScrimmageIcon() {
   return (
     <svg viewBox="0 0 24 24" className="h-6 w-6">
       <line
-        x1="2"
-        y1="12"
-        x2="22"
-        y2="12"
+        x1="12"
+        y1="2"
+        x2="12"
+        y2="22"
         stroke="#1d4ed8"
         strokeWidth="3"
         strokeLinecap="round"

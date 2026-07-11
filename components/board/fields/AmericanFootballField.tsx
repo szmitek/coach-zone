@@ -11,17 +11,17 @@ const ENDZONE_COLOR = "#15532d";
 
 const TOTAL_YARDS = 120; // 100-yard field + two 10-yard end zones
 const ENDZONE_YARDS = 10;
-const ZOOM_YARDS = 30; // width of the close-up working section
+const REDZONE_WORKING_YARDS = 25; // yards of live field kept in view past the goal line
 
 export const AF_FULL_WIDTH = 1200;
 export const AF_FULL_HEIGHT = 520;
 
 const PX_PER_YARD = (AF_FULL_WIDTH - MARGIN * 2) / TOTAL_YARDS;
 
-export const AF_ZOOM_WIDTH = Math.round(
-  ZOOM_YARDS * PX_PER_YARD + MARGIN * 2,
+export const AF_REDZONE_WIDTH = Math.round(
+  (ENDZONE_YARDS + REDZONE_WORKING_YARDS) * PX_PER_YARD + MARGIN * 2,
 );
-export const AF_ZOOM_HEIGHT = AF_FULL_HEIGHT;
+export const AF_REDZONE_HEIGHT = AF_FULL_HEIGHT;
 
 export function AmericanFootballField({
   modeId,
@@ -31,8 +31,8 @@ export function AmericanFootballField({
   return (
     <Layer listening={false}>
       <Rect x={0} y={0} width={width} height={height} fill={TURF_COLOR} />
-      {modeId === "zoom" ? (
-        <ZoomSection width={width} height={height} />
+      {modeId === "redzone" ? (
+        <RedZoneSection width={width} height={height} />
       ) : (
         <FullField width={width} height={height} />
       )}
@@ -201,34 +201,37 @@ function GoalPost({
   );
 }
 
-// A cropped, larger-scale working area around a stretch of the field -
-// no end zones, just yard lines/hash marks and a dashed line-of-scrimmage
-// guide, matching the close-up view coaches actually draw drills on.
-function ZoomSection({ width, height }: { width: number; height: number }) {
+// One end zone plus the ~25 working yards in front of it - where most of
+// practice actually happens - at a larger scale than the full field.
+// Same vertical yard-line/hash-mark grain as FullField so nothing
+// flips orientation when switching views.
+function RedZoneSection({ width, height }: { width: number; height: number }) {
   const playW = width - MARGIN * 2;
   const playH = height - MARGIN * 2;
-  const pxPerYard = playW / ZOOM_YARDS;
+  const pxPerYard = playW / (ENDZONE_YARDS + REDZONE_WORKING_YARDS);
+  const endzoneWidth = ENDZONE_YARDS * pxPerYard;
+  const goalLineX = MARGIN + endzoneWidth;
   const hashInset = playH * 0.3;
 
   const marks = [];
-  for (let i = 0; i <= ZOOM_YARDS; i += 5) {
-    const x = MARGIN + i * pxPerYard;
+  for (let yard = 0; yard <= REDZONE_WORKING_YARDS; yard += 5) {
+    const x = goalLineX + yard * pxPerYard;
     marks.push(
       <Line
-        key={`zl-${i}`}
+        key={`rl-${yard}`}
         points={[x, MARGIN, x, height - MARGIN]}
         stroke={LINE_COLOR}
         strokeWidth={LINE_WIDTH * 0.7}
         opacity={0.75}
       />,
       <Line
-        key={`zh1-${i}`}
+        key={`rh1-${yard}`}
         points={[x - 4, MARGIN + hashInset, x + 4, MARGIN + hashInset]}
         stroke={LINE_COLOR}
         strokeWidth={2}
       />,
       <Line
-        key={`zh2-${i}`}
+        key={`rh2-${yard}`}
         points={[
           x - 4,
           height - MARGIN - hashInset,
@@ -239,27 +242,38 @@ function ZoomSection({ width, height }: { width: number; height: number }) {
         strokeWidth={2}
       />,
     );
+    if (yard !== 0) {
+      marks.push(
+        <Text
+          key={`rn-${yard}`}
+          x={x - 10}
+          y={MARGIN + 8}
+          text={String(yard)}
+          fontSize={16}
+          fontStyle="bold"
+          fill={LINE_COLOR}
+        />,
+      );
+    }
   }
 
-  const centerX = width / 2;
   return (
     <Group>
-      {marks}
+      <Rect
+        x={MARGIN}
+        y={MARGIN}
+        width={endzoneWidth}
+        height={playH}
+        fill={ENDZONE_COLOR}
+      />
+      {/* Goal line - the boundary between end zone and the field of play. */}
       <Line
-        points={[centerX, MARGIN, centerX, height - MARGIN]}
-        stroke="#facc15"
-        strokeWidth={2}
-        dash={[6, 6]}
-        opacity={0.8}
+        points={[goalLineX, MARGIN, goalLineX, height - MARGIN]}
+        stroke={LINE_COLOR}
+        strokeWidth={LINE_WIDTH}
       />
-      <Text
-        x={centerX + 6}
-        y={MARGIN + 4}
-        text="LOS"
-        fontSize={12}
-        fontStyle="bold"
-        fill="#facc15"
-      />
+      {marks}
+      <GoalPost x={MARGIN} centerY={height / 2} dir={-1} />
     </Group>
   );
 }

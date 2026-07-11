@@ -2,12 +2,16 @@
 
 import type Konva from "konva";
 import { Arrow, Circle, Group, Line } from "react-konva";
-import { endTangent, flattenPoints, nearestPointOnPath } from "@/lib/board/path";
+import {
+  endTangent,
+  flattenPoints,
+  nearestPointOnPath,
+  smoothPathPoints,
+} from "@/lib/board/path";
 import type { BoardPoint, PathBoardElement } from "@/lib/board/types";
 
 const HANDLE_RADIUS = 9;
 const BLOCK_BAR_HALF_LENGTH = 11;
-const CURVE_TENSION = 0.35;
 
 interface PathElementNodeProps {
   element: PathBoardElement;
@@ -32,9 +36,13 @@ export function PathElementNode({
   onPointDragEnd,
   onInsertPoint,
 }: PathElementNodeProps) {
-  const { points, color, strokeWidth, headStyle, dash } = element;
-  const flat = flattenPoints(points);
-  const tension = points.length > 2 ? CURVE_TENSION : 0;
+  const { points, color, strokeWidth, headStyle, dash, curved } = element;
+  // Render points are pre-curved (centripetal Catmull-Rom) when smooth, so
+  // Konva always draws with tension 0 - its own `tension` spline overshoots
+  // past the tapped points for anything but perfectly even spacing.
+  const renderPoints =
+    curved && points.length >= 3 ? smoothPathPoints(points) : points;
+  const flat = flattenPoints(renderPoints);
 
   const select = (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
     e.cancelBubble = true;
@@ -80,7 +88,7 @@ export function PathElementNode({
       {headStyle === "arrow" ? (
         <Arrow
           points={flat}
-          tension={tension}
+          tension={0}
           stroke={color}
           fill={color}
           strokeWidth={strokeWidth}
@@ -96,7 +104,7 @@ export function PathElementNode({
         <>
           <Line
             points={flat}
-            tension={tension}
+            tension={0}
             stroke={color}
             strokeWidth={strokeWidth}
             dash={dash}
