@@ -96,9 +96,42 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: "#404040",
   },
-  itemDiagram: {
+  itemEquipment: {
+    marginTop: 3,
+    fontSize: 8.5,
+    color: "#525252",
+  },
+  itemBody: {
     marginTop: 4,
-    width: 180,
+    flexDirection: "row",
+    gap: 12,
+  },
+  itemDiagram: {
+    width: 160,
+  },
+  itemSteps: {
+    flexGrow: 1,
+    flexShrink: 1,
+  },
+  itemStepsTitle: {
+    fontSize: 10,
+    fontWeight: "bold",
+    marginBottom: 3,
+  },
+  stepRow: {
+    flexDirection: "row",
+    marginBottom: 2,
+  },
+  stepNumber: {
+    fontSize: 8.5,
+    fontWeight: "bold",
+    width: 14,
+  },
+  stepText: {
+    fontSize: 8.5,
+    color: "#404040",
+    flexGrow: 1,
+    flexShrink: 1,
   },
   notes: {
     marginTop: 8,
@@ -181,12 +214,35 @@ export function WorkoutPdfDocument({
                     {description && (
                       <Text style={styles.itemDescription}>{description}</Text>
                     )}
-                    {item.exerciseMediaUrl && (
-                      // eslint-disable-next-line jsx-a11y/alt-text -- this is @react-pdf/renderer's Image (PDF node), not an HTML <img>; it has no alt prop
-                      <Image
-                        src={item.exerciseMediaUrl}
-                        style={styles.itemDiagram}
-                      />
+                    {item.exerciseEquipment.length > 0 && (
+                      <Text style={styles.itemEquipment}>
+                        Sprzęt: {item.exerciseEquipment.join(", ")}
+                      </Text>
+                    )}
+                    {(item.exerciseMediaUrl ||
+                      item.exerciseSteps.length > 0) && (
+                      <View style={styles.itemBody}>
+                        {item.exerciseMediaUrl && (
+                          // eslint-disable-next-line jsx-a11y/alt-text -- this is @react-pdf/renderer's Image (PDF node), not an HTML <img>; it has no alt prop
+                          <Image
+                            src={item.exerciseMediaUrl}
+                            style={styles.itemDiagram}
+                          />
+                        )}
+                        {item.exerciseSteps.length > 0 && (
+                          <View style={styles.itemSteps}>
+                            <Text style={styles.itemStepsTitle}>
+                              Przebieg ćwiczenia
+                            </Text>
+                            {item.exerciseSteps.map((step, i) => (
+                              <View key={i} style={styles.stepRow}>
+                                <Text style={styles.stepNumber}>{i + 1}.</Text>
+                                <Text style={styles.stepText}>{step}</Text>
+                              </View>
+                            ))}
+                          </View>
+                        )}
+                      </View>
                     )}
                   </View>
                 );

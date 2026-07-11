@@ -120,6 +120,8 @@ export function WorkoutBuilder({
           exercisesById[item.exercise_id]?.title ?? "Ćwiczenie niedostępne",
         exerciseDescription:
           exercisesById[item.exercise_id]?.description ?? null,
+        exerciseSteps: exercisesById[item.exercise_id]?.steps ?? [],
+        exerciseEquipment: exercisesById[item.exercise_id]?.equipment ?? [],
         exerciseMediaUrl: exercisesById[item.exercise_id]?.media_url ?? null,
       })),
     [items, exercisesById],

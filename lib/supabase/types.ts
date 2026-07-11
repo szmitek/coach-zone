@@ -279,6 +279,8 @@ export interface SharedWorkoutItem {
     id: string;
     title: string;
     description: string | null;
+    steps: string[];
+    equipment: string[];
     media_url: string | null;
   } | null;
 }
