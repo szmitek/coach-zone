@@ -25,6 +25,7 @@ export function SharedWorkoutView({
     assigned_to: item.assigned_to,
     exerciseTitle: item.exercise?.title ?? "Ćwiczenie niedostępne",
     exerciseDescription: item.exercise?.description ?? null,
+    exerciseMediaUrl: item.exercise?.media_url ?? null,
   }));
 
   const itemsBySection = groupItemsBySection(pdfItems);
@@ -91,6 +92,16 @@ export function SharedWorkoutView({
                           <p className="mt-1.5 whitespace-pre-line text-sm text-neutral-600 dark:text-neutral-400">
                             {item.exerciseDescription}
                           </p>
+                        )}
+                        {item.exerciseMediaUrl && (
+                          <div className="mt-2 overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800">
+                            {/* eslint-disable-next-line @next/next/no-img-element -- remote Supabase Storage URL, no next/image domain config in this env */}
+                            <img
+                              src={item.exerciseMediaUrl}
+                              alt={`Diagram ćwiczenia „${item.exerciseTitle}”`}
+                              className="w-full max-w-xs"
+                            />
+                          </div>
                         )}
                       </div>
                     ))}

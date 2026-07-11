@@ -1,6 +1,7 @@
 import {
   Document,
   Font,
+  Image,
   Page,
   StyleSheet,
   Text,
@@ -95,6 +96,10 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: "#404040",
   },
+  itemDiagram: {
+    marginTop: 4,
+    width: 180,
+  },
   notes: {
     marginTop: 8,
     paddingTop: 10,
@@ -175,6 +180,13 @@ export function WorkoutPdfDocument({
                     </View>
                     {description && (
                       <Text style={styles.itemDescription}>{description}</Text>
+                    )}
+                    {item.exerciseMediaUrl && (
+                      // eslint-disable-next-line jsx-a11y/alt-text -- this is @react-pdf/renderer's Image (PDF node), not an HTML <img>; it has no alt prop
+                      <Image
+                        src={item.exerciseMediaUrl}
+                        style={styles.itemDiagram}
+                      />
                     )}
                   </View>
                 );

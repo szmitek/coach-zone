@@ -1,27 +1,31 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent, type KeyboardEvent } from "react";
+import { useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { FormBanner } from "@/components/auth/FormBanner";
 import { FormField } from "@/components/auth/FormField";
 import { SubmitButton } from "@/components/auth/SubmitButton";
+import type { TacticsBoardHandle } from "@/components/board/TacticsBoard";
+import { TacticsBoardLoader } from "@/components/board/TacticsBoardLoader";
 import { DIFFICULTY_LABELS, DIFFICULTY_OPTIONS } from "@/lib/exercises";
+import type { BoardElement } from "@/lib/board/types";
 import { createClient } from "@/lib/supabase/client";
 import type {
   Category,
   Difficulty,
   Exercise,
+  Json,
   Sport,
 } from "@/lib/supabase/types";
+import { SaveExerciseDialog } from "./SaveExerciseDialog";
 
-type ExerciseFormProps =
-  | { mode: "create"; categories: Category[]; sports: Sport[]; userId: string }
-  | {
-      mode: "edit";
-      categories: Category[];
-      sports: Sport[];
-      exercise: Exercise;
-    };
+interface ExerciseFormProps {
+  categories: Category[];
+  sports: Sport[];
+  userId: string;
+  /** Set when opened via "Duplikuj" on an existing exercise - prefills every field, including the board. */
+  duplicateFrom?: Exercise | null;
+}
 
 interface FieldErrors {
   title?: string;
@@ -29,7 +33,6 @@ interface FieldErrors {
   sport?: string;
   steps?: string;
   duration?: string;
-  mediaUrl?: string;
 }
 
 const labelClasses = "block text-sm font-medium";
@@ -42,48 +45,60 @@ function fieldClasses(hasError?: boolean) {
   }`;
 }
 
-function isValidUrl(value: string): boolean {
-  try {
-    const url = new URL(value);
-    return url.protocol === "http:" || url.protocol === "https:";
-  } catch {
-    return false;
-  }
+function boardElementsOf(
+  exercise: Exercise | null | undefined,
+): BoardElement[] | undefined {
+  return Array.isArray(exercise?.board_state)
+    ? (exercise.board_state as unknown as BoardElement[])
+    : undefined;
 }
 
-export function ExerciseForm(props: ExerciseFormProps) {
+export function ExerciseForm({
+  categories,
+  sports,
+  userId,
+  duplicateFrom,
+}: ExerciseFormProps) {
   const router = useRouter();
-  const initial = props.mode === "edit" ? props.exercise : null;
 
-  const [title, setTitle] = useState(initial?.title ?? "");
+  const [title, setTitle] = useState(
+    duplicateFrom ? `${duplicateFrom.title} (kopia)` : "",
+  );
   const [categoryId, setCategoryId] = useState<number | "">(
-    initial?.category_id ?? "",
+    duplicateFrom?.category_id ?? "",
   );
   const [sportId, setSportId] = useState<number | "">(
-    initial?.sport_id ??
-      props.sports.find((sport) => sport.slug === "football")?.id ??
+    duplicateFrom?.sport_id ??
+      sports.find((sport) => sport.slug === "football")?.id ??
       "",
   );
-  const [description, setDescription] = useState(initial?.description ?? "");
+  const [description, setDescription] = useState(
+    duplicateFrom?.description ?? "",
+  );
   const [steps, setSteps] = useState<string[]>(
-    initial?.steps && initial.steps.length > 0 ? initial.steps : [""],
+    duplicateFrom?.steps && duplicateFrom.steps.length > 0
+      ? duplicateFrom.steps
+      : [""],
   );
   const [durationMin, setDurationMin] = useState(
-    initial?.duration_min ? String(initial.duration_min) : "",
+    duplicateFrom?.duration_min ? String(duplicateFrom.duration_min) : "",
   );
   const [difficulty, setDifficulty] = useState<Difficulty>(
-    initial?.difficulty ?? 3,
+    duplicateFrom?.difficulty ?? 3,
   );
   const [equipment, setEquipment] = useState<string[]>(
-    initial?.equipment ?? [],
+    duplicateFrom?.equipment ?? [],
   );
   const [equipmentInput, setEquipmentInput] = useState("");
-  const [mediaUrl, setMediaUrl] = useState(initial?.media_url ?? "");
-  const [isPublic, setIsPublic] = useState(initial?.is_public ?? true);
+  const [keepPrivate, setKeepPrivate] = useState(false);
 
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const boardHandleRef = useRef<TacticsBoardHandle | null>(null);
+  const initialBoardElements = useRef(boardElementsOf(duplicateFrom)).current;
 
   function validate(): FieldErrors {
     const errors: FieldErrors = {};
@@ -99,10 +114,6 @@ export function ExerciseForm(props: ExerciseFormProps) {
         errors.duration =
           "Podaj czas w minutach (liczba całkowita większa od zera).";
       }
-    }
-    if (mediaUrl.trim() && !isValidUrl(mediaUrl.trim())) {
-      errors.mediaUrl =
-        "Podaj poprawny adres URL (zaczynający się od http:// lub https://).";
     }
     return errors;
   }
@@ -141,7 +152,7 @@ export function ExerciseForm(props: ExerciseFormProps) {
     }
   }
 
-  async function handleSubmit(event: FormEvent) {
+  function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setFormError(null);
 
@@ -149,10 +160,44 @@ export function ExerciseForm(props: ExerciseFormProps) {
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) return;
 
-    setLoading(true);
+    setConfirmOpen(true);
+  }
+
+  async function handleConfirmSave() {
+    setSaving(true);
+    setFormError(null);
+
     const supabase = createClient();
+    const board = boardHandleRef.current;
+    const boardElements =
+      board && !board.isEmpty() ? board.getElements() : null;
+
+    let mediaUrl: string | null = null;
+    if (board && boardElements) {
+      const dataUrl = board.exportPng();
+      if (dataUrl) {
+        try {
+          const blob = await (await fetch(dataUrl)).blob();
+          const path = `${userId}/${crypto.randomUUID()}.png`;
+          const { error: uploadError } = await supabase.storage
+            .from("exercise-media")
+            .upload(path, blob, { contentType: "image/png" });
+          if (uploadError) throw uploadError;
+          mediaUrl = supabase.storage.from("exercise-media").getPublicUrl(path)
+            .data.publicUrl;
+        } catch {
+          setSaving(false);
+          setConfirmOpen(false);
+          setFormError(
+            "Nie udało się zapisać diagramu z tablicy. Spróbuj ponownie.",
+          );
+          return;
+        }
+      }
+    }
 
     const payload = {
+      author_id: userId,
       title: title.trim(),
       category_id: categoryId as number,
       sport_id: sportId as number,
@@ -161,259 +206,263 @@ export function ExerciseForm(props: ExerciseFormProps) {
       duration_min: durationMin.trim() ? Number(durationMin) : null,
       difficulty,
       equipment,
-      media_url: mediaUrl.trim() || null,
-      is_public: isPublic,
+      media_url: mediaUrl,
+      board_state: boardElements as unknown as Json,
+      is_public: !keepPrivate,
     };
 
-    if (props.mode === "create") {
-      const { data, error } = await supabase
-        .from("exercises")
-        .insert({ ...payload, author_id: props.userId })
-        .select("id")
-        .single();
-
-      setLoading(false);
-      if (error || !data) {
-        setFormError("Nie udało się zapisać ćwiczenia. Spróbuj ponownie.");
-        return;
-      }
-      router.push(`/app/exercises/${data.id}`);
-      router.refresh();
-      return;
-    }
-
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("exercises")
-      .update(payload)
-      .eq("id", props.exercise.id);
+      .insert(payload)
+      .select("id")
+      .single();
 
-    setLoading(false);
-    if (error) {
-      setFormError("Nie udało się zapisać zmian. Spróbuj ponownie.");
+    setSaving(false);
+    setConfirmOpen(false);
+    if (error || !data) {
+      setFormError("Nie udało się zapisać ćwiczenia. Spróbuj ponownie.");
       return;
     }
-    router.push(`/app/exercises/${props.exercise.id}`);
+    router.push(`/app/exercises/${data.id}`);
     router.refresh();
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="space-y-5">
-      <FormBanner variant="error" message={formError} />
+    <>
+      <form onSubmit={handleSubmit} noValidate className="space-y-5">
+        <FormBanner variant="error" message={formError} />
 
-      <FormField
-        id="title"
-        label="Nazwa ćwiczenia"
-        type="text"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        error={fieldErrors.title}
-      />
-
-      <div>
-        <label htmlFor="sport" className={labelClasses}>
-          Dyscyplina
-        </label>
-        <select
-          id="sport"
-          value={sportId}
-          onChange={(e) =>
-            setSportId(e.target.value ? Number(e.target.value) : "")
-          }
-          className={`mt-1.5 ${fieldClasses(Boolean(fieldErrors.sport))}`}
-        >
-          <option value="">Wybierz dyscyplinę…</option>
-          {props.sports.map((sport) => (
-            <option key={sport.id} value={sport.id}>
-              {sport.name_pl}
-            </option>
-          ))}
-        </select>
-        {fieldErrors.sport && (
-          <p className="mt-1.5 text-sm text-red-600 dark:text-red-400">
-            {fieldErrors.sport}
-          </p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor="category" className={labelClasses}>
-          Kategoria
-        </label>
-        <select
-          id="category"
-          value={categoryId}
-          onChange={(e) =>
-            setCategoryId(e.target.value ? Number(e.target.value) : "")
-          }
-          className={`mt-1.5 ${fieldClasses(Boolean(fieldErrors.category))}`}
-        >
-          <option value="">Wybierz kategorię…</option>
-          {props.categories.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.name_pl}
-            </option>
-          ))}
-        </select>
-        {fieldErrors.category && (
-          <p className="mt-1.5 text-sm text-red-600 dark:text-red-400">
-            {fieldErrors.category}
-          </p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor="description" className={labelClasses}>
-          Opis
-        </label>
-        <textarea
-          id="description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={3}
-          className={`mt-1.5 ${fieldClasses()}`}
-        />
-      </div>
-
-      <div>
-        <span className={labelClasses}>Kroki</span>
-        <div className="mt-1.5 space-y-2">
-          {steps.map((step, index) => (
-            <div key={index} className="flex gap-2">
-              <input
-                type="text"
-                value={step}
-                onChange={(e) => updateStep(index, e.target.value)}
-                onKeyDown={(e) => handleStepKeyDown(e, index)}
-                placeholder={`Krok ${index + 1}`}
-                aria-label={`Krok ${index + 1}`}
-                className={fieldClasses(Boolean(fieldErrors.steps))}
-              />
-              <button
-                type="button"
-                onClick={() => removeStep(index)}
-                aria-label="Usuń krok"
-                className="shrink-0 rounded-lg border border-neutral-300 px-3 text-sm text-neutral-500 transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
-              >
-                ×
-              </button>
-            </div>
-          ))}
-        </div>
-        <button
-          type="button"
-          onClick={() => setSteps((prev) => [...prev, ""])}
-          className="mt-2 text-sm font-medium text-emerald-600 hover:text-emerald-500"
-        >
-          + Dodaj krok
-        </button>
-        {fieldErrors.steps && (
-          <p className="mt-1.5 text-sm text-red-600 dark:text-red-400">
-            {fieldErrors.steps}
-          </p>
-        )}
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
         <FormField
-          id="duration"
-          label="Czas trwania (min)"
-          type="number"
-          min={1}
-          value={durationMin}
-          onChange={(e) => setDurationMin(e.target.value)}
-          error={fieldErrors.duration}
+          id="title"
+          label="Nazwa ćwiczenia"
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          error={fieldErrors.title}
         />
 
         <div>
-          <label htmlFor="difficulty" className={labelClasses}>
-            Poziom trudności
+          <label htmlFor="sport" className={labelClasses}>
+            Dyscyplina
           </label>
           <select
-            id="difficulty"
-            value={difficulty}
+            id="sport"
+            value={sportId}
             onChange={(e) =>
-              setDifficulty(Number(e.target.value) as Difficulty)
+              setSportId(e.target.value ? Number(e.target.value) : "")
             }
-            className={`mt-1.5 ${fieldClasses()}`}
+            className={`mt-1.5 ${fieldClasses(Boolean(fieldErrors.sport))}`}
           >
-            {DIFFICULTY_OPTIONS.map((d) => (
-              <option key={d} value={d}>
-                {d} – {DIFFICULTY_LABELS[d]}
+            <option value="">Wybierz dyscyplinę…</option>
+            {sports.map((sport) => (
+              <option key={sport.id} value={sport.id}>
+                {sport.name_pl}
               </option>
             ))}
           </select>
+          {fieldErrors.sport && (
+            <p className="mt-1.5 text-sm text-red-600 dark:text-red-400">
+              {fieldErrors.sport}
+            </p>
+          )}
         </div>
-      </div>
 
-      <div>
-        <label htmlFor="equipment" className={labelClasses}>
-          Sprzęt
-        </label>
-        <div className="mt-1.5 flex gap-2">
-          <input
-            id="equipment"
-            type="text"
-            value={equipmentInput}
-            onChange={(e) => setEquipmentInput(e.target.value)}
-            onKeyDown={handleEquipmentKeyDown}
-            placeholder="np. piłki, pachołki…"
-            className={fieldClasses()}
-          />
-          <button
-            type="button"
-            onClick={addEquipmentTag}
-            className="shrink-0 rounded-lg border border-neutral-300 px-4 text-sm font-medium transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
-          >
-            Dodaj
-          </button>
+        <div>
+          <span className={labelClasses}>Narysuj ćwiczenie (opcjonalnie)</span>
+          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-500">
+            Tablica użyje boiska dla wybranej dyscypliny. Rysunek zostanie
+            zapisany razem z ćwiczeniem i będzie można go później edytować przez
+            duplikowanie.
+          </p>
+          <div className="mt-3">
+            <TacticsBoardLoader
+              sports={sports}
+              sportId={sportId === "" ? null : sportId}
+              initialElements={initialBoardElements}
+              handleRef={boardHandleRef}
+            />
+          </div>
         </div>
-        {equipment.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-2">
-            {equipment.map((item) => (
-              <span
-                key={item}
-                className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-medium text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
-              >
-                {item}
+
+        <div>
+          <label htmlFor="category" className={labelClasses}>
+            Kategoria
+          </label>
+          <select
+            id="category"
+            value={categoryId}
+            onChange={(e) =>
+              setCategoryId(e.target.value ? Number(e.target.value) : "")
+            }
+            className={`mt-1.5 ${fieldClasses(Boolean(fieldErrors.category))}`}
+          >
+            <option value="">Wybierz kategorię…</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name_pl}
+              </option>
+            ))}
+          </select>
+          {fieldErrors.category && (
+            <p className="mt-1.5 text-sm text-red-600 dark:text-red-400">
+              {fieldErrors.category}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="description" className={labelClasses}>
+            Opis
+          </label>
+          <textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={3}
+            className={`mt-1.5 ${fieldClasses()}`}
+          />
+        </div>
+
+        <div>
+          <span className={labelClasses}>Kroki</span>
+          <div className="mt-1.5 space-y-2">
+            {steps.map((step, index) => (
+              <div key={index} className="flex gap-2">
+                <input
+                  type="text"
+                  value={step}
+                  onChange={(e) => updateStep(index, e.target.value)}
+                  onKeyDown={(e) => handleStepKeyDown(e, index)}
+                  placeholder={`Krok ${index + 1}`}
+                  aria-label={`Krok ${index + 1}`}
+                  className={fieldClasses(Boolean(fieldErrors.steps))}
+                />
                 <button
                   type="button"
-                  onClick={() =>
-                    setEquipment((prev) => prev.filter((i) => i !== item))
-                  }
-                  aria-label={`Usuń ${item}`}
-                  className="text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-100"
+                  onClick={() => removeStep(index)}
+                  aria-label="Usuń krok"
+                  className="shrink-0 rounded-lg border border-neutral-300 px-3 text-sm text-neutral-500 transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
                 >
                   ×
                 </button>
-              </span>
+              </div>
             ))}
           </div>
-        )}
-      </div>
+          <button
+            type="button"
+            onClick={() => setSteps((prev) => [...prev, ""])}
+            className="mt-2 text-sm font-medium text-emerald-600 hover:text-emerald-500"
+          >
+            + Dodaj krok
+          </button>
+          {fieldErrors.steps && (
+            <p className="mt-1.5 text-sm text-red-600 dark:text-red-400">
+              {fieldErrors.steps}
+            </p>
+          )}
+        </div>
 
-      <FormField
-        id="mediaUrl"
-        label="Link do materiału (opcjonalnie)"
-        type="url"
-        placeholder="https://youtube.com/…"
-        value={mediaUrl}
-        onChange={(e) => setMediaUrl(e.target.value)}
-        error={fieldErrors.mediaUrl}
-      />
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            id="duration"
+            label="Czas trwania (min)"
+            type="number"
+            min={1}
+            value={durationMin}
+            onChange={(e) => setDurationMin(e.target.value)}
+            error={fieldErrors.duration}
+          />
 
-      <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          checked={isPublic}
-          onChange={(e) => setIsPublic(e.target.checked)}
-          className="h-4 w-4 rounded border-neutral-300 text-emerald-600 focus:ring-emerald-600/50 dark:border-neutral-700"
+          <div>
+            <label htmlFor="difficulty" className={labelClasses}>
+              Poziom trudności
+            </label>
+            <select
+              id="difficulty"
+              value={difficulty}
+              onChange={(e) =>
+                setDifficulty(Number(e.target.value) as Difficulty)
+              }
+              className={`mt-1.5 ${fieldClasses()}`}
+            >
+              {DIFFICULTY_OPTIONS.map((d) => (
+                <option key={d} value={d}>
+                  {d} – {DIFFICULTY_LABELS[d]}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="equipment" className={labelClasses}>
+            Sprzęt
+          </label>
+          <div className="mt-1.5 flex gap-2">
+            <input
+              id="equipment"
+              type="text"
+              value={equipmentInput}
+              onChange={(e) => setEquipmentInput(e.target.value)}
+              onKeyDown={handleEquipmentKeyDown}
+              placeholder="np. piłki, pachołki…"
+              className={fieldClasses()}
+            />
+            <button
+              type="button"
+              onClick={addEquipmentTag}
+              className="shrink-0 rounded-lg border border-neutral-300 px-4 text-sm font-medium transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+            >
+              Dodaj
+            </button>
+          </div>
+          {equipment.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {equipment.map((item) => (
+                <span
+                  key={item}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-medium text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
+                >
+                  {item}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setEquipment((prev) => prev.filter((i) => i !== item))
+                    }
+                    aria-label={`Usuń ${item}`}
+                    className="text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-100"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={keepPrivate}
+            onChange={(e) => setKeepPrivate(e.target.checked)}
+            className="h-4 w-4 rounded border-neutral-300 text-emerald-600 focus:ring-emerald-600/50 dark:border-neutral-700"
+          />
+          Zachowaj jako prywatne (nie udostępniaj innym trenerom)
+        </label>
+
+        <SubmitButton loading={saving} loadingText="Zapisywanie…">
+          Dodaj ćwiczenie
+        </SubmitButton>
+      </form>
+
+      {confirmOpen && (
+        <SaveExerciseDialog
+          isPublic={!keepPrivate}
+          saving={saving}
+          onConfirm={handleConfirmSave}
+          onCancel={() => setConfirmOpen(false)}
         />
-        Widoczne publicznie dla innych trenerów
-      </label>
-
-      <SubmitButton loading={loading} loadingText="Zapisywanie…">
-        {props.mode === "create" ? "Dodaj ćwiczenie" : "Zapisz zmiany"}
-      </SubmitButton>
-    </form>
+      )}
+    </>
   );
 }

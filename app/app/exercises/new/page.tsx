@@ -9,8 +9,14 @@ export const metadata: Metadata = {
   title: "Nowe ćwiczenie — Coach Zone",
 };
 
-export default async function NewExercisePage() {
+export default async function NewExercisePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ duplicateFrom?: string }>;
+}) {
+  const { duplicateFrom: duplicateFromId } = await searchParams;
   const supabase = await createClient();
+
   const [{ data: userData }, { data: categories }, { data: sports }] =
     await Promise.all([
       supabase.auth.getUser(),
@@ -24,18 +30,33 @@ export default async function NewExercisePage() {
     redirect("/login");
   }
 
+  // RLS (public OR own) already scopes this select - if the id doesn't
+  // resolve (deleted, or not visible to this coach), duplicateFrom stays
+  // null and the form just falls back to a blank create.
+  const { data: duplicateFrom } = duplicateFromId
+    ? await supabase
+        .from("exercises")
+        .select("*")
+        .eq("id", duplicateFromId)
+        .maybeSingle()
+    : { data: null };
+
   return (
     <main className="mx-auto max-w-2xl px-6 pt-8 pb-20">
-      <h1 className="text-3xl font-bold tracking-tight">Nowe ćwiczenie</h1>
+      <h1 className="text-3xl font-bold tracking-tight">
+        {duplicateFrom ? "Duplikuj ćwiczenie" : "Nowe ćwiczenie"}
+      </h1>
       <p className="mt-2 text-neutral-600 dark:text-neutral-400">
-        Dodaj własne ćwiczenie do swojej biblioteki.
+        {duplicateFrom
+          ? `Tworzysz nowe ćwiczenie na podstawie „${duplicateFrom.title}”. Zmień, co chcesz, i zapisz jako osobny wpis w bibliotece.`
+          : "Dodaj własne ćwiczenie do swojej biblioteki."}
       </p>
       <div className="mt-8">
         <ExerciseForm
-          mode="create"
           categories={categories ?? []}
           sports={sports ?? []}
           userId={userData.user.id}
+          duplicateFrom={duplicateFrom}
         />
       </div>
     </main>

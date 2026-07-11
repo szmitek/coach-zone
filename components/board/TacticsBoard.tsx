@@ -1,7 +1,14 @@
 "use client";
 
 import type Konva from "konva";
-import { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+  type MutableRefObject,
+} from "react";
 import { Circle, Layer, Line, Stage } from "react-konva";
 import {
   createFullWidthLine,
@@ -12,7 +19,7 @@ import {
 } from "@/lib/board/elements";
 import {
   boardHistoryReducer,
-  initialBoardHistoryState,
+  type BoardHistoryState,
 } from "@/lib/board/historyReducer";
 import {
   distance,
@@ -26,6 +33,7 @@ import {
   isPathElement,
   isPointElement,
   type ActiveTool,
+  type BoardElement,
   type BoardPoint,
 } from "@/lib/board/types";
 import type { Sport } from "@/lib/supabase/types";
@@ -33,12 +41,8 @@ import { BoardElementNode } from "./BoardElementNode";
 import { BoardToolbar } from "./BoardToolbar";
 import { PathDrawingControls } from "./PathDrawingControls";
 import { PathElementNode } from "./PathElementNode";
-import { SportSelector } from "./SportSelector";
 
-type PendingAction =
-  | { type: "clear" }
-  | { type: "fieldMode"; modeId: string }
-  | { type: "sport"; sportId: number };
+type PendingAction = { type: "clear" } | { type: "fieldMode"; modeId: string };
 
 interface DrawingPath {
   toolId: string;
@@ -52,14 +56,45 @@ function pickDefaultSportId(sports: Sport[]): number | null {
   return preferred?.id ?? sports[0]?.id ?? null;
 }
 
-export function TacticsBoard({ sports }: { sports: Sport[] }) {
+function initHistory(elements: BoardElement[]): BoardHistoryState {
+  return { past: [], present: elements, future: [] };
+}
+
+// PNG exports are capped to this width (px) regardless of how large the
+// on-screen canvas is, so a diagram drawn on a wide desktop monitor doesn't
+// upload a needlessly large file - keeps Supabase Storage's free tier cheap.
+const EXPORT_TARGET_WIDTH = 900;
+
+export interface TacticsBoardHandle {
+  isEmpty(): boolean;
+  getElements(): BoardElement[];
+  /** Data URL (PNG) of the current drawing, or null if the board is empty. */
+  exportPng(): string | null;
+}
+
+interface TacticsBoardProps {
+  sports: Sport[];
+  /** Controlled from outside (the exercise's "Dyscyplina" field) - null before a sport is chosen. */
+  sportId?: number | null;
+  initialElements?: BoardElement[];
+  /** Mutated (not replaced) with the latest imperative handle on every relevant change. */
+  handleRef?: MutableRefObject<TacticsBoardHandle | null>;
+}
+
+export function TacticsBoard({
+  sports,
+  sportId = null,
+  initialElements,
+  handleRef,
+}: TacticsBoardProps) {
   const [history, dispatch] = useReducer(
     boardHistoryReducer,
-    initialBoardHistoryState,
+    initialElements ?? [],
+    initHistory,
   );
 
-  const [selectedSportId, setSelectedSportId] = useState<number | null>(() =>
-    pickDefaultSportId(sports),
+  const [selectedSportId, setSelectedSportId] = useState<number | null>(
+    () => sportId ?? pickDefaultSportId(sports),
   );
   const activeSport = useMemo(
     () => sports.find((s) => s.id === selectedSportId) ?? null,
@@ -83,6 +118,7 @@ export function TacticsBoard({ sports }: { sports: Sport[] }) {
   const [curveMode, setCurveMode] = useState<"sharp" | "smooth">("sharp");
   const [previewCursor, setPreviewCursor] = useState<BoardPoint | null>(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const [sportSwitchNotice, setSportSwitchNotice] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<Konva.Stage>(null);
@@ -106,6 +142,23 @@ export function TacticsBoard({ sports }: { sports: Sport[] }) {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    if (!handleRef) return;
+    handleRef.current = {
+      isEmpty: () => history.present.length === 0,
+      getElements: () => history.present,
+      exportPng: () => {
+        const stage = stageRef.current;
+        if (!stage || history.present.length === 0) return null;
+        const pixelRatio = Math.min(
+          2,
+          EXPORT_TARGET_WIDTH / (containerSize.width || EXPORT_TARGET_WIDTH),
+        );
+        return stage.toDataURL({ mimeType: "image/png", pixelRatio });
+      },
+    };
+  }, [handleRef, history.present, containerSize.width]);
+
   function cancelDrawingPath() {
     setDrawingPath(null);
     setPreviewCursor(null);
@@ -121,7 +174,11 @@ export function TacticsBoard({ sports }: { sports: Sport[] }) {
       const el = history.present.find((item) => item.id === selectedId);
       if (el && isPathElement(el) && el.points.length > 2) {
         const nextPoints = el.points.filter((_, i) => i !== selectedPointIndex);
-        dispatch({ type: "update", id: selectedId, patch: { points: nextPoints } });
+        dispatch({
+          type: "update",
+          id: selectedId,
+          patch: { points: nextPoints },
+        });
         setSelectedPointIndex(null);
         return;
       }
@@ -165,7 +222,13 @@ export function TacticsBoard({ sports }: { sports: Sport[] }) {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingAction, drawingPath, selectedId, selectedPointIndex, history.present]);
+  }, [
+    pendingAction,
+    drawingPath,
+    selectedId,
+    selectedPointIndex,
+    history.present,
+  ]);
 
   function getPointer(): BoardPoint | null {
     return stageRef.current?.getRelativePointerPosition() ?? null;
@@ -288,9 +351,7 @@ export function TacticsBoard({ sports }: { sports: Sport[] }) {
     handlePathTap(tool, pos);
   }
 
-  function handleStagePointerMove(
-    e: Konva.KonvaEventObject<MouseEvent>,
-  ) {
+  function handleStagePointerMove(e: Konva.KonvaEventObject<MouseEvent>) {
     if (!drawingPath) return;
     e.evt.preventDefault();
     const pos = getPointer();
@@ -308,9 +369,7 @@ export function TacticsBoard({ sports }: { sports: Sport[] }) {
   // points and placed duplicate elements. Preventing the default here, at
   // the very start of the touch, stops the browser from ever emitting
   // that synthetic follow-up.
-  function handleStageTouchStart(
-    e: Konva.KonvaEventObject<TouchEvent>,
-  ) {
+  function handleStageTouchStart(e: Konva.KonvaEventObject<TouchEvent>) {
     if (e.evt.cancelable) e.evt.preventDefault();
   }
 
@@ -328,11 +387,7 @@ export function TacticsBoard({ sports }: { sports: Sport[] }) {
     });
   }
 
-  function handlePathPointDragEnd(
-    id: string,
-    index: number,
-    pos: BoardPoint,
-  ) {
+  function handlePathPointDragEnd(id: string, index: number, pos: BoardPoint) {
     const el = history.present.find((item) => item.id === id);
     if (!el || !isPathElement(el)) return;
     const nextPoints = el.points.map((p, i) => (i === index ? pos : p));
@@ -382,14 +437,23 @@ export function TacticsBoard({ sports }: { sports: Sport[] }) {
     cancelDrawingPath();
   }
 
-  function handleSportChange(sportId: number) {
-    if (sportId === selectedSportId) return;
-    if (history.present.length === 0) {
+  // The sport is chosen externally now (the exercise's "Dyscyplina" field),
+  // not by a selector inside the board. That field change is itself the
+  // coach's confirmation, so apply it immediately rather than gating it
+  // behind a second in-board prompt the outer <select> has no way to
+  // resolve if the coach dismissed it - just surface a one-off notice when
+  // it actually discarded something.
+  useEffect(() => {
+    if (sportId !== null && sportId !== selectedSportId) {
+      const hadElements = history.present.length > 0;
       applySportChange(sportId);
-      return;
+      if (hadElements) {
+        dispatch({ type: "clear" });
+        setSportSwitchNotice(true);
+      }
     }
-    setPendingAction({ type: "sport", sportId });
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sportId]);
 
   function handleClearRequest() {
     if (history.present.length === 0) return;
@@ -401,8 +465,6 @@ export function TacticsBoard({ sports }: { sports: Sport[] }) {
     cancelDrawingPath();
     if (pendingAction.type === "fieldMode") {
       setFieldModeId(pendingAction.modeId);
-    } else if (pendingAction.type === "sport") {
-      applySportChange(pendingAction.sportId);
     }
     dispatch({ type: "clear" });
     setSelectedId(null);
@@ -410,7 +472,7 @@ export function TacticsBoard({ sports }: { sports: Sport[] }) {
     setPendingAction(null);
   }
 
-  // Frozen while a destructive action (clear / field / sport switch) awaits
+  // Frozen while a destructive action (clear / field view switch) awaits
   // confirmation, so nothing drawn in the meantime can be silently wiped
   // out by a stale "Tak".
   const frozenClassName = pendingAction
@@ -432,13 +494,25 @@ export function TacticsBoard({ sports }: { sports: Sport[] }) {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className={frozenClassName}>
-        <SportSelector
-          sports={sports}
-          selectedSportId={selectedSportId}
-          onChange={handleSportChange}
-        />
-      </div>
+      {activeSport && (
+        <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+          Boisko: {activeSport.name_pl}
+        </p>
+      )}
+
+      {sportSwitchNotice && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-300">
+          <span>Zmiana dyscypliny wyczyściła dotychczasowy rysunek.</span>
+          <button
+            type="button"
+            onClick={() => setSportSwitchNotice(false)}
+            aria-label="Zamknij"
+            className="shrink-0 text-amber-600 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-200"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       <div className={frozenClassName}>
         <BoardToolbar
@@ -468,9 +542,7 @@ export function TacticsBoard({ sports }: { sports: Sport[] }) {
           <span className="text-amber-800 dark:text-amber-300">
             {pendingAction.type === "clear"
               ? "Na pewno wyczyścić całą tablicę?"
-              : pendingAction.type === "fieldMode"
-                ? "Zmiana widoku boiska wyczyści obecny rysunek. Kontynuować?"
-                : "Zmiana dyscypliny wyczyści obecny rysunek. Kontynuować?"}
+              : "Zmiana widoku boiska wyczyści obecny rysunek. Kontynuować?"}
           </span>
           <div className="flex shrink-0 gap-2">
             <button
@@ -593,8 +665,8 @@ export function TacticsBoard({ sports }: { sports: Sport[] }) {
         przeciągnij, żeby przesunąć, i użyj „Usuń”, żeby skasować. Dwukrotne
         dotknięcie zawodnika nadaje mu numer. Rysując trasę, stukaj kolejne
         punkty i zakończ dwukrotnym dotknięciem lub przyciskiem „Gotowe”.
-        Zaznaczoną trasę przeciągasz jako całość albo za pojedyncze punkty,
-        żeby ją przekształcić.
+        Zaznaczoną trasę przeciągasz jako całość albo za pojedyncze punkty, żeby
+        ją przekształcić.
       </p>
     </div>
   );
