@@ -1,21 +1,21 @@
 import type {
-  BoardElement,
-  BoardElementType,
-  LineElementType,
+  BoardPoint,
+  PathBoardElement,
+  PathHeadStyle,
+  PointBoardElement,
   PointElementType,
 } from "./types";
 
 export const POINT_RADIUS = 18;
-export const DEFAULT_LINE_LENGTH = 110;
-export const MIN_LINE_LENGTH = 24;
 
-const LINE_TYPES: LineElementType[] = ["arrow", "passLine"];
+// Double-tap-to-finish a path: a second tap within this time and distance
+// of the previous one ends the path instead of adding another point.
+export const DOUBLE_TAP_MS = 400;
+export const DOUBLE_TAP_DIST = 26;
 
-export function isLineElementType(
-  type: BoardElementType,
-): type is LineElementType {
-  return (LINE_TYPES as string[]).includes(type);
-}
+// How far in from each sideline a full-width line (e.g. line of scrimmage)
+// is drawn, so it doesn't sit flush on top of the field border.
+export const FULL_WIDTH_INSET = 24;
 
 function createId(): string {
   return typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -24,52 +24,37 @@ function createId(): string {
 }
 
 export function createPointElement(
-  type: PointElementType,
+  kind: PointElementType,
   x: number,
   y: number,
-): BoardElement {
-  return { id: createId(), type, x, y, rotation: 0, label: "" };
+  defaultLabel: string = "",
+): PointBoardElement {
+  return { id: createId(), type: "point", kind, x, y, label: defaultLabel };
 }
 
-/**
- * Line/arrow elements always store their local vector as a horizontal
- * segment (endY = 0) with the visual direction fully captured by
- * `rotation`. This keeps the Konva Transformer's left/right anchors
- * (used to reshape length) aligned with the line's own axis instead of
- * the stage's, regardless of which way the arrow points.
- */
-export function createLineElement(
-  type: LineElementType,
-  x: number,
+export interface PathStylePreset {
+  color: string;
+  strokeWidth: number;
+  headStyle: PathHeadStyle;
+  dash?: number[];
+}
+
+export function createPathElement(
+  kind: string,
+  preset: PathStylePreset,
+  points: BoardPoint[],
+): PathBoardElement {
+  return { id: createId(), type: "path", kind, points, ...preset };
+}
+
+export function createFullWidthLine(
+  kind: string,
+  preset: PathStylePreset,
   y: number,
-  length: number = DEFAULT_LINE_LENGTH,
-  rotationDeg: number = 0,
-): BoardElement {
-  return {
-    id: createId(),
-    type,
-    x,
-    y,
-    rotation: rotationDeg,
-    endX: length,
-    endY: 0,
-  };
-}
-
-export function createLineElementFromDrag(
-  type: LineElementType,
-  start: { x: number; y: number },
-  end: { x: number; y: number },
-): BoardElement {
-  const dx = end.x - start.x;
-  const dy = end.y - start.y;
-  const dragLength = Math.hypot(dx, dy);
-  // A tap without a meaningful drag (dragLength below the minimum) falls
-  // back to the roomier default length instead of a barely-visible stub -
-  // coaches often tap a line tool once before discovering the drag gesture.
-  if (dragLength < MIN_LINE_LENGTH) {
-    return createLineElement(type, start.x, start.y);
-  }
-  const rotationDeg = (Math.atan2(dy, dx) * 180) / Math.PI;
-  return createLineElement(type, start.x, start.y, dragLength, rotationDeg);
+  fieldWidth: number,
+): PathBoardElement {
+  return createPathElement(kind, preset, [
+    { x: FULL_WIDTH_INSET, y },
+    { x: Math.max(fieldWidth - FULL_WIDTH_INSET, FULL_WIDTH_INSET), y },
+  ]);
 }

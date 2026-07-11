@@ -4,6 +4,7 @@
 // is loaded client-only and dynamically - it must never be part of the
 // server render.
 import dynamic from "next/dynamic";
+import type { Sport } from "@/lib/supabase/types";
 import { BoardSkeleton } from "./BoardSkeleton";
 
 const TacticsBoard = dynamic(
@@ -11,6 +12,6 @@ const TacticsBoard = dynamic(
   { ssr: false, loading: () => <BoardSkeleton /> },
 );
 
-export function TacticsBoardLoader() {
-  return <TacticsBoard />;
+export function TacticsBoardLoader({ sports }: { sports: Sport[] }) {
+  return <TacticsBoard sports={sports} />;
 }

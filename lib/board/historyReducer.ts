@@ -1,4 +1,4 @@
-import type { BoardElement } from "./types";
+import type { BoardElement, PathBoardElement, PointBoardElement } from "./types";
 
 export interface BoardHistoryState {
   past: BoardElement[][];
@@ -6,9 +6,16 @@ export interface BoardHistoryState {
   future: BoardElement[][];
 }
 
+// Union members don't share most fields, so a plain Partial<BoardElement>
+// would only expose the handful of keys common to both. This intersection
+// of partials allows any patch that's valid for either variant while still
+// catching typos (a key not on either type stays a type error).
+export type BoardElementPatch = Partial<PointBoardElement> &
+  Partial<PathBoardElement>;
+
 export type BoardHistoryAction =
   | { type: "add"; element: BoardElement }
-  | { type: "update"; id: string; patch: Partial<BoardElement> }
+  | { type: "update"; id: string; patch: BoardElementPatch }
   | { type: "delete"; id: string }
   | { type: "clear" }
   | { type: "undo" }

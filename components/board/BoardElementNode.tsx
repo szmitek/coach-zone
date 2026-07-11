@@ -1,19 +1,22 @@
 "use client";
 
 import type Konva from "konva";
-import { Arrow, Circle, Group, RegularPolygon, Text } from "react-konva";
-import { isLineElement, type BoardElement, type PointElementType } from "@/lib/board/types";
+import { Circle, Group, RegularPolygon, Text } from "react-konva";
 import { POINT_RADIUS } from "@/lib/board/elements";
+import {
+  LABELABLE_POINT_KINDS,
+  type PointBoardElement,
+  type PointElementType,
+} from "@/lib/board/types";
 
 const SELECTION_COLOR = "#fbbf24";
 
 interface BoardElementNodeProps {
-  element: BoardElement;
+  element: PointBoardElement;
   selected: boolean;
   interactive: boolean;
   onSelect: (id: string) => void;
   onDragEnd: (id: string, pos: { x: number; y: number }) => void;
-  onRegisterNode: (id: string, node: Konva.Node | null) => void;
   onEditLabel: (id: string) => void;
 }
 
@@ -23,7 +26,6 @@ export function BoardElementNode({
   interactive,
   onSelect,
   onDragEnd,
-  onRegisterNode,
   onEditLabel,
 }: BoardElementNodeProps) {
   const select = (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
@@ -35,47 +37,21 @@ export function BoardElementNode({
     onDragEnd(element.id, { x: e.target.x(), y: e.target.y() });
   };
 
-  if (isLineElement(element)) {
-    const isPassLine = element.type === "passLine";
-    const color = isPassLine ? "#7c3aed" : "#111827";
-    return (
-      <Arrow
-        ref={(node) => onRegisterNode(element.id, node)}
-        id={element.id}
-        x={element.x}
-        y={element.y}
-        rotation={element.rotation}
-        points={[0, 0, element.endX, element.endY]}
-        stroke={color}
-        fill={color}
-        strokeWidth={4}
-        dash={isPassLine ? [14, 10] : undefined}
-        pointerLength={14}
-        pointerWidth={14}
-        hitStrokeWidth={28}
-        draggable={interactive}
-        onClick={select}
-        onTap={select}
-        onDragEnd={handleDragEnd}
-        shadowColor="black"
-        shadowOpacity={selected ? 0.4 : 0}
-        shadowBlur={selected ? 6 : 0}
-      />
-    );
-  }
-
-  const canLabel = element.type === "player" || element.type === "opponent";
+  const canLabel = LABELABLE_POINT_KINDS.includes(element.kind);
   const editLabel = () => {
     if (canLabel) onEditLabel(element.id);
   };
 
   return (
     <Group
-      ref={(node) => onRegisterNode(element.id, node)}
       id={element.id}
       x={element.x}
       y={element.y}
-      rotation={element.rotation}
+      // Skips hit-testing entirely while a placement tool is active, so
+      // tapping near an existing element never swallows a tap meant to
+      // place/draw something new - only "select" mode can interact with
+      // elements already on the board.
+      listening={interactive}
       draggable={interactive}
       onClick={select}
       onTap={select}
@@ -84,10 +60,10 @@ export function BoardElementNode({
       onDblTap={editLabel}
     >
       {/* Enlarges the touch/click target well beyond the visible glyph -
-          markers render small relative to the whole pitch, especially on
+          markers render small relative to the whole field, especially on
           phones, so a bigger hidden hit area keeps them tap/drag-able. */}
       <Circle radius={POINT_RADIUS * 2.2} fill="rgba(0,0,0,0.001)" />
-      <PointGlyph type={element.type} selected={selected} />
+      <PointGlyph kind={element.kind} selected={selected} />
       {element.label && (
         <Text
           text={element.label}
@@ -108,16 +84,16 @@ export function BoardElementNode({
 }
 
 function PointGlyph({
-  type,
+  kind,
   selected,
 }: {
-  type: PointElementType;
+  kind: PointElementType;
   selected: boolean;
 }) {
   const stroke = selected ? SELECTION_COLOR : "#ffffff";
   const strokeWidth = selected ? 4 : 2;
 
-  switch (type) {
+  switch (kind) {
     case "player":
       return (
         <Circle
@@ -133,6 +109,15 @@ function PointGlyph({
           sides={3}
           radius={POINT_RADIUS + 5}
           fill="#dc2626"
+          stroke={stroke}
+          strokeWidth={strokeWidth}
+        />
+      );
+    case "qb":
+      return (
+        <Circle
+          radius={POINT_RADIUS}
+          fill="#f59e0b"
           stroke={stroke}
           strokeWidth={strokeWidth}
         />

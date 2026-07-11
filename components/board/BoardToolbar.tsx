@@ -1,86 +1,65 @@
 "use client";
 
-import type { ReactNode } from "react";
-import type { ActiveTool, PitchMode } from "@/lib/board/types";
-import {
-  BallIcon,
-  ConeIcon,
-  OpponentIcon,
-  PassLineIcon,
-  PlayerIcon,
-  RedoIcon,
-  RunArrowIcon,
-  SelectIcon,
-  TrashIcon,
-  UndoIcon,
-} from "./icons";
-
-const TOOLS: { id: ActiveTool; label: string; icon: ReactNode }[] = [
-  { id: "select", label: "Wskaźnik", icon: <SelectIcon /> },
-  { id: "player", label: "Zawodnik", icon: <PlayerIcon /> },
-  { id: "opponent", label: "Przeciwnik", icon: <OpponentIcon /> },
-  { id: "ball", label: "Piłka", icon: <BallIcon /> },
-  { id: "cone", label: "Pachołek", icon: <ConeIcon /> },
-  { id: "arrow", label: "Strzałka ruchu", icon: <RunArrowIcon /> },
-  { id: "passLine", label: "Linia podania", icon: <PassLineIcon /> },
-];
+import type { FieldViewMode, ToolDef } from "@/lib/board/sports/types";
+import { RedoIcon, SelectIcon, TrashIcon, UndoIcon } from "./icons";
 
 interface BoardToolbarProps {
-  activeTool: ActiveTool;
-  onToolChange: (tool: ActiveTool) => void;
-  pitchMode: PitchMode;
-  onPitchModeChange: (mode: PitchMode) => void;
+  tools: ToolDef[];
+  activeTool: string;
+  onToolChange: (toolId: string) => void;
+  fieldModes: FieldViewMode[];
+  fieldModeId: string;
+  onFieldModeChange: (modeId: string) => void;
   canUndo: boolean;
   canRedo: boolean;
   onUndo: () => void;
   onRedo: () => void;
   onClear: () => void;
   hasSelection: boolean;
+  deleteLabel: string;
   onDeleteSelected: () => void;
 }
 
 export function BoardToolbar({
+  tools,
   activeTool,
   onToolChange,
-  pitchMode,
-  onPitchModeChange,
+  fieldModes,
+  fieldModeId,
+  onFieldModeChange,
   canUndo,
   canRedo,
   onUndo,
   onRedo,
   onClear,
   hasSelection,
+  deleteLabel,
   onDeleteSelected,
 }: BoardToolbarProps) {
   return (
     <div className="flex flex-col gap-2 rounded-2xl border border-neutral-200 bg-white p-2.5 dark:border-neutral-800 dark:bg-neutral-900">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex overflow-hidden rounded-full border border-neutral-300 text-sm dark:border-neutral-700">
-          <button
-            type="button"
-            onClick={() => onPitchModeChange("full")}
-            aria-pressed={pitchMode === "full"}
-            className={`px-3 py-1.5 font-medium transition-colors ${
-              pitchMode === "full"
-                ? "bg-emerald-600 text-white"
-                : "hover:bg-neutral-50 dark:hover:bg-neutral-800"
-            }`}
-          >
-            Pełne boisko
-          </button>
-          <button
-            type="button"
-            onClick={() => onPitchModeChange("half")}
-            aria-pressed={pitchMode === "half"}
-            className={`px-3 py-1.5 font-medium transition-colors ${
-              pitchMode === "half"
-                ? "bg-emerald-600 text-white"
-                : "hover:bg-neutral-50 dark:hover:bg-neutral-800"
-            }`}
-          >
-            Połowa boiska
-          </button>
-        </div>
+        {fieldModes.length > 1 ? (
+          <div className="flex overflow-hidden rounded-full border border-neutral-300 text-sm dark:border-neutral-700">
+            {fieldModes.map((mode) => (
+              <button
+                key={mode.id}
+                type="button"
+                onClick={() => onFieldModeChange(mode.id)}
+                aria-pressed={fieldModeId === mode.id}
+                className={`px-3 py-1.5 font-medium transition-colors ${
+                  fieldModeId === mode.id
+                    ? "bg-emerald-600 text-white"
+                    : "hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                }`}
+              >
+                {mode.label}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <span />
+        )}
 
         <div className="flex items-center gap-1.5">
           <button
@@ -107,8 +86,8 @@ export function BoardToolbar({
             type="button"
             onClick={onDeleteSelected}
             disabled={!hasSelection}
-            aria-label="Usuń zaznaczony element"
-            title="Usuń zaznaczony element"
+            aria-label={deleteLabel}
+            title={deleteLabel}
             className="rounded-full border border-neutral-300 p-2 transition-colors hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-neutral-700 dark:hover:bg-neutral-800"
           >
             <TrashIcon />
@@ -124,7 +103,20 @@ export function BoardToolbar({
       </div>
 
       <div className="flex snap-x gap-2 overflow-x-auto pb-1">
-        {TOOLS.map((tool) => (
+        <button
+          type="button"
+          onClick={() => onToolChange("select")}
+          aria-pressed={activeTool === "select"}
+          className={`flex shrink-0 snap-start flex-col items-center gap-1 rounded-xl border px-3 py-2 text-xs font-medium transition-colors ${
+            activeTool === "select"
+              ? "border-emerald-600 bg-emerald-50 text-emerald-700 dark:border-emerald-500 dark:bg-emerald-950/40 dark:text-emerald-400"
+              : "border-transparent text-neutral-600 hover:bg-neutral-50 dark:text-neutral-400 dark:hover:bg-neutral-800"
+          }`}
+        >
+          <SelectIcon />
+          Wskaźnik
+        </button>
+        {tools.map((tool) => (
           <button
             key={tool.id}
             type="button"

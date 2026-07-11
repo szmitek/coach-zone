@@ -1,7 +1,7 @@
 "use client";
 
 import { Arc, Circle, Group, Layer, Line, Rect } from "react-konva";
-import type { PitchMode } from "@/lib/board/types";
+import type { FieldRendererProps } from "@/lib/board/sports/types";
 
 const MARGIN = 24;
 const LINE_COLOR = "#f8fafc";
@@ -9,15 +9,7 @@ const LINE_WIDTH = 3;
 const TURF_DARK = "#1f8a4c";
 const TURF_LIGHT = "#22994f";
 
-export function PitchBackground({
-  mode,
-  width,
-  height,
-}: {
-  mode: PitchMode;
-  width: number;
-  height: number;
-}) {
+export function SoccerField({ modeId, width, height }: FieldRendererProps) {
   return (
     <Layer listening={false}>
       <Turf width={width} height={height} />
@@ -29,7 +21,7 @@ export function PitchBackground({
         stroke={LINE_COLOR}
         strokeWidth={LINE_WIDTH}
       />
-      {mode === "full" ? (
+      {modeId === "full" ? (
         <FullPitchMarkings width={width} height={height} />
       ) : (
         <HalfPitchMarkings width={width} height={height} />

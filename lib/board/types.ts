@@ -1,40 +1,52 @@
-export type PointElementType = "player" | "opponent" | "ball" | "cone";
-export type LineElementType = "arrow" | "passLine";
-export type BoardElementType = PointElementType | LineElementType;
+export type PointElementType = "player" | "opponent" | "ball" | "cone" | "qb";
+export type PathHeadStyle = "arrow" | "bar" | "none";
 
-export type PitchMode = "full" | "half";
-
-export type ActiveTool = "select" | BoardElementType;
-
-interface BoardElementBase {
-  id: string;
+export interface BoardPoint {
   x: number;
   y: number;
-  rotation: number;
 }
 
-export interface PointBoardElement extends BoardElementBase {
-  type: PointElementType;
+export interface PointBoardElement {
+  id: string;
+  type: "point";
+  kind: PointElementType;
+  x: number;
+  y: number;
   label: string;
 }
 
-export interface LineBoardElement extends BoardElementBase {
-  type: LineElementType;
-  /** End point of the line/arrow, relative to (x, y), before rotation. */
-  endX: number;
-  endY: number;
+export interface PathBoardElement {
+  id: string;
+  type: "path";
+  /** Id of the tool that created it (e.g. "route", "block") - informational only, styling is self-contained below. */
+  kind: string;
+  points: BoardPoint[];
+  color: string;
+  strokeWidth: number;
+  headStyle: PathHeadStyle;
+  dash?: number[];
 }
 
-export type BoardElement = PointBoardElement | LineBoardElement;
+export type BoardElement = PointBoardElement | PathBoardElement;
 
-export function isLineElement(
+export type ActiveTool = "select" | string;
+
+// Which point kinds get a double-tap-to-number affordance - true across
+// every sport, so it lives here rather than in per-sport config.
+export const LABELABLE_POINT_KINDS: PointElementType[] = [
+  "player",
+  "opponent",
+  "qb",
+];
+
+export function isPathElement(
   element: BoardElement,
-): element is LineBoardElement {
-  return element.type === "arrow" || element.type === "passLine";
+): element is PathBoardElement {
+  return element.type === "path";
 }
 
 export function isPointElement(
   element: BoardElement,
 ): element is PointBoardElement {
-  return !isLineElement(element);
+  return element.type === "point";
 }
