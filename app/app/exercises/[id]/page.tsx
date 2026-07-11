@@ -94,18 +94,29 @@ export default async function ExerciseDetailPage({
           </div>
         </div>
 
-        {isOwner && (
-          <div className="flex shrink-0 gap-2">
-            <Link
-              href={`/app/exercises/${exercise.id}/edit`}
-              className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
-            >
-              Edytuj
-            </Link>
+        <div className="flex shrink-0 gap-2">
+          <Link
+            href={`/app/exercises/new?duplicateFrom=${exercise.id}`}
+            className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+          >
+            Duplikuj
+          </Link>
+          {isOwner && !exercise.is_public && (
             <DeleteExerciseButton exerciseId={exercise.id} />
-          </div>
-        )}
+          )}
+        </div>
       </div>
+
+      {exercise.media_url && (
+        <div className="mt-6 overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-800">
+          {/* eslint-disable-next-line @next/next/no-img-element -- remote Supabase Storage URL, no next/image domain config in this env */}
+          <img
+            src={exercise.media_url}
+            alt={`Diagram ćwiczenia „${exercise.title}”`}
+            className="w-full"
+          />
+        </div>
+      )}
 
       {exercise.equipment.length > 0 && (
         <div className="mt-6 flex flex-wrap gap-2">
@@ -134,19 +145,6 @@ export default async function ExerciseDetailPage({
               <li key={i}>{step}</li>
             ))}
           </ol>
-        </div>
-      )}
-
-      {exercise.media_url && (
-        <div className="mt-8">
-          <a
-            href={exercise.media_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm font-medium text-emerald-600 hover:text-emerald-500"
-          >
-            Zobacz materiał →
-          </a>
         </div>
       )}
     </main>

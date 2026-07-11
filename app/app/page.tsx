@@ -24,12 +24,6 @@ const navItems = [
     title: "Kalendarz",
     description: "Zobacz treningi w widoku tygodnia i planuj mikrocykle.",
   },
-  {
-    href: "/app/board",
-    title: "Tablica taktyczna",
-    description:
-      "Rysuj ustawienia i akcje na boisku (wersja robocza, bez zapisywania).",
-  },
 ];
 
 export default async function AppHomePage() {

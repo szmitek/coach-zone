@@ -76,6 +76,7 @@ export interface PdfWorkoutItem {
   assigned_to: string | null;
   exerciseTitle: string;
   exerciseDescription: string | null;
+  exerciseMediaUrl: string | null;
 }
 
 export interface WorkoutStats {

@@ -92,6 +92,7 @@ export interface Database {
           difficulty: Difficulty | null;
           equipment: string[];
           media_url: string | null;
+          board_state: Json | null;
           is_public: boolean;
           created_at: string;
           updated_at: string;
@@ -108,6 +109,7 @@ export interface Database {
           difficulty?: Difficulty | null;
           equipment?: string[];
           media_url?: string | null;
+          board_state?: Json | null;
           is_public?: boolean;
           created_at?: string;
           updated_at?: string;
@@ -124,6 +126,7 @@ export interface Database {
           difficulty?: Difficulty | null;
           equipment?: string[];
           media_url?: string | null;
+          board_state?: Json | null;
           is_public?: boolean;
           created_at?: string;
           updated_at?: string;
@@ -272,7 +275,12 @@ export interface SharedWorkoutItem {
   position: number;
   duration_min: number | null;
   assigned_to: string | null;
-  exercise: { id: string; title: string; description: string | null } | null;
+  exercise: {
+    id: string;
+    title: string;
+    description: string | null;
+    media_url: string | null;
+  } | null;
 }
 
 export interface SharedWorkoutPayload {
