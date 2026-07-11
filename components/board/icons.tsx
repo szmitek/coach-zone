@@ -83,6 +83,65 @@ export function PassLineIcon() {
   );
 }
 
+export function QbIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-6 w-6">
+      <circle cx="12" cy="12" r="9" fill="#f59e0b" stroke="#fff" strokeWidth="1.5" />
+      <text
+        x="12"
+        y="15.5"
+        fontSize="8"
+        fontWeight="bold"
+        textAnchor="middle"
+        fill="#111827"
+      >
+        QB
+      </text>
+    </svg>
+  );
+}
+
+export function BlockIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-6 w-6">
+      <line
+        x1="4"
+        y1="20"
+        x2="16"
+        y2="8"
+        stroke="#b91c1c"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+      <line
+        x1="11.8"
+        y1="3.8"
+        x2="20.2"
+        y2="12.2"
+        stroke="#b91c1c"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+export function ScrimmageIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-6 w-6">
+      <line
+        x1="2"
+        y1="12"
+        x2="22"
+        y2="12"
+        stroke="#1d4ed8"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 export function UndoIcon() {
   return (
     <svg viewBox="0 0 24 24" className="h-5 w-5">

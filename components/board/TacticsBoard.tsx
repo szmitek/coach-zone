@@ -1,57 +1,89 @@
 "use client";
 
 import type Konva from "konva";
-import { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import { Arrow, Layer, Stage, Transformer } from "react-konva";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { Circle, Layer, Line, Stage } from "react-konva";
 import {
-  createLineElementFromDrag,
+  createFullWidthLine,
+  createPathElement,
   createPointElement,
-  isLineElementType,
-  MIN_LINE_LENGTH,
+  DOUBLE_TAP_DIST,
+  DOUBLE_TAP_MS,
 } from "@/lib/board/elements";
 import {
   boardHistoryReducer,
   initialBoardHistoryState,
 } from "@/lib/board/historyReducer";
-import { PITCH_DIMENSIONS } from "@/lib/board/pitch";
+import { distance, flattenPoints, translatePoints } from "@/lib/board/path";
+import { getSportConfig } from "@/lib/board/sports/registry";
+import type { PathToolStyle, ToolDef } from "@/lib/board/sports/types";
 import {
-  isLineElement,
+  isPathElement,
+  isPointElement,
   type ActiveTool,
-  type LineElementType,
-  type PitchMode,
+  type BoardPoint,
 } from "@/lib/board/types";
+import type { Sport } from "@/lib/supabase/types";
 import { BoardElementNode } from "./BoardElementNode";
 import { BoardToolbar } from "./BoardToolbar";
-import { PitchBackground } from "./PitchBackground";
+import { PathDrawingControls } from "./PathDrawingControls";
+import { PathElementNode } from "./PathElementNode";
+import { SportSelector } from "./SportSelector";
 
-type PendingAction = { type: "clear" } | { type: "pitch"; mode: PitchMode };
+type PendingAction =
+  | { type: "clear" }
+  | { type: "fieldMode"; modeId: string }
+  | { type: "sport"; sportId: number };
 
-interface DrawingLine {
-  type: LineElementType;
-  start: { x: number; y: number };
-  end: { x: number; y: number };
+interface DrawingPath {
+  toolId: string;
+  style: PathToolStyle;
+  points: BoardPoint[];
 }
 
-export function TacticsBoard() {
+function pickDefaultSportId(sports: Sport[]): number | null {
+  const preferred = sports.find((s) => s.slug === "american_football");
+  return preferred?.id ?? sports[0]?.id ?? null;
+}
+
+export function TacticsBoard({ sports }: { sports: Sport[] }) {
   const [history, dispatch] = useReducer(
     boardHistoryReducer,
     initialBoardHistoryState,
   );
-  const [pitchMode, setPitchMode] = useState<PitchMode>("full");
+
+  const [selectedSportId, setSelectedSportId] = useState<number | null>(() =>
+    pickDefaultSportId(sports),
+  );
+  const activeSport = useMemo(
+    () => sports.find((s) => s.id === selectedSportId) ?? null,
+    [sports, selectedSportId],
+  );
+  const config = useMemo(
+    () => getSportConfig(activeSport?.slug ?? null),
+    [activeSport],
+  );
+
+  const [fieldModeId, setFieldModeId] = useState(config.defaultFieldModeId);
   const [activeTool, setActiveTool] = useState<ActiveTool>("select");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedPointIndex, setSelectedPointIndex] = useState<number | null>(
+    null,
+  );
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(
     null,
   );
-  const [drawingLine, setDrawingLine] = useState<DrawingLine | null>(null);
+  const [drawingPath, setDrawingPath] = useState<DrawingPath | null>(null);
+  const [previewCursor, setPreviewCursor] = useState<BoardPoint | null>(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
 
   const containerRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<Konva.Stage>(null);
-  const transformerRef = useRef<Konva.Transformer>(null);
-  const nodesRef = useRef(new Map<string, Konva.Node>());
+  const lastTapRef = useRef<{ time: number; pos: BoardPoint } | null>(null);
 
-  const dims = PITCH_DIMENSIONS[pitchMode];
+  const fieldMode =
+    config.fieldModes.find((m) => m.id === fieldModeId) ?? config.fieldModes[0];
+  const dims = { width: fieldMode.width, height: fieldMode.height };
   const scale = containerSize.width > 0 ? containerSize.width / dims.width : 1;
 
   useEffect(() => {
@@ -67,30 +99,30 @@ export function TacticsBoard() {
     return () => observer.disconnect();
   }, []);
 
-  const registerNode = useCallback((id: string, node: Konva.Node | null) => {
-    if (node) nodesRef.current.set(id, node);
-    else nodesRef.current.delete(id);
-  }, []);
+  function cancelDrawingPath() {
+    setDrawingPath(null);
+    setPreviewCursor(null);
+    lastTapRef.current = null;
+  }
 
-  useEffect(() => {
-    const tr = transformerRef.current;
-    if (!tr) return;
-    const el = history.present.find((item) => item.id === selectedId);
-    if (el && isLineElement(el)) {
-      const node = nodesRef.current.get(el.id);
-      tr.nodes(node ? [node] : []);
-    } else {
-      tr.nodes([]);
+  function findTool(toolId: string): ToolDef | null {
+    return config.tools.find((t) => t.id === toolId) ?? null;
+  }
+
+  function deleteSelected() {
+    if (selectedPointIndex !== null && selectedId) {
+      const el = history.present.find((item) => item.id === selectedId);
+      if (el && isPathElement(el) && el.points.length > 2) {
+        const nextPoints = el.points.filter((_, i) => i !== selectedPointIndex);
+        dispatch({ type: "update", id: selectedId, patch: { points: nextPoints } });
+        setSelectedPointIndex(null);
+        return;
+      }
     }
-    tr.getLayer()?.batchDraw();
-  }, [selectedId, history.present]);
-
-  const handleDeleteSelected = useCallback(() => {
-    setSelectedId((current) => {
-      if (current) dispatch({ type: "delete", id: current });
-      return null;
-    });
-  }, []);
+    if (selectedId) dispatch({ type: "delete", id: selectedId });
+    setSelectedId(null);
+    setSelectedPointIndex(null);
+  }
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -104,13 +136,17 @@ export function TacticsBoard() {
         if (e.key === "Escape") setPendingAction(null);
         return;
       }
+      if (drawingPath) {
+        if (e.key === "Escape") cancelDrawingPath();
+        return;
+      }
       if (e.key === "Delete" || e.key === "Backspace") {
         e.preventDefault();
-        handleDeleteSelected();
+        deleteSelected();
       } else if (e.key === "Escape") {
         setSelectedId(null);
+        setSelectedPointIndex(null);
         setActiveTool("select");
-        setDrawingLine(null);
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
         e.preventDefault();
         dispatch({ type: e.shiftKey ? "redo" : "undo" });
@@ -121,15 +157,67 @@ export function TacticsBoard() {
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [handleDeleteSelected, pendingAction]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingAction, drawingPath, selectedId, selectedPointIndex, history.present]);
 
-  function getPointer() {
+  function getPointer(): BoardPoint | null {
     return stageRef.current?.getRelativePointerPosition() ?? null;
   }
 
-  function handleToolChange(tool: ActiveTool) {
-    setActiveTool(tool);
-    setDrawingLine(null);
+  function handleToolChange(toolId: string) {
+    setActiveTool(toolId);
+    cancelDrawingPath();
+  }
+
+  function handleSelectElement(id: string) {
+    setSelectedId(id);
+    setSelectedPointIndex(null);
+  }
+
+  function finishDrawingPath() {
+    if (drawingPath && drawingPath.points.length >= 2) {
+      const el = createPathElement(
+        drawingPath.toolId,
+        drawingPath.style,
+        drawingPath.points,
+      );
+      dispatch({ type: "add", element: el });
+      setSelectedId(el.id);
+      setSelectedPointIndex(null);
+    }
+    cancelDrawingPath();
+    setActiveTool("select");
+  }
+
+  function undoLastPathPoint() {
+    setDrawingPath((current) => {
+      if (!current) return current;
+      if (current.points.length <= 1) return null;
+      return { ...current, points: current.points.slice(0, -1) };
+    });
+  }
+
+  function handlePathTap(tool: ToolDef, pos: BoardPoint) {
+    if (tool.kind.create !== "path") return;
+    const now = Date.now();
+
+    if (drawingPath && drawingPath.toolId === tool.id) {
+      const last = lastTapRef.current;
+      const isDoubleTap =
+        last !== null &&
+        now - last.time < DOUBLE_TAP_MS &&
+        distance(pos, last.pos) < DOUBLE_TAP_DIST;
+      if (isDoubleTap) {
+        finishDrawingPath();
+        return;
+      }
+      setDrawingPath({ ...drawingPath, points: [...drawingPath.points, pos] });
+      lastTapRef.current = { time: now, pos };
+      return;
+    }
+
+    setDrawingPath({ toolId: tool.id, style: tool.kind.style, points: [pos] });
+    lastTapRef.current = { time: now, pos };
   }
 
   function handleStageClick(
@@ -138,90 +226,120 @@ export function TacticsBoard() {
     if (e.target !== stageRef.current) return;
     if (activeTool === "select") {
       setSelectedId(null);
+      setSelectedPointIndex(null);
       return;
     }
-    if (isLineElementType(activeTool)) return;
+    const tool = findTool(activeTool);
+    if (!tool) return;
     const pos = getPointer();
     if (!pos) return;
-    const el = createPointElement(activeTool, pos.x, pos.y);
-    dispatch({ type: "add", element: el });
-    setSelectedId(el.id);
-  }
 
-  function handleStagePointerDown(
-    e: Konva.KonvaEventObject<MouseEvent | TouchEvent>,
-  ) {
-    if (activeTool === "select" || !isLineElementType(activeTool)) return;
-    if (e.target !== stageRef.current) return;
-    const pos = getPointer();
-    if (!pos) return;
-    setDrawingLine({ type: activeTool, start: pos, end: pos });
+    if (tool.kind.create === "point") {
+      const el = createPointElement(
+        tool.kind.elementKind,
+        pos.x,
+        pos.y,
+        tool.kind.defaultLabel ?? "",
+      );
+      dispatch({ type: "add", element: el });
+      setSelectedId(el.id);
+      setSelectedPointIndex(null);
+      return;
+    }
+    if (tool.kind.create === "fullWidthLine") {
+      const el = createFullWidthLine(tool.id, tool.kind.style, pos.y, dims.width);
+      dispatch({ type: "add", element: el });
+      setSelectedId(el.id);
+      setSelectedPointIndex(null);
+      return;
+    }
+    handlePathTap(tool, pos);
   }
 
   function handleStagePointerMove(
-    e: Konva.KonvaEventObject<MouseEvent | TouchEvent>,
+    e: Konva.KonvaEventObject<MouseEvent>,
   ) {
-    if (!drawingLine) return;
+    if (!drawingPath) return;
     e.evt.preventDefault();
     const pos = getPointer();
-    if (!pos) return;
-    setDrawingLine((current) => (current ? { ...current, end: pos } : current));
-  }
-
-  function handleStagePointerUp() {
-    if (!drawingLine) return;
-    const el = createLineElementFromDrag(
-      drawingLine.type,
-      drawingLine.start,
-      drawingLine.end,
-    );
-    dispatch({ type: "add", element: el });
-    setSelectedId(el.id);
-    setDrawingLine(null);
-    setActiveTool("select");
+    if (pos) setPreviewCursor(pos);
   }
 
   function handleElementDragEnd(id: string, pos: { x: number; y: number }) {
     dispatch({ type: "update", id, patch: { x: pos.x, y: pos.y } });
   }
 
-  function handleTransformEnd() {
-    const node = transformerRef.current?.nodes()[0];
-    if (!node || !selectedId) return;
-    const scaleX = node.scaleX();
-    node.scaleX(1);
-    node.scaleY(1);
-    const el = history.present.find((item) => item.id === selectedId);
-    if (!el || !isLineElement(el)) return;
-    const newLength = Math.max(el.endX * scaleX, MIN_LINE_LENGTH);
+  function handlePathTranslateEnd(id: string, dx: number, dy: number) {
+    const el = history.present.find((item) => item.id === id);
+    if (!el || !isPathElement(el)) return;
     dispatch({
       type: "update",
-      id: selectedId,
-      patch: {
-        x: node.x(),
-        y: node.y(),
-        rotation: node.rotation(),
-        endX: newLength,
-        endY: 0,
-      },
+      id,
+      patch: { points: translatePoints(el.points, dx, dy) },
     });
+  }
+
+  function handlePathPointDragEnd(
+    id: string,
+    index: number,
+    pos: BoardPoint,
+  ) {
+    const el = history.present.find((item) => item.id === id);
+    if (!el || !isPathElement(el)) return;
+    const nextPoints = el.points.map((p, i) => (i === index ? pos : p));
+    dispatch({ type: "update", id, patch: { points: nextPoints } });
+  }
+
+  function handlePathInsertPoint(
+    id: string,
+    afterIndex: number,
+    point: BoardPoint,
+  ) {
+    const el = history.present.find((item) => item.id === id);
+    if (!el || !isPathElement(el)) return;
+    const nextPoints = [
+      ...el.points.slice(0, afterIndex + 1),
+      point,
+      ...el.points.slice(afterIndex + 1),
+    ];
+    dispatch({ type: "update", id, patch: { points: nextPoints } });
   }
 
   function handleEditLabel(id: string) {
     const el = history.present.find((item) => item.id === id);
-    if (!el || isLineElement(el)) return;
+    if (!el || !isPointElement(el)) return;
     const next = window.prompt("Numer / etykieta zawodnika", el.label);
     if (next === null) return;
     dispatch({ type: "update", id, patch: { label: next.trim().slice(0, 3) } });
   }
 
-  function handlePitchModeChange(mode: PitchMode) {
-    if (mode === pitchMode) return;
+  function handleFieldModeChange(modeId: string) {
+    if (modeId === fieldModeId) return;
     if (history.present.length === 0) {
-      setPitchMode(mode);
+      setFieldModeId(modeId);
       return;
     }
-    setPendingAction({ type: "pitch", mode });
+    setPendingAction({ type: "fieldMode", modeId });
+  }
+
+  function applySportChange(sportId: number) {
+    setSelectedSportId(sportId);
+    const nextSport = sports.find((s) => s.id === sportId) ?? null;
+    const nextConfig = getSportConfig(nextSport?.slug ?? null);
+    setFieldModeId(nextConfig.defaultFieldModeId);
+    setSelectedId(null);
+    setSelectedPointIndex(null);
+    setActiveTool("select");
+    cancelDrawingPath();
+  }
+
+  function handleSportChange(sportId: number) {
+    if (sportId === selectedSportId) return;
+    if (history.present.length === 0) {
+      applySportChange(sportId);
+      return;
+    }
+    setPendingAction({ type: "sport", sportId });
   }
 
   function handleClearRequest() {
@@ -231,34 +349,60 @@ export function TacticsBoard() {
 
   function confirmPendingAction() {
     if (!pendingAction) return;
-    if (pendingAction.type === "pitch") setPitchMode(pendingAction.mode);
+    cancelDrawingPath();
+    if (pendingAction.type === "fieldMode") {
+      setFieldModeId(pendingAction.modeId);
+    } else if (pendingAction.type === "sport") {
+      applySportChange(pendingAction.sportId);
+    }
     dispatch({ type: "clear" });
     setSelectedId(null);
+    setSelectedPointIndex(null);
     setPendingAction(null);
   }
 
-  // Frozen while a destructive action (clear / pitch switch) awaits
+  // Frozen while a destructive action (clear / field / sport switch) awaits
   // confirmation, so nothing drawn in the meantime can be silently wiped
   // out by a stale "Tak".
   const frozenClassName = pendingAction
     ? "pointer-events-none opacity-60"
     : undefined;
 
+  const drawingPreviewPoints =
+    drawingPath && previewCursor
+      ? [...drawingPath.points, previewCursor]
+      : (drawingPath?.points ?? []);
+
   return (
     <div className="flex flex-col gap-3">
       <div className={frozenClassName}>
+        <SportSelector
+          sports={sports}
+          selectedSportId={selectedSportId}
+          onChange={handleSportChange}
+        />
+      </div>
+
+      <div className={frozenClassName}>
         <BoardToolbar
+          tools={config.tools}
           activeTool={activeTool}
           onToolChange={handleToolChange}
-          pitchMode={pitchMode}
-          onPitchModeChange={handlePitchModeChange}
+          fieldModes={config.fieldModes}
+          fieldModeId={fieldMode.id}
+          onFieldModeChange={handleFieldModeChange}
           canUndo={history.past.length > 0}
           canRedo={history.future.length > 0}
           onUndo={() => dispatch({ type: "undo" })}
           onRedo={() => dispatch({ type: "redo" })}
           onClear={handleClearRequest}
           hasSelection={selectedId !== null}
-          onDeleteSelected={handleDeleteSelected}
+          deleteLabel={
+            selectedPointIndex !== null
+              ? "Usuń punkt trasy"
+              : "Usuń zaznaczony element"
+          }
+          onDeleteSelected={deleteSelected}
         />
       </div>
 
@@ -267,7 +411,9 @@ export function TacticsBoard() {
           <span className="text-amber-800 dark:text-amber-300">
             {pendingAction.type === "clear"
               ? "Na pewno wyczyścić całą tablicę?"
-              : "Zmiana boiska wyczyści obecny rysunek. Kontynuować?"}
+              : pendingAction.type === "fieldMode"
+                ? "Zmiana widoku boiska wyczyści obecny rysunek. Kontynuować?"
+                : "Zmiana dyscypliny wyczyści obecny rysunek. Kontynuować?"}
           </span>
           <div className="flex shrink-0 gap-2">
             <button
@@ -288,6 +434,18 @@ export function TacticsBoard() {
         </div>
       )}
 
+      {drawingPath && !pendingAction && (
+        <PathDrawingControls
+          pointCount={drawingPath.points.length}
+          onFinish={finishDrawingPath}
+          onUndoPoint={undoLastPathPoint}
+          onCancel={() => {
+            cancelDrawingPath();
+            setActiveTool("select");
+          }}
+        />
+      )}
+
       <div
         ref={containerRef}
         className={`w-full touch-none overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-950 ${frozenClassName ?? ""}`}
@@ -302,70 +460,78 @@ export function TacticsBoard() {
             scaleY={scale}
             onClick={handleStageClick}
             onTap={handleStageClick}
-            onMouseDown={handleStagePointerDown}
-            onTouchStart={handleStagePointerDown}
             onMouseMove={handleStagePointerMove}
-            onTouchMove={handleStagePointerMove}
-            onMouseUp={handleStagePointerUp}
-            onTouchEnd={handleStagePointerUp}
           >
-            <PitchBackground
-              mode={pitchMode}
+            <config.FieldComponent
+              modeId={fieldMode.id}
               width={dims.width}
               height={dims.height}
             />
             <Layer>
-              {history.present.map((el) => (
-                <BoardElementNode
-                  key={el.id}
-                  element={el}
-                  selected={el.id === selectedId}
-                  interactive={activeTool === "select"}
-                  onSelect={setSelectedId}
-                  onDragEnd={handleElementDragEnd}
-                  onRegisterNode={registerNode}
-                  onEditLabel={handleEditLabel}
-                />
-              ))}
-              {drawingLine && (
-                <Arrow
-                  points={[
-                    drawingLine.start.x,
-                    drawingLine.start.y,
-                    drawingLine.end.x,
-                    drawingLine.end.y,
-                  ]}
-                  stroke={drawingLine.type === "passLine" ? "#7c3aed" : "#111827"}
-                  fill={drawingLine.type === "passLine" ? "#7c3aed" : "#111827"}
-                  dash={drawingLine.type === "passLine" ? [14, 10] : undefined}
-                  strokeWidth={4}
-                  pointerLength={14}
-                  pointerWidth={14}
-                  listening={false}
+              {history.present.map((el) =>
+                isPointElement(el) ? (
+                  <BoardElementNode
+                    key={el.id}
+                    element={el}
+                    selected={el.id === selectedId}
+                    interactive={activeTool === "select"}
+                    onSelect={handleSelectElement}
+                    onDragEnd={handleElementDragEnd}
+                    onEditLabel={handleEditLabel}
+                  />
+                ) : (
+                  <PathElementNode
+                    key={el.id}
+                    element={el}
+                    selected={el.id === selectedId}
+                    interactive={activeTool === "select"}
+                    selectedPointIndex={
+                      el.id === selectedId ? selectedPointIndex : null
+                    }
+                    onSelect={handleSelectElement}
+                    onSelectPoint={setSelectedPointIndex}
+                    onTranslateEnd={handlePathTranslateEnd}
+                    onPointDragEnd={handlePathPointDragEnd}
+                    onInsertPoint={handlePathInsertPoint}
+                  />
+                ),
+              )}
+              {drawingPath && drawingPreviewPoints.length >= 2 && (
+                <Line
+                  points={flattenPoints(drawingPreviewPoints)}
+                  tension={drawingPath.points.length > 2 ? 0.35 : 0}
+                  stroke={drawingPath.style.color}
+                  strokeWidth={drawingPath.style.strokeWidth}
+                  dash={drawingPath.style.dash}
+                  lineCap="round"
+                  lineJoin="round"
                   opacity={0.85}
+                  listening={false}
                 />
               )}
-              <Transformer
-                ref={transformerRef}
-                rotateEnabled
-                enabledAnchors={["middle-left", "middle-right"]}
-                anchorSize={24}
-                anchorCornerRadius={12}
-                rotateAnchorOffset={36}
-                borderStroke="#fbbf24"
-                anchorStroke="#fbbf24"
-                anchorFill="#ffffff"
-                onTransformEnd={handleTransformEnd}
-              />
+              {drawingPath &&
+                drawingPath.points.map((p, i) => (
+                  <Circle
+                    key={i}
+                    x={p.x}
+                    y={p.y}
+                    radius={7}
+                    fill="#10b981"
+                    stroke="#ffffff"
+                    strokeWidth={1.5}
+                    listening={false}
+                  />
+                ))}
             </Layer>
           </Stage>
         )}
       </div>
 
       <p className="text-xs text-neutral-500 dark:text-neutral-400">
-        Wskazówka: dwukrotne dotknięcie zawodnika lub przeciwnika nadaje mu
-        numer. Zaznaczoną strzałkę obracasz i skracasz uchwytami na jej
-        końcach.
+        Wskazówka: dwukrotne dotknięcie zawodnika nadaje mu numer. Rysując
+        trasę, stukaj kolejne punkty i zakończ dwukrotnym dotknięciem lub
+        przyciskiem „Gotowe”. Zaznaczoną trasę przeciągasz jako całość albo
+        za pojedyncze punkty, żeby ją przekształcić.
       </p>
     </div>
   );
