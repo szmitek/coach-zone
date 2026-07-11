@@ -25,8 +25,13 @@ export interface PathToolStyle {
 
 export type ToolKind =
   | { create: "point"; elementKind: PointElementType; defaultLabel?: string }
-  | { create: "path"; style: PathToolStyle }
-  | { create: "fullWidthLine"; style: PathToolStyle };
+  | { create: "path"; style: PathToolStyle; curvable?: boolean }
+  | {
+      create: "fullWidthLine";
+      style: PathToolStyle;
+      /** Must match the field's own yard/pitch-line grain. */
+      orientation: "horizontal" | "vertical";
+    };
 
 export interface ToolDef {
   id: string;

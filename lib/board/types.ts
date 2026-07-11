@@ -25,6 +25,8 @@ export interface PathBoardElement {
   strokeWidth: number;
   headStyle: PathHeadStyle;
   dash?: number[];
+  /** Sharp (straight segments, hard cuts) vs smooth (curved through points). */
+  curved: boolean;
 }
 
 export type BoardElement = PointBoardElement | PathBoardElement;

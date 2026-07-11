@@ -1,8 +1,8 @@
 import {
   AF_FULL_HEIGHT,
   AF_FULL_WIDTH,
-  AF_ZOOM_HEIGHT,
-  AF_ZOOM_WIDTH,
+  AF_REDZONE_HEIGHT,
+  AF_REDZONE_WIDTH,
   AmericanFootballField,
 } from "@/components/board/fields/AmericanFootballField";
 import {
@@ -22,10 +22,10 @@ export const americanFootballConfig: SportBoardConfig = {
   fieldModes: [
     { id: "full", label: "Całe boisko", width: AF_FULL_WIDTH, height: AF_FULL_HEIGHT },
     {
-      id: "zoom",
-      label: "Fragment (linia rozgrywki)",
-      width: AF_ZOOM_WIDTH,
-      height: AF_ZOOM_HEIGHT,
+      id: "redzone",
+      label: "Strefa końcowa",
+      width: AF_REDZONE_WIDTH,
+      height: AF_REDZONE_HEIGHT,
     },
   ],
   defaultFieldModeId: "full",
@@ -68,6 +68,7 @@ export const americanFootballConfig: SportBoardConfig = {
       kind: {
         create: "path",
         style: { color: "#111827", strokeWidth: 4, headStyle: "arrow" },
+        curvable: true,
       },
     },
     {
@@ -86,6 +87,9 @@ export const americanFootballConfig: SportBoardConfig = {
       kind: {
         create: "fullWidthLine",
         style: { color: "#1d4ed8", strokeWidth: 5, headStyle: "none" },
+        // The field's yard lines run vertically (constant x), so the line
+        // of scrimmage - which marks a single yard - must too.
+        orientation: "vertical",
       },
     },
   ],
