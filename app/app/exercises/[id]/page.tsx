@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AuthorBadge } from "@/components/exercises/AuthorBadge";
 import { CategoryBadge } from "@/components/exercises/CategoryBadge";
 import { SportBadge } from "@/components/exercises/SportBadge";
 import { DifficultyIndicator } from "@/components/exercises/DifficultyIndicator";
@@ -23,7 +24,11 @@ export default async function ExerciseDetailPage({
 
   const [{ data: exercise, error: exerciseError }, { data: userData }] =
     await Promise.all([
-      supabase.from("exercises").select("*").eq("id", id).maybeSingle(),
+      supabase
+        .from("exercises")
+        .select("*, author:profiles(display_name)")
+        .eq("id", id)
+        .maybeSingle(),
       supabase.auth.getUser(),
     ]);
 
@@ -86,6 +91,10 @@ export default async function ExerciseDetailPage({
             <span className="text-sm text-neutral-500 dark:text-neutral-500">
               {formatDuration(exercise.duration_min)}
             </span>
+            <AuthorBadge
+              authorName={exercise.author?.display_name ?? null}
+              isOwner={isOwner}
+            />
             {!exercise.is_public && (
               <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
                 Prywatne

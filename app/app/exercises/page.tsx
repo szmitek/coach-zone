@@ -10,12 +10,18 @@ export const metadata: Metadata = {
 
 export default async function ExercisesPage() {
   const supabase = await createClient();
-  const [{ data: categories }, { data: sports }] = await Promise.all([
-    supabase.from("categories").select("*").order("id", { ascending: true }),
-    supabase.from("sports").select("*").order("id", { ascending: true }),
-  ]);
+  const [{ data: categories }, { data: sports }, { data: userData }] =
+    await Promise.all([
+      supabase.from("categories").select("*").order("id", { ascending: true }),
+      supabase.from("sports").select("*").order("id", { ascending: true }),
+      supabase.auth.getUser(),
+    ]);
 
   return (
-    <ExercisesLibrary categories={categories ?? []} sports={sports ?? []} />
+    <ExercisesLibrary
+      categories={categories ?? []}
+      sports={sports ?? []}
+      currentUserId={userData.user?.id ?? null}
+    />
   );
 }
