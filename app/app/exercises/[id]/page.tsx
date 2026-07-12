@@ -24,11 +24,7 @@ export default async function ExerciseDetailPage({
 
   const [{ data: exercise, error: exerciseError }, { data: userData }] =
     await Promise.all([
-      supabase
-        .from("exercises")
-        .select("*, author:profiles(display_name)")
-        .eq("id", id)
-        .maybeSingle(),
+      supabase.from("exercises").select("*").eq("id", id).maybeSingle(),
       supabase.auth.getUser(),
     ]);
 
@@ -53,20 +49,30 @@ export default async function ExerciseDetailPage({
     );
   }
 
-  const [{ data: category }, { data: sport }] = await Promise.all([
-    supabase
-      .from("categories")
-      .select("*")
-      .eq("id", exercise.category_id)
-      .maybeSingle(),
-    supabase
-      .from("sports")
-      .select("*")
-      .eq("id", exercise.sport_id)
-      .maybeSingle(),
-  ]);
+  const [{ data: category }, { data: sport }, { data: author }] =
+    await Promise.all([
+      supabase
+        .from("categories")
+        .select("*")
+        .eq("id", exercise.category_id)
+        .maybeSingle(),
+      supabase
+        .from("sports")
+        .select("*")
+        .eq("id", exercise.sport_id)
+        .maybeSingle(),
+      exercise.author_id
+        ? supabase
+            .rpc("list_public_profiles")
+            .eq("id", exercise.author_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]);
 
   const isOwner = userData.user?.id === exercise.author_id;
+  const authorsById = new Map(
+    author ? [[author.id, author]] : [],
+  );
 
   return (
     <main className="mx-auto max-w-2xl px-6 pt-8 pb-20">
@@ -92,8 +98,9 @@ export default async function ExerciseDetailPage({
               {formatDuration(exercise.duration_min)}
             </span>
             <AuthorBadge
-              authorName={exercise.author?.display_name ?? null}
-              isOwner={isOwner}
+              authorId={exercise.author_id}
+              currentUserId={userData.user?.id}
+              authorsById={authorsById}
             />
             {!exercise.is_public && (
               <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">

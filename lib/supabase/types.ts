@@ -252,24 +252,33 @@ export interface Database {
         Args: { p_workout_id: string };
         Returns: Database["public"]["Tables"]["workouts"]["Row"];
       };
+      is_pseudonym_available: {
+        Args: { p_display_name: string };
+        Returns: boolean;
+      };
+      list_public_profiles: {
+        Args: Record<string, never>;
+        Returns: PublicProfile[];
+      };
     };
     Enums: Record<string, never>;
   };
 }
 
 export type Exercise = Database["public"]["Tables"]["exercises"]["Row"];
-
-// Exercise row with the author's display name embedded via the
-// exercises_author_id_fkey relationship (`author:profiles(display_name)`).
-// author is null for official library exercises (author_id is null there).
-export type ExerciseWithAuthor = Exercise & {
-  author: { display_name: string } | null;
-};
-
 export type Category = Database["public"]["Tables"]["categories"]["Row"];
 export type Sport = Database["public"]["Tables"]["sports"]["Row"];
 export type Workout = Database["public"]["Tables"]["workouts"]["Row"];
 export type WorkoutItem = Database["public"]["Tables"]["workout_items"]["Row"];
+
+// Shape returned by the list_public_profiles() RPC - the only channel
+// through which a coach can see another coach's attribution (see
+// supabase/migrations/20260712100000_coach_pseudonyms.sql). Never carries
+// email, club_name, or avatar_url.
+export interface PublicProfile {
+  id: string;
+  display_name: string;
+}
 
 // Shape returned by the get_shared_workout() RPC (see
 // supabase/migrations/20260709100400_shared_workout_exercise_details.sql).
