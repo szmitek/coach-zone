@@ -21,6 +21,7 @@ export interface PathToolStyle {
   strokeWidth: number;
   headStyle: PathHeadStyle;
   dash?: number[];
+  wavy?: boolean;
 }
 
 export type ToolKind =

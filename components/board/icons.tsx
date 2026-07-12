@@ -142,6 +142,105 @@ export function ScrimmageIcon() {
   );
 }
 
+export function DribbleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-6 w-6">
+      <path
+        d="M3 18c2-4 3 4 5 0s3-4 5 0 3-4 5 0 2-2 2-2"
+        fill="none"
+        stroke="#ea580c"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="4" cy="6" r="2.4" fill="#ea580c" />
+    </svg>
+  );
+}
+
+export function ShotArcIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-6 w-6">
+      <path
+        d="M3 17c4-11 14-11 18 0"
+        fill="none"
+        stroke="#dc2626"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeDasharray="3.5 3"
+      />
+      <circle cx="21" cy="17.5" r="2.2" fill="none" stroke="#dc2626" strokeWidth="1.6" />
+    </svg>
+  );
+}
+
+export function BallArcIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-6 w-6">
+      <path
+        d="M3 18c4-12 14-12 18 0"
+        fill="none"
+        stroke="#0891b2"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
+      <circle cx="3" cy="18" r="2.3" fill="#ffffff" stroke="#0891b2" strokeWidth="1.4" />
+    </svg>
+  );
+}
+
+export function ServeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-6 w-6">
+      <line
+        x1="4"
+        y1="20"
+        x2="18"
+        y2="6"
+        stroke="#f59e0b"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        strokeDasharray="4 3"
+      />
+      <path d="M11 5h8v8z" fill="#f59e0b" />
+    </svg>
+  );
+}
+
+export function AttackIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-6 w-6">
+      <line
+        x1="5"
+        y1="6"
+        x2="16"
+        y2="17"
+        stroke="#b91c1c"
+        strokeWidth="3.2"
+        strokeLinecap="round"
+      />
+      <path d="M18 10V19H9z" fill="#b91c1c" />
+    </svg>
+  );
+}
+
+export function HandballShotIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-6 w-6">
+      <line
+        x1="3"
+        y1="17"
+        x2="15"
+        y2="7"
+        stroke="#dc2626"
+        strokeWidth="2.6"
+        strokeLinecap="round"
+      />
+      <path d="M9 6h9v9z" fill="#dc2626" />
+    </svg>
+  );
+}
+
 export function UndoIcon() {
   return (
     <svg viewBox="0 0 24 24" className="h-5 w-5">

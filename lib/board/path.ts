@@ -44,20 +44,46 @@ const SAMPLES_PER_SEGMENT = 12;
 const CENTRIPETAL_ALPHA = 0.5;
 const EPS = 1e-4;
 
+// How far a synthesized midpoint bulges off the straight line between two
+// points, as a fraction of their distance apart - gives a 2-point curved
+// path (e.g. a basketball shot or a volleyball trajectory, tapped as just
+// a start and end point) a visible arc instead of rendering dead straight,
+// since Catmull-Rom needs 3 points to bend at all.
+const ARC_BULGE_RATIO = 0.18;
+
+function withArcMidpoint(points: BoardPoint[]): BoardPoint[] {
+  const [a, b] = points;
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const len = Math.hypot(dx, dy) || 1;
+  // Perpendicular to a->b, rotated so the bulge is consistently on one
+  // side regardless of which direction the coach happened to draw in.
+  const perpX = -dy / len;
+  const perpY = dx / len;
+  const bulge = len * ARC_BULGE_RATIO;
+  return [
+    a,
+    { x: (a.x + b.x) / 2 + perpX * bulge, y: (a.y + b.y) / 2 + perpY * bulge },
+    b,
+  ];
+}
+
 /**
  * Samples a dense polyline that curves smoothly through every point in
  * `points` (a centripetal Catmull-Rom spline), passed straight through to
  * Konva with tension 0 - Konva's own `tension` prop is a uniform spline
  * that overshoots and self-intersects for the kind of unevenly-spaced
  * points a coach taps out by hand, so this replaces it entirely rather
- * than trying to tune it.
+ * than trying to tune it. Exactly 2 points get a synthesized midpoint
+ * bulge first (see withArcMidpoint) so a curved 2-point path still arcs.
  */
 export function smoothPathPoints(points: BoardPoint[]): BoardPoint[] {
-  if (points.length < 3) return points;
+  if (points.length < 2) return points;
+  const source = points.length === 2 ? withArcMidpoint(points) : points;
 
   // Duplicate the end points so every real point gets a full 4-point
   // window (p0,p1,p2,p3) to interpolate between p1 and p2.
-  const padded = [points[0], ...points, points[points.length - 1]];
+  const padded = [source[0], ...source, source[source.length - 1]];
   const result: BoardPoint[] = [padded[1]];
 
   for (let i = 0; i < padded.length - 3; i++) {
@@ -137,4 +163,45 @@ export function nearestPointOnPath(
   // points always has >=2 entries whenever this is called (paths are
   // never created/rendered with fewer), so best is always set.
   return best as NearestPointResult;
+}
+
+const WAVE_AMPLITUDE = 9;
+const WAVE_LENGTH = 26;
+const WAVE_STEP = 6;
+
+/**
+ * Samples a zigzag/squiggle along the polyline `points` describe, offset
+ * perpendicular to the direction of travel by a sine wave - used for the
+ * basketball dribble tool, where a plain line would look like a pass
+ * rather than a ball being bounced along the way. Arc length (not per-
+ * segment progress) drives the wave phase, so it stays continuous across
+ * unevenly spaced tapped points instead of resetting at each one.
+ */
+export function wavyPathPoints(points: BoardPoint[]): BoardPoint[] {
+  if (points.length < 2) return points;
+  const result: BoardPoint[] = [];
+  let travelled = 0;
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i];
+    const b = points[i + 1];
+    const segLen = distance(a, b);
+    if (segLen < EPS) continue;
+    const dirX = (b.x - a.x) / segLen;
+    const dirY = (b.y - a.y) / segLen;
+    const perpX = -dirY;
+    const perpY = dirX;
+    const steps = Math.max(1, Math.round(segLen / WAVE_STEP));
+    for (let s = i === 0 ? 0 : 1; s <= steps; s++) {
+      const d = (s / steps) * segLen;
+      const along = travelled + d;
+      const offset =
+        Math.sin((along / WAVE_LENGTH) * Math.PI * 2) * WAVE_AMPLITUDE;
+      result.push({
+        x: a.x + dirX * d + perpX * offset,
+        y: a.y + dirY * d + perpY * offset,
+      });
+    }
+    travelled += segLen;
+  }
+  return result;
 }

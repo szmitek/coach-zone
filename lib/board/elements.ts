@@ -37,6 +37,7 @@ export interface PathStylePreset {
   strokeWidth: number;
   headStyle: PathHeadStyle;
   dash?: number[];
+  wavy?: boolean;
 }
 
 export function createPathElement(

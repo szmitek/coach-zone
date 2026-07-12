@@ -1,21 +1,23 @@
-import { GenericField } from "@/components/board/fields/GenericField";
+import { HandballField } from "@/components/board/fields/HandballField";
 import {
   BallIcon,
   ConeIcon,
+  HandballShotIcon,
   OpponentIcon,
+  PassLineIcon,
   PlayerIcon,
   RunArrowIcon,
 } from "@/components/board/icons";
 import type { SportBoardConfig } from "./types";
 
-// Used for any sport without a dedicated config yet - a plain field with
-// the same generic tool set every sport shares, so the board never
-// crashes on an unrecognized sport.
-export const fallbackConfig: SportBoardConfig = {
-  slug: "fallback",
-  fieldModes: [{ id: "full", label: "Boisko", width: 900, height: 600 }],
+export const handballConfig: SportBoardConfig = {
+  slug: "handball",
+  fieldModes: [
+    { id: "full", label: "Całe boisko", width: 1008, height: 528 },
+    { id: "half", label: "Połowa boiska", width: 528, height: 528 },
+  ],
   defaultFieldModeId: "full",
-  FieldComponent: GenericField,
+  FieldComponent: HandballField,
   tools: [
     {
       id: "player",
@@ -42,12 +44,36 @@ export const fallbackConfig: SportBoardConfig = {
       kind: { create: "point", elementKind: "cone" },
     },
     {
-      id: "movement",
-      label: "Strzałka ruchu",
+      id: "passLine",
+      label: "Podanie",
+      icon: <PassLineIcon />,
+      kind: {
+        create: "path",
+        style: {
+          color: "#7c3aed",
+          strokeWidth: 4,
+          headStyle: "arrow",
+          dash: [14, 10],
+        },
+      },
+    },
+    {
+      id: "shot",
+      label: "Rzut",
+      icon: <HandballShotIcon />,
+      kind: {
+        create: "path",
+        style: { color: "#dc2626", strokeWidth: 4, headStyle: "arrow" },
+      },
+    },
+    {
+      id: "route",
+      label: "Trasa biegu",
       icon: <RunArrowIcon />,
       kind: {
         create: "path",
         style: { color: "#111827", strokeWidth: 4, headStyle: "arrow" },
+        curvable: true,
       },
     },
   ],

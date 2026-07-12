@@ -26,6 +26,7 @@ import {
   flattenPoints,
   smoothPathPoints,
   translatePoints,
+  wavyPathPoints,
 } from "@/lib/board/path";
 import { getSportConfig } from "@/lib/board/sports/registry";
 import type { PathToolStyle, ToolDef } from "@/lib/board/sports/types";
@@ -508,10 +509,13 @@ export function TacticsBoard({
     drawingPath && previewCursor
       ? [...drawingPath.points, previewCursor]
       : (drawingPath?.points ?? []);
-  const drawingPreviewRenderPoints =
-    drawingPath?.curved && drawingPreviewPoints.length >= 3
+  const drawingPreviewCurvedPoints =
+    drawingPath?.curved && drawingPreviewPoints.length >= 2
       ? smoothPathPoints(drawingPreviewPoints)
       : drawingPreviewPoints;
+  const drawingPreviewRenderPoints = drawingPath?.style.wavy
+    ? wavyPathPoints(drawingPreviewCurvedPoints)
+    : drawingPreviewCurvedPoints;
 
   const drawingTool = drawingPath ? findTool(drawingPath.toolId) : null;
   const drawingToolCurvable =

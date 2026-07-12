@@ -1,11 +1,17 @@
 import { americanFootballConfig } from "./americanFootball";
+import { basketballConfig } from "./basketball";
 import { fallbackConfig } from "./fallback";
 import { footballConfig } from "./football";
+import { handballConfig } from "./handball";
+import { volleyballConfig } from "./volleyball";
 import type { SportBoardConfig } from "./types";
 
 const configsBySlug: Record<string, SportBoardConfig> = {
   [footballConfig.slug]: footballConfig,
   [americanFootballConfig.slug]: americanFootballConfig,
+  [basketballConfig.slug]: basketballConfig,
+  [volleyballConfig.slug]: volleyballConfig,
+  [handballConfig.slug]: handballConfig,
 };
 
 /**
