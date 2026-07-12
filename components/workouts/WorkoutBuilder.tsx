@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import type {
   Category,
   Exercise,
+  PublicProfile,
   Workout,
   WorkoutItem,
   WorkoutSection,
@@ -54,6 +55,8 @@ export function WorkoutBuilder({
     null,
   );
   const [libraryError, setLibraryError] = useState(false);
+  const [authors, setAuthors] = useState<PublicProfile[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const debounceTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(
     new Map(),
@@ -86,6 +89,26 @@ export function WorkoutBuilder({
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      if (!cancelled) setCurrentUserId(data.user?.id ?? null);
+    });
+    supabase.rpc("list_public_profiles").then(({ data }) => {
+      if (!cancelled && data) setAuthors(data);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const authorsById = useMemo(() => {
+    const map = new Map<string, PublicProfile>();
+    for (const author of authors) map.set(author.id, author);
+    return map;
+  }, [authors]);
 
   const itemsBySection = useMemo(() => {
     const map = new Map<WorkoutSection, WorkoutItem[]>();
@@ -407,6 +430,8 @@ export function WorkoutBuilder({
           exercises={libraryExercises}
           loadError={libraryError}
           categories={categories}
+          authorsById={authorsById}
+          currentUserId={currentUserId}
           onAdd={(exercise) => handleAddExercise(pickerSection, exercise)}
           onClose={() => setPickerSection(null)}
         />

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { AuthorBadge } from "@/components/exercises/AuthorBadge";
 import { CategoryBadge } from "@/components/exercises/CategoryBadge";
 import { DifficultyIndicator } from "@/components/exercises/DifficultyIndicator";
 import {
@@ -13,6 +14,7 @@ import type {
   Category,
   Difficulty,
   Exercise,
+  PublicProfile,
   WorkoutSection,
 } from "@/lib/supabase/types";
 
@@ -23,6 +25,8 @@ export function ExercisePicker({
   exercises,
   loadError,
   categories,
+  authorsById,
+  currentUserId,
   onAdd,
   onClose,
 }: {
@@ -30,6 +34,8 @@ export function ExercisePicker({
   exercises: Exercise[] | null;
   loadError: boolean;
   categories: Category[];
+  authorsById: Map<string, PublicProfile>;
+  currentUserId: string | null | undefined;
   onAdd: (exercise: Exercise) => void;
   onClose: () => void;
 }) {
@@ -238,6 +244,11 @@ export function ExercisePicker({
                         <span className="text-xs text-neutral-500 dark:text-neutral-500">
                           {formatDuration(exercise.duration_min)}
                         </span>
+                        <AuthorBadge
+                          authorId={exercise.author_id}
+                          currentUserId={currentUserId}
+                          authorsById={authorsById}
+                        />
                       </div>
                     </div>
                     <button

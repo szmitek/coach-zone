@@ -6,7 +6,8 @@ import { createClient } from "@/lib/supabase/client";
 import type {
   Category,
   Difficulty,
-  ExerciseWithAuthor,
+  Exercise,
+  PublicProfile,
   Sport,
 } from "@/lib/supabase/types";
 import { DIFFICULTY_LABELS, DIFFICULTY_OPTIONS } from "@/lib/exercises";
@@ -25,9 +26,10 @@ export function ExercisesLibrary({
   sports: Sport[];
   currentUserId: string | null;
 }) {
-  const [exercises, setExercises] = useState<ExerciseWithAuthor[] | null>(null);
+  const [exercises, setExercises] = useState<Exercise[] | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [reloadToken, setReloadToken] = useState(0);
+  const [authors, setAuthors] = useState<PublicProfile[]>([]);
 
   const [search, setSearch] = useState("");
   const [scopeFilter, setScopeFilter] = useState<typeof ALL | typeof MINE>(ALL);
@@ -48,7 +50,7 @@ export function ExercisesLibrary({
     const supabase = createClient();
     supabase
       .from("exercises")
-      .select("*, author:profiles(display_name)")
+      .select("*")
       .order("title", { ascending: true })
       .then(({ data, error }) => {
         if (cancelled) return;
@@ -63,6 +65,26 @@ export function ExercisesLibrary({
       cancelled = true;
     };
   }, [reloadToken]);
+
+  // Other coaches' attribution is only ever available via list_public_profiles()
+  // (id + display_name), never a direct profiles embed - see
+  // supabase/migrations/20260712100000_coach_pseudonyms.sql.
+  useEffect(() => {
+    let cancelled = false;
+    const supabase = createClient();
+    supabase.rpc("list_public_profiles").then(({ data }) => {
+      if (!cancelled && data) setAuthors(data);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const authorsById = useMemo(() => {
+    const map = new Map<string, PublicProfile>();
+    for (const author of authors) map.set(author.id, author);
+    return map;
+  }, [authors]);
 
   const categoriesById = useMemo(() => {
     const map = new Map<number, Category>();
@@ -340,6 +362,7 @@ export function ExercisesLibrary({
                 key={exercise.id}
                 exercise={exercise}
                 category={categoriesById.get(exercise.category_id)}
+                authorsById={authorsById}
                 currentUserId={currentUserId}
               />
             ))}

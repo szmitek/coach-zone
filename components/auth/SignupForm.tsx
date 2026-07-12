@@ -5,13 +5,17 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getAuthErrorMessage } from "@/lib/supabase/errors";
+import {
+  PSEUDONYM_TAKEN_MESSAGE,
+  validatePseudonym,
+} from "@/lib/profiles";
 import { FormField } from "./FormField";
 import { SubmitButton } from "./SubmitButton";
 import { FormBanner } from "./FormBanner";
 import { GoogleAuthButton } from "./GoogleAuthButton";
 
 interface FieldErrors {
-  fullName?: string;
+  pseudonym?: string;
   email?: string;
   password?: string;
   confirmPassword?: string;
@@ -21,7 +25,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function SignupForm() {
   const router = useRouter();
-  const [fullName, setFullName] = useState("");
+  const [pseudonym, setPseudonym] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -34,7 +38,8 @@ export function SignupForm() {
 
   function validate(): FieldErrors {
     const errors: FieldErrors = {};
-    if (!fullName.trim()) errors.fullName = "Podaj swoje imię i nazwisko.";
+    const pseudonymError = validatePseudonym(pseudonym);
+    if (pseudonymError) errors.pseudonym = pseudonymError;
     if (!EMAIL_PATTERN.test(email)) {
       errors.email = "Podaj poprawny adres email.";
     }
@@ -57,17 +62,37 @@ export function SignupForm() {
 
     setLoading(true);
     const supabase = createClient();
+    const trimmedPseudonym = pseudonym.trim();
+
+    const { data: available, error: availabilityError } = await supabase.rpc(
+      "is_pseudonym_available",
+      { p_display_name: trimmedPseudonym },
+    );
+    if (!availabilityError && available === false) {
+      setLoading(false);
+      setFieldErrors({ pseudonym: PSEUDONYM_TAKEN_MESSAGE });
+      return;
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { full_name: fullName.trim() },
+        data: { pseudonym: trimmedPseudonym },
         emailRedirectTo: `${window.location.origin}/`,
       },
     });
     setLoading(false);
 
     if (error) {
+      // A pseudonym taken in the split-second between the availability
+      // check above and this insert fails the DB unique index inside the
+      // handle_new_user trigger; Supabase reports that as a generic
+      // "Database error saving new user" rather than a structured code.
+      if (/database error saving new user/i.test(error.message)) {
+        setFieldErrors({ pseudonym: PSEUDONYM_TAKEN_MESSAGE });
+        return;
+      }
       setFormError(getAuthErrorMessage(error));
       return;
     }
@@ -121,14 +146,19 @@ export function SignupForm() {
       </div>
 
       <FormField
-        id="fullName"
-        label="Imię i nazwisko"
+        id="pseudonym"
+        label="Pseudonim trenera"
         type="text"
-        autoComplete="name"
-        value={fullName}
-        onChange={(e) => setFullName(e.target.value)}
-        error={fieldErrors.fullName}
+        autoComplete="username"
+        placeholder="np. trener_kowalski"
+        value={pseudonym}
+        onChange={(e) => setPseudonym(e.target.value)}
+        error={fieldErrors.pseudonym}
       />
+      <p className="-mt-2.5 text-xs text-neutral-500 dark:text-neutral-500">
+        Widoczny dla innych trenerów przy Twoich ćwiczeniach. 3–20 znaków:
+        litery, cyfry, „_” lub „-”.
+      </p>
       <FormField
         id="email"
         label="Adres e-mail"
