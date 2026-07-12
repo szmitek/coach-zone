@@ -258,6 +258,14 @@ export interface Database {
 }
 
 export type Exercise = Database["public"]["Tables"]["exercises"]["Row"];
+
+// Exercise row with the author's display name embedded via the
+// exercises_author_id_fkey relationship (`author:profiles(display_name)`).
+// author is null for official library exercises (author_id is null there).
+export type ExerciseWithAuthor = Exercise & {
+  author: { display_name: string } | null;
+};
+
 export type Category = Database["public"]["Tables"]["categories"]["Row"];
 export type Sport = Database["public"]["Tables"]["sports"]["Row"];
 export type Workout = Database["public"]["Tables"]["workouts"]["Row"];

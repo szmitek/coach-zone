@@ -1,15 +1,18 @@
 import Link from "next/link";
-import type { Category, Exercise } from "@/lib/supabase/types";
+import type { Category, ExerciseWithAuthor } from "@/lib/supabase/types";
 import { formatDuration } from "@/lib/exercises";
+import { AuthorBadge } from "./AuthorBadge";
 import { CategoryBadge } from "./CategoryBadge";
 import { DifficultyIndicator } from "./DifficultyIndicator";
 
 export function ExerciseCard({
   exercise,
   category,
+  currentUserId,
 }: {
-  exercise: Exercise;
+  exercise: ExerciseWithAuthor;
   category: Category | undefined;
+  currentUserId: string | null;
 }) {
   return (
     <Link
@@ -26,6 +29,10 @@ export function ExerciseCard({
         <span className="text-xs text-neutral-500 dark:text-neutral-500">
           {formatDuration(exercise.duration_min)}
         </span>
+        <AuthorBadge
+          authorName={exercise.author?.display_name ?? null}
+          isOwner={exercise.author_id === currentUserId}
+        />
       </div>
 
       {exercise.description && (

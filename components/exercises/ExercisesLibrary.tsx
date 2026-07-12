@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import type {
   Category,
   Difficulty,
-  Exercise,
+  ExerciseWithAuthor,
   Sport,
 } from "@/lib/supabase/types";
 import { DIFFICULTY_LABELS, DIFFICULTY_OPTIONS } from "@/lib/exercises";
@@ -14,19 +14,23 @@ import { ExerciseCard } from "./ExerciseCard";
 import { ExerciseCardSkeleton } from "./ExerciseCardSkeleton";
 
 const ALL = "all" as const;
+const MINE = "mine" as const;
 
 export function ExercisesLibrary({
   categories,
   sports,
+  currentUserId,
 }: {
   categories: Category[];
   sports: Sport[];
+  currentUserId: string | null;
 }) {
-  const [exercises, setExercises] = useState<Exercise[] | null>(null);
+  const [exercises, setExercises] = useState<ExerciseWithAuthor[] | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [reloadToken, setReloadToken] = useState(0);
 
   const [search, setSearch] = useState("");
+  const [scopeFilter, setScopeFilter] = useState<typeof ALL | typeof MINE>(ALL);
   const [sportFilter, setSportFilter] = useState<number | typeof ALL>(ALL);
   const [categoryFilter, setCategoryFilter] = useState<number | typeof ALL>(
     ALL,
@@ -44,7 +48,7 @@ export function ExercisesLibrary({
     const supabase = createClient();
     supabase
       .from("exercises")
-      .select("*")
+      .select("*, author:profiles(display_name)")
       .order("title", { ascending: true })
       .then(({ data, error }) => {
         if (cancelled) return;
@@ -88,6 +92,8 @@ export function ExercisesLibrary({
           `${exercise.title} ${exercise.description ?? ""}`.toLowerCase();
         if (!haystack.includes(query)) return false;
       }
+      if (scopeFilter === MINE && exercise.author_id !== currentUserId)
+        return false;
       if (sportFilter !== ALL && exercise.sport_id !== sportFilter)
         return false;
       if (categoryFilter !== ALL && exercise.category_id !== categoryFilter)
@@ -105,6 +111,8 @@ export function ExercisesLibrary({
   }, [
     exercises,
     search,
+    scopeFilter,
+    currentUserId,
     sportFilter,
     categoryFilter,
     difficultyFilter,
@@ -113,6 +121,7 @@ export function ExercisesLibrary({
 
   function clearAll() {
     setSearch("");
+    setScopeFilter(ALL);
     setSportFilter(ALL);
     setCategoryFilter(ALL);
     setDifficultyFilter(ALL);
@@ -125,6 +134,12 @@ export function ExercisesLibrary({
     activeFilters.push({
       label: `Szukaj: „${trimmedSearch}”`,
       onClear: () => setSearch(""),
+    });
+  }
+  if (scopeFilter === MINE) {
+    activeFilters.push({
+      label: "Zakres: Moje",
+      onClear: () => setScopeFilter(ALL),
     });
   }
   if (sportFilter !== ALL) {
@@ -160,7 +175,8 @@ export function ExercisesLibrary({
             Biblioteka ćwiczeń
           </h1>
           <p className="mt-1 text-neutral-600 dark:text-neutral-400">
-            Przeglądaj oficjalną bibliotekę i twórz własne ćwiczenia.
+            Przeglądaj oficjalną bibliotekę, ćwiczenia innych trenerów i twórz
+            własne.
           </p>
         </div>
         <Link
@@ -189,7 +205,17 @@ export function ExercisesLibrary({
           />
         </div>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <FilterSelect
+            id="scope-filter"
+            label="Zakres"
+            value={scopeFilter}
+            onChange={(value) => setScopeFilter(value === MINE ? MINE : ALL)}
+            options={[
+              { value: ALL, label: "Wszystkie" },
+              { value: MINE, label: "Moje" },
+            ]}
+          />
           <FilterSelect
             id="sport-filter"
             label="Dyscyplina"
@@ -314,6 +340,7 @@ export function ExercisesLibrary({
                 key={exercise.id}
                 exercise={exercise}
                 category={categoriesById.get(exercise.category_id)}
+                currentUserId={currentUserId}
               />
             ))}
           </div>
