@@ -6,5 +6,5 @@
 -- environment (local, CI, other devs) gets the same reference row instead
 -- of relying on an undocumented manual edit.
 insert into public.sports (slug, name_pl, name_en) values
-  ('american_football', 'Futbol amerykański', 'American Football')
+  ('american_football', 'Futbol amerykański', 'American football')
 on conflict (slug) do nothing;
