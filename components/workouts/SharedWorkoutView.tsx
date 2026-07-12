@@ -25,6 +25,8 @@ export function SharedWorkoutView({
     assigned_to: item.assigned_to,
     exerciseTitle: item.exercise?.title ?? "Ćwiczenie niedostępne",
     exerciseDescription: item.exercise?.description ?? null,
+    exerciseSteps: item.exercise?.steps ?? [],
+    exerciseEquipment: item.exercise?.equipment ?? [],
     exerciseMediaUrl: item.exercise?.media_url ?? null,
   }));
 

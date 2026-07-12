@@ -65,6 +65,10 @@ function initHistory(elements: BoardElement[]): BoardHistoryState {
 // upload a needlessly large file - keeps Supabase Storage's free tier cheap.
 const EXPORT_TARGET_WIDTH = 900;
 
+// See lastHandledAtRef below - well under DOUBLE_TAP_MS so it never
+// interferes with a genuine fast double-tap-to-finish.
+const DUPLICATE_EVENT_GUARD_MS = 80;
+
 export interface TacticsBoardHandle {
   isEmpty(): boolean;
   getElements(): BoardElement[];
@@ -123,6 +127,17 @@ export function TacticsBoard({
   const containerRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<Konva.Stage>(null);
   const lastTapRef = useRef<{ time: number; pos: BoardPoint } | null>(null);
+  // Mobile browsers can deliver more than one Konva event ("tap" and
+  // "click") for a single physical touch, especially when a device's
+  // touch-to-mouse compatibility click isn't fully suppressed. Because
+  // lastTapRef is a ref (mutated synchronously, unlike state), a stray
+  // duplicate of the SAME touch would land right after the real one, see
+  // itself as "the previous tap" at distance 0, and get misread as a
+  // deliberate double-tap - closing the route after just one or two real
+  // points. A genuine human double-tap always has more than a few tens of
+  // milliseconds between the two touches; a synthesized duplicate of the
+  // same touch does not. This guard swallows only the latter.
+  const lastHandledAtRef = useRef(0);
 
   const fieldMode =
     config.fieldModes.find((m) => m.id === fieldModeId) ?? config.fieldModes[0];
@@ -307,6 +322,9 @@ export function TacticsBoard({
     e: Konva.KonvaEventObject<MouseEvent | TouchEvent>,
   ) {
     if (e.target !== stageRef.current) return;
+    const now = Date.now();
+    if (now - lastHandledAtRef.current < DUPLICATE_EVENT_GUARD_MS) return;
+    lastHandledAtRef.current = now;
     if (activeTool === "select") {
       setSelectedId(null);
       setSelectedPointIndex(null);
@@ -371,6 +389,13 @@ export function TacticsBoard({
   // that synthetic follow-up.
   function handleStageTouchStart(e: Konva.KonvaEventObject<TouchEvent>) {
     if (e.evt.cancelable) e.evt.preventDefault();
+  }
+
+  // Belt-and-suspenders alongside the container's touch-none/overscroll
+  // CSS: while a route is being drawn, make sure a finger dragging across
+  // the canvas can never be interpreted as a page scroll/zoom gesture.
+  function handleStageTouchMove(e: Konva.KonvaEventObject<TouchEvent>) {
+    if (drawingPath && e.evt.cancelable) e.evt.preventDefault();
   }
 
   function handleElementDragEnd(id: string, pos: { x: number; y: number }) {
@@ -579,8 +604,12 @@ export function TacticsBoard({
 
       <div
         ref={containerRef}
-        className={`w-full touch-none overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-950 ${frozenClassName ?? ""}`}
-        style={{ aspectRatio: `${dims.width} / ${dims.height}` }}
+        className={`w-full touch-none overscroll-contain overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-950 ${frozenClassName ?? ""}`}
+        style={{
+          aspectRatio: `${dims.width} / ${dims.height}`,
+          touchAction: "none",
+          overscrollBehavior: "contain",
+        }}
       >
         {containerSize.width > 0 && (
           <Stage
@@ -592,6 +621,7 @@ export function TacticsBoard({
             onClick={handleStageClick}
             onTap={handleStageClick}
             onTouchStart={handleStageTouchStart}
+            onTouchMove={handleStageTouchMove}
             onMouseMove={handleStagePointerMove}
           >
             <config.FieldComponent
