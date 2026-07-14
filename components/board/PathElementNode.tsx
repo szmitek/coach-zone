@@ -7,6 +7,7 @@ import {
   flattenPoints,
   nearestPointOnPath,
   smoothPathPoints,
+  wavyPathPoints,
 } from "@/lib/board/path";
 import type { BoardPoint, PathBoardElement } from "@/lib/board/types";
 
@@ -36,12 +37,14 @@ export function PathElementNode({
   onPointDragEnd,
   onInsertPoint,
 }: PathElementNodeProps) {
-  const { points, color, strokeWidth, headStyle, dash, curved } = element;
+  const { points, color, strokeWidth, headStyle, dash, curved, wavy } =
+    element;
   // Render points are pre-curved (centripetal Catmull-Rom) when smooth, so
   // Konva always draws with tension 0 - its own `tension` spline overshoots
   // past the tapped points for anything but perfectly even spacing.
-  const renderPoints =
-    curved && points.length >= 3 ? smoothPathPoints(points) : points;
+  const curvedPoints =
+    curved && points.length >= 2 ? smoothPathPoints(points) : points;
+  const renderPoints = wavy ? wavyPathPoints(curvedPoints) : curvedPoints;
   const flat = flattenPoints(renderPoints);
 
   const select = (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {

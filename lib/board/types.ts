@@ -27,6 +27,8 @@ export interface PathBoardElement {
   dash?: number[];
   /** Sharp (straight segments, hard cuts) vs smooth (curved through points). */
   curved: boolean;
+  /** Renders as a zigzag along its length (e.g. a dribble) instead of a plain stroke. */
+  wavy?: boolean;
 }
 
 export type BoardElement = PointBoardElement | PathBoardElement;
