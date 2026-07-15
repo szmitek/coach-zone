@@ -84,4 +84,52 @@ describe("isDoubleTapToFinish", () => {
     const pos = { x: 100 + 2, y: 100 };
     expect(isDoubleTapToFinish(now, pos, last, scale)).toBe(true);
   });
+
+  it("R15.2: two taps ~30 real screen px apart in the narrowest AF field mode (Strefa końcowa) do NOT finish the route", () => {
+    // Regression test for the actual reported repro: fast cone-slalom on
+    // American Football, specifically in "Strefa końcowa" (end zone) mode -
+    // the narrowest fieldDesignWidth, and therefore the LARGEST
+    // `containerWidth / fieldDesignWidth` scale of any AF mode. Numbers
+    // mirror the real config: AF_REDZONE_WIDTH (components/board/fields/
+    // AmericanFootballField.tsx) is 384 design units; a representative
+    // container is 900 real screen px wide, giving scale = 900 / 384.
+    // `pos`/`last.pos` are logical (Stage-local) coordinates, as produced by
+    // Konva's `getRelativePointerPosition()` - i.e. already divided by this
+    // same scale - so a real on-screen gap of `screenGap` corresponds to a
+    // logical gap of `screenGap / scale`.
+    const scale = 900 / 384; // ~2.34 - largest AF scale (end-zone mode)
+    const screenGap = 30; // real on-screen px between two distinct cone taps
+    const logicalGap = screenGap / scale;
+    const last = { time: 1_000, pos: { x: 100, y: 100 } };
+    const now = last.time + 50; // fast tap, well inside DOUBLE_TAP_MS
+    const pos = { x: 100 + logicalGap, y: 100 };
+
+    // Sanity: at this scale the logical gap alone looks deceptively small -
+    // this is precisely the trap an unconverted (or wrongly-inverted)
+    // comparison would fall into.
+    expect(logicalGap).toBeLessThan(DOUBLE_TAP_DIST);
+
+    expect(isDoubleTapToFinish(now, pos, last, scale)).toBe(false);
+  });
+
+  it("R15.2: the same real ~30px screen gap behaves identically across AF full field, AF end zone, and a wide-field sport", () => {
+    // The scale correction must be scale-invariant: the same real on-screen
+    // tap distance should yield the same true/false verdict no matter how
+    // narrow or wide the active field mode's design width is.
+    const screenGap = 30;
+    const scenarios = [
+      { name: "AF full field (Całe boisko)", containerWidth: 900, fieldDesignWidth: 1200 },
+      { name: "AF end zone (Strefa końcowa)", containerWidth: 900, fieldDesignWidth: 384 },
+      { name: "wide-field sport", containerWidth: 900, fieldDesignWidth: 2000 },
+    ];
+
+    for (const { containerWidth, fieldDesignWidth } of scenarios) {
+      const scale = containerWidth / fieldDesignWidth;
+      const logicalGap = screenGap / scale;
+      const last = { time: 1_000, pos: { x: 100, y: 100 } };
+      const now = last.time + 50;
+      const pos = { x: 100 + logicalGap, y: 100 };
+      expect(isDoubleTapToFinish(now, pos, last, scale)).toBe(false);
+    }
+  });
 });
