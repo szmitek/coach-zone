@@ -14,20 +14,21 @@ import {
   createFullWidthLine,
   createPathElement,
   createPointElement,
-  DOUBLE_TAP_DIST,
-  DOUBLE_TAP_MS,
 } from "@/lib/board/elements";
 import {
   boardHistoryReducer,
   type BoardHistoryState,
 } from "@/lib/board/historyReducer";
 import {
-  distance,
   flattenPoints,
   smoothPathPoints,
   translatePoints,
   wavyPathPoints,
 } from "@/lib/board/path";
+import {
+  isDoubleTapToFinish,
+  isDuplicateStageEvent,
+} from "@/lib/board/tapGuard";
 import { getSportConfig } from "@/lib/board/sports/registry";
 import type { PathToolStyle, ToolDef } from "@/lib/board/sports/types";
 import {
@@ -65,10 +66,6 @@ function initHistory(elements: BoardElement[]): BoardHistoryState {
 // on-screen canvas is, so a diagram drawn on a wide desktop monitor doesn't
 // upload a needlessly large file - keeps Supabase Storage's free tier cheap.
 const EXPORT_TARGET_WIDTH = 900;
-
-// See lastHandledAtRef below - well under DOUBLE_TAP_MS so it never
-// interferes with a genuine fast double-tap-to-finish.
-const DUPLICATE_EVENT_GUARD_MS = 80;
 
 export interface TacticsBoardHandle {
   isEmpty(): boolean;
@@ -297,11 +294,7 @@ export function TacticsBoard({
 
     if (drawingPath && drawingPath.toolId === tool.id) {
       const last = lastTapRef.current;
-      const isDoubleTap =
-        last !== null &&
-        now - last.time < DOUBLE_TAP_MS &&
-        distance(pos, last.pos) < DOUBLE_TAP_DIST;
-      if (isDoubleTap) {
+      if (isDoubleTapToFinish(now, pos, last, scale)) {
         finishDrawingPath();
         return;
       }
@@ -324,7 +317,7 @@ export function TacticsBoard({
   ) {
     if (e.target !== stageRef.current) return;
     const now = Date.now();
-    if (now - lastHandledAtRef.current < DUPLICATE_EVENT_GUARD_MS) return;
+    if (isDuplicateStageEvent(now, lastHandledAtRef.current)) return;
     lastHandledAtRef.current = now;
     if (activeTool === "select") {
       setSelectedId(null);
