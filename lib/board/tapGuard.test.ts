@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DOUBLE_TAP_DIST, DOUBLE_TAP_MS } from "./elements";
 import {
+  DUPLICATE_EVENT_GUARD_DIST,
   DUPLICATE_EVENT_GUARD_MS,
   isDoubleTapToFinish,
   isDuplicateStageEvent,
@@ -16,15 +17,120 @@ import {
 
 describe("isDuplicateStageEvent (R11 guard)", () => {
   it("treats a second event at the same coordinates within the guard window as a duplicate", () => {
-    const lastHandledAt = 1_000;
-    const now = lastHandledAt + DUPLICATE_EVENT_GUARD_MS - 1;
-    expect(isDuplicateStageEvent(now, lastHandledAt)).toBe(true);
+    const last = { time: 1_000, pos: { x: 100, y: 100 } };
+    const now = last.time + DUPLICATE_EVENT_GUARD_MS - 1;
+    const pos = { x: 100, y: 100 };
+    expect(isDuplicateStageEvent(now, pos, last, 1)).toBe(true);
   });
 
-  it("does not flag an event at or beyond the guard window as a duplicate", () => {
-    const lastHandledAt = 1_000;
-    const now = lastHandledAt + DUPLICATE_EVENT_GUARD_MS;
-    expect(isDuplicateStageEvent(now, lastHandledAt)).toBe(false);
+  it("does not flag an event at or beyond the guard window as a duplicate, even at the same spot", () => {
+    const last = { time: 1_000, pos: { x: 100, y: 100 } };
+    const now = last.time + DUPLICATE_EVENT_GUARD_MS;
+    const pos = { x: 100, y: 100 };
+    expect(isDuplicateStageEvent(now, pos, last, 1)).toBe(false);
+  });
+
+  it("does not flag the very first stage event (no previous event recorded)", () => {
+    expect(isDuplicateStageEvent(1_000, { x: 0, y: 0 }, null, 1)).toBe(false);
+  });
+
+  // R15.3: this is the actual bug. The guard exists to swallow a stray
+  // synthesized duplicate of the SAME physical touch (tap + compat click),
+  // which lands at essentially the same coordinates. A time-only guard also
+  // swallows a genuine second tap at DISTINCT coordinates - e.g. two cones
+  // in a tight slalom tapped well under 80ms apart - silently dropping a
+  // real route point before it ever reaches handlePathTap / the
+  // double-tap-to-finish check.
+  it("does NOT flag a fast second tap at clearly distinct coordinates as a duplicate", () => {
+    const last = { time: 1_000, pos: { x: 100, y: 100 } };
+    const now = last.time + 50; // well within DUPLICATE_EVENT_GUARD_MS
+    const pos = { x: 100 + DUPLICATE_EVENT_GUARD_DIST * 5, y: 100 };
+    expect(isDuplicateStageEvent(now, pos, last, 1)).toBe(false);
+  });
+
+  it("is scale-aware: converts logical-space distance to real screen pixels before comparing", () => {
+    const scale = 3;
+    const last = { time: 1_000, pos: { x: 100, y: 100 } };
+    const now = last.time + 50;
+    // Logical gap alone is tiny, but at this scale the real on-screen gap
+    // is well past DUPLICATE_EVENT_GUARD_DIST - a genuinely distinct tap.
+    const logicalGap = DUPLICATE_EVENT_GUARD_DIST;
+    const pos = { x: 100 + logicalGap, y: 100 };
+    expect(isDuplicateStageEvent(now, pos, last, scale)).toBe(false);
+  });
+
+  // R15.3 follow-up: this is the case the position-aware guard exists to
+  // still catch. Traced in Konva's Stage.js (setPointersPositions /
+  // _pointerup): "tap" is synthesized from the native touchend event's
+  // touch.clientX/clientY, "click" from a browser-synthesized compat
+  // mouseup's evt.clientX/clientY - two DIFFERENT native events, computed
+  // through the same content-rect math, not one shared coordinate read. Per
+  // the universally-implemented touch-to-mouse compatibility-event
+  // convention the synthetic click reuses the ending touch's screen
+  // position, so real-world drift between the two is expected to be near
+  // 0px - but it is not literally the same object, so a test must exercise
+  // it as two independent events with a small (non-zero) coordinate delta,
+  // not as one mocked position reused for both.
+  it("still catches a same-touch onTap+onClick pair even with a few pixels of realistic coordinate drift", () => {
+    // "tap" from touchend at the physical touch point.
+    const tapEvent = { time: 1_000, pos: { x: 200, y: 150 } };
+    // Browser-synthesized "click" moments later, for the SAME physical
+    // touch - clientX/clientY nominally match the touch, but allow a small
+    // realistic drift (sub-pixel rect rounding etc.), well under
+    // DUPLICATE_EVENT_GUARD_DIST.
+    const clickEvent = {
+      time: tapEvent.time + 20,
+      pos: { x: tapEvent.pos.x + 3, y: tapEvent.pos.y - 2 },
+    };
+    expect(
+      isDuplicateStageEvent(clickEvent.time, clickEvent.pos, tapEvent, 1),
+    ).toBe(true);
+  });
+
+  it("still catches a same-touch pair at the largest realistic AF end-zone scale with drift", () => {
+    // Combine the R15.2 scale correction with the R15.3 same-touch drift
+    // case: even at the largest observed AF scale, a few real screen px of
+    // drift between tap and click must still be swallowed as a duplicate.
+    const scale = 900 / 384; // ~2.34, AF end-zone (Strefa końcowa)
+    const tapEvent = { time: 1_000, pos: { x: 200, y: 150 } };
+    const screenDriftX = 4;
+    const screenDriftY = 3;
+    const clickEvent = {
+      time: tapEvent.time + 20,
+      pos: {
+        x: tapEvent.pos.x + screenDriftX / scale,
+        y: tapEvent.pos.y - screenDriftY / scale,
+      },
+    };
+    expect(
+      isDuplicateStageEvent(clickEvent.time, clickEvent.pos, tapEvent, scale),
+    ).toBe(true);
+  });
+
+  it("simulates a fast-tap sequence: N distinct, closely-spaced taps under the guard window each register as separate stage events, none swallowed", () => {
+    // Mirrors a real tight cone-slalom sequence: every tap lands well
+    // within DUPLICATE_EVENT_GUARD_MS of the previous one, but at a
+    // distinct coordinate. This exercises event-level logic only (the pure
+    // decision function against a sequence of (time, position) inputs) -
+    // it does not drive a real Konva Stage or a real touchscreen, so it
+    // cannot prove real-device touch/compat-event behaviour.
+    const taps = [
+      { time: 0, pos: { x: 0, y: 0 } },
+      { time: 30, pos: { x: 40, y: 0 } },
+      { time: 65, pos: { x: 80, y: 5 } },
+      { time: 100, pos: { x: 120, y: 0 } },
+      { time: 140, pos: { x: 160, y: 8 } },
+    ];
+
+    let last: { time: number; pos: { x: number; y: number } } | null = null;
+    const registered: typeof taps = [];
+    for (const tap of taps) {
+      const duplicate = isDuplicateStageEvent(tap.time, tap.pos, last, 1);
+      expect(duplicate).toBe(false);
+      registered.push(tap);
+      last = tap;
+    }
+    expect(registered).toHaveLength(taps.length);
   });
 });
 
