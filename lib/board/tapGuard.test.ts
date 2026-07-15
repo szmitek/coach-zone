@@ -59,6 +59,54 @@ describe("isDuplicateStageEvent (R11 guard)", () => {
     expect(isDuplicateStageEvent(now, pos, last, scale)).toBe(false);
   });
 
+  // R15.3 follow-up: this is the case the position-aware guard exists to
+  // still catch. Traced in Konva's Stage.js (setPointersPositions /
+  // _pointerup): "tap" is synthesized from the native touchend event's
+  // touch.clientX/clientY, "click" from a browser-synthesized compat
+  // mouseup's evt.clientX/clientY - two DIFFERENT native events, computed
+  // through the same content-rect math, not one shared coordinate read. Per
+  // the universally-implemented touch-to-mouse compatibility-event
+  // convention the synthetic click reuses the ending touch's screen
+  // position, so real-world drift between the two is expected to be near
+  // 0px - but it is not literally the same object, so a test must exercise
+  // it as two independent events with a small (non-zero) coordinate delta,
+  // not as one mocked position reused for both.
+  it("still catches a same-touch onTap+onClick pair even with a few pixels of realistic coordinate drift", () => {
+    // "tap" from touchend at the physical touch point.
+    const tapEvent = { time: 1_000, pos: { x: 200, y: 150 } };
+    // Browser-synthesized "click" moments later, for the SAME physical
+    // touch - clientX/clientY nominally match the touch, but allow a small
+    // realistic drift (sub-pixel rect rounding etc.), well under
+    // DUPLICATE_EVENT_GUARD_DIST.
+    const clickEvent = {
+      time: tapEvent.time + 20,
+      pos: { x: tapEvent.pos.x + 3, y: tapEvent.pos.y - 2 },
+    };
+    expect(
+      isDuplicateStageEvent(clickEvent.time, clickEvent.pos, tapEvent, 1),
+    ).toBe(true);
+  });
+
+  it("still catches a same-touch pair at the largest realistic AF end-zone scale with drift", () => {
+    // Combine the R15.2 scale correction with the R15.3 same-touch drift
+    // case: even at the largest observed AF scale, a few real screen px of
+    // drift between tap and click must still be swallowed as a duplicate.
+    const scale = 900 / 384; // ~2.34, AF end-zone (Strefa końcowa)
+    const tapEvent = { time: 1_000, pos: { x: 200, y: 150 } };
+    const screenDriftX = 4;
+    const screenDriftY = 3;
+    const clickEvent = {
+      time: tapEvent.time + 20,
+      pos: {
+        x: tapEvent.pos.x + screenDriftX / scale,
+        y: tapEvent.pos.y - screenDriftY / scale,
+      },
+    };
+    expect(
+      isDuplicateStageEvent(clickEvent.time, clickEvent.pos, tapEvent, scale),
+    ).toBe(true);
+  });
+
   it("simulates a fast-tap sequence: N distinct, closely-spaced taps under the guard window each register as separate stage events, none swallowed", () => {
     // Mirrors a real tight cone-slalom sequence: every tap lands well
     // within DUPLICATE_EVENT_GUARD_MS of the previous one, but at a
