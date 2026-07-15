@@ -28,6 +28,7 @@ import {
 import {
   isDoubleTapToFinish,
   isDuplicateStageEvent,
+  type LastStageEvent,
 } from "@/lib/board/tapGuard";
 import { getSportConfig } from "@/lib/board/sports/registry";
 import type { PathToolStyle, ToolDef } from "@/lib/board/sports/types";
@@ -135,7 +136,11 @@ export function TacticsBoard({
   // points. A genuine human double-tap always has more than a few tens of
   // milliseconds between the two touches; a synthesized duplicate of the
   // same touch does not. This guard swallows only the latter.
-  const lastHandledAtRef = useRef(0);
+  //
+  // R15.3: lastHandledRef also stores position (see isDuplicateStageEvent) -
+  // a time-only guard was dropping the second of two genuine fast taps at
+  // different coordinates (a tight cone slalom), not just misreading it.
+  const lastHandledRef = useRef<LastStageEvent | null>(null);
 
   const fieldMode =
     config.fieldModes.find((m) => m.id === fieldModeId) ?? config.fieldModes[0];
@@ -317,8 +322,11 @@ export function TacticsBoard({
   ) {
     if (e.target !== stageRef.current) return;
     const now = Date.now();
-    if (isDuplicateStageEvent(now, lastHandledAtRef.current)) return;
-    lastHandledAtRef.current = now;
+    const pos = getPointer();
+    if (pos && isDuplicateStageEvent(now, pos, lastHandledRef.current, scale)) {
+      return;
+    }
+    lastHandledRef.current = pos ? { time: now, pos } : null;
     if (activeTool === "select") {
       setSelectedId(null);
       setSelectedPointIndex(null);
@@ -326,7 +334,6 @@ export function TacticsBoard({
     }
     const tool = findTool(activeTool);
     if (!tool) return;
-    const pos = getPointer();
     if (!pos) return;
 
     if (tool.kind.create === "point") {
