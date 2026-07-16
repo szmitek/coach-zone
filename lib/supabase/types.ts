@@ -19,6 +19,7 @@ export interface Database {
           display_name: string;
           club_name: string | null;
           avatar_url: string | null;
+          onboarding_completed: boolean;
           created_at: string;
         };
         Insert: {
@@ -26,6 +27,7 @@ export interface Database {
           display_name: string;
           club_name?: string | null;
           avatar_url?: string | null;
+          onboarding_completed?: boolean;
           created_at?: string;
         };
         Update: {
@@ -33,6 +35,7 @@ export interface Database {
           display_name?: string;
           club_name?: string | null;
           avatar_url?: string | null;
+          onboarding_completed?: boolean;
           created_at?: string;
         };
         Relationships: [];
