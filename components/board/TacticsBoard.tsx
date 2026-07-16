@@ -592,19 +592,24 @@ export function TacticsBoard({
         </div>
       )}
 
-      {drawingPath && !pendingAction && (
-        <PathDrawingControls
-          pointCount={drawingPath.points.length}
-          onFinish={finishDrawingPath}
-          onUndoPoint={undoLastPathPoint}
-          onCancel={() => {
-            cancelDrawingPath();
-            setActiveTool("select");
-          }}
-          curveMode={drawingToolCurvable ? curveMode : null}
-          onCurveModeChange={handleCurveModeChange}
-        />
-      )}
+      {/* Always mounted - see PathDrawingControls' `active` prop. Toggling
+          this bar's mere presence (rather than its visibility) is what used
+          to shove the canvas down the instant a route's first point landed:
+          a fast second tap, already aimed at the pre-shift screen position,
+          would land on this bar instead of the canvas (R15.4). */}
+      <PathDrawingControls
+        active={Boolean(drawingPath) && !pendingAction}
+        pointCount={drawingPath?.points.length ?? 0}
+        onFinish={finishDrawingPath}
+        onUndoPoint={undoLastPathPoint}
+        onCancel={() => {
+          cancelDrawingPath();
+          setActiveTool("select");
+        }}
+        curveMode={curveMode}
+        curveEnabled={drawingToolCurvable}
+        onCurveModeChange={handleCurveModeChange}
+      />
 
       <div
         ref={containerRef}
