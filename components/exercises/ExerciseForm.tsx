@@ -68,7 +68,11 @@ export function ExerciseForm({
     duplicateFrom?.category_id ?? "",
   );
   const [sportId, setSportId] = useState<number | "">(
+    // Prefer American football: it's the sport this coach actually runs
+    // today. Fall back to football (the original single-sport default) if
+    // the AF row is ever missing, so the select never silently opens blank.
     duplicateFrom?.sport_id ??
+      sports.find((sport) => sport.slug === "american_football")?.id ??
       sports.find((sport) => sport.slug === "football")?.id ??
       "",
   );

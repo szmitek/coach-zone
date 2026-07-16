@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { ExercisesLibrary } from "@/components/exercises/ExercisesLibrary";
 import { createClient } from "@/lib/supabase/server";
 
@@ -18,10 +19,12 @@ export default async function ExercisesPage() {
     ]);
 
   return (
-    <ExercisesLibrary
-      categories={categories ?? []}
-      sports={sports ?? []}
-      currentUserId={userData.user?.id ?? null}
-    />
+    <Suspense fallback={null}>
+      <ExercisesLibrary
+        categories={categories ?? []}
+        sports={sports ?? []}
+        currentUserId={userData.user?.id ?? null}
+      />
+    </Suspense>
   );
 }
