@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { OnboardingOverlay } from "@/components/onboarding/OnboardingOverlay";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -37,7 +38,7 @@ export default async function AppHomePage() {
   const { data: profile } = user
     ? await supabase
         .from("profiles")
-        .select("display_name")
+        .select("display_name, onboarding_completed")
         .eq("id", user.id)
         .single()
     : { data: null };
@@ -50,6 +51,8 @@ export default async function AppHomePage() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 pt-8 pb-20">
+      {profile && !profile.onboarding_completed && <OnboardingOverlay />}
+
       <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
         Witaj, {displayName}
       </h1>
