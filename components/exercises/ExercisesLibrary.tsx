@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type {
@@ -26,6 +27,10 @@ export function ExercisesLibrary({
   sports: Sport[];
   currentUserId: string | null;
 }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [exercises, setExercises] = useState<Exercise[] | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [reloadToken, setReloadToken] = useState(0);
@@ -33,7 +38,15 @@ export function ExercisesLibrary({
 
   const [search, setSearch] = useState("");
   const [scopeFilter, setScopeFilter] = useState<typeof ALL | typeof MINE>(ALL);
-  const [sportFilter, setSportFilter] = useState<number | typeof ALL>(ALL);
+  // Sport is the one filter a coach expects to survive a page reload or a
+  // shared link (e.g. "here's our AF library view") - initialize it from
+  // the URL and keep the URL in sync via setSportFilter below.
+  const [sportFilter, setSportFilterState] = useState<number | typeof ALL>(
+    () => {
+      const fromUrl = Number(searchParams.get("sport"));
+      return fromUrl && Number.isInteger(fromUrl) ? fromUrl : ALL;
+    },
+  );
   const [categoryFilter, setCategoryFilter] = useState<number | typeof ALL>(
     ALL,
   );
@@ -97,6 +110,20 @@ export function ExercisesLibrary({
     for (const sport of sports) map.set(sport.id, sport);
     return map;
   }, [sports]);
+
+  function setSportFilter(value: number | typeof ALL) {
+    setSportFilterState(value);
+    const params = new URLSearchParams(searchParams.toString());
+    if (value === ALL) {
+      params.delete("sport");
+    } else {
+      params.set("sport", String(value));
+    }
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
+  }
 
   const equipmentOptions = useMemo(() => {
     const values = new Set<string>();
@@ -362,6 +389,7 @@ export function ExercisesLibrary({
                 key={exercise.id}
                 exercise={exercise}
                 category={categoriesById.get(exercise.category_id)}
+                sport={sportsById.get(exercise.sport_id)}
                 authorsById={authorsById}
                 currentUserId={currentUserId}
               />

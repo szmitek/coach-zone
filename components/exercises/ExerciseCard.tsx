@@ -1,18 +1,26 @@
 import Link from "next/link";
-import type { Category, Exercise, PublicProfile } from "@/lib/supabase/types";
+import type {
+  Category,
+  Exercise,
+  PublicProfile,
+  Sport,
+} from "@/lib/supabase/types";
 import { formatDuration } from "@/lib/exercises";
 import { AuthorBadge } from "./AuthorBadge";
 import { CategoryBadge } from "./CategoryBadge";
 import { DifficultyIndicator } from "./DifficultyIndicator";
+import { SportBadge } from "./SportBadge";
 
 export function ExerciseCard({
   exercise,
   category,
+  sport,
   authorsById,
   currentUserId,
 }: {
   exercise: Exercise;
   category: Category | undefined;
+  sport: Sport | undefined;
   authorsById: Map<string, PublicProfile>;
   currentUserId: string | null;
 }) {
@@ -24,6 +32,7 @@ export function ExerciseCard({
       <h3 className="font-semibold tracking-tight">{exercise.title}</h3>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
+        {sport && <SportBadge name={sport.name_pl} />}
         {category && (
           <CategoryBadge name={category.name_pl} slug={category.slug} />
         )}
