@@ -264,9 +264,9 @@ export function ShieldIcon() {
     <svg viewBox="0 0 24 24" className="h-6 w-6">
       <path
         d="M4 4h16v8c0 6-8 8-8 8s-8-2-8-8z"
-        fill="#059669"
-        stroke="#fff"
-        strokeWidth="1.2"
+        fill="#111827"
+        stroke="#dc2626"
+        strokeWidth="1.6"
         strokeLinejoin="round"
       />
       <line x1="12" y1="5" x2="12" y2="18" stroke="#fff" strokeWidth="1.2" opacity="0.7" />
@@ -284,11 +284,11 @@ export function GateIcon() {
         height="10"
         rx="1.5"
         fill="none"
-        stroke="#059669"
+        stroke="#111827"
         strokeWidth="2.2"
       />
-      <circle cx="4" cy="16" r="1.8" fill="#059669" />
-      <circle cx="20" cy="16" r="1.8" fill="#059669" />
+      <circle cx="4" cy="16" r="1.8" fill="#f8fafc" stroke="#111827" strokeWidth="1" />
+      <circle cx="20" cy="16" r="1.8" fill="#f8fafc" stroke="#111827" strokeWidth="1" />
     </svg>
   );
 }
@@ -296,11 +296,11 @@ export function GateIcon() {
 export function LadderIcon() {
   return (
     <svg viewBox="0 0 24 24" className="h-6 w-6">
-      <line x1="6" y1="2" x2="6" y2="22" stroke="#059669" strokeWidth="2" strokeLinecap="round" />
-      <line x1="18" y1="2" x2="18" y2="22" stroke="#059669" strokeWidth="2" strokeLinecap="round" />
-      <line x1="6" y1="6" x2="18" y2="6" stroke="#059669" strokeWidth="2" strokeLinecap="round" />
-      <line x1="6" y1="12" x2="18" y2="12" stroke="#059669" strokeWidth="2" strokeLinecap="round" />
-      <line x1="6" y1="18" x2="18" y2="18" stroke="#059669" strokeWidth="2" strokeLinecap="round" />
+      <line x1="6" y1="2" x2="6" y2="22" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" />
+      <line x1="18" y1="2" x2="18" y2="22" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" />
+      <line x1="6" y1="6" x2="18" y2="6" stroke="#facc15" strokeWidth="2" strokeLinecap="round" />
+      <line x1="6" y1="12" x2="18" y2="12" stroke="#facc15" strokeWidth="2" strokeLinecap="round" />
+      <line x1="6" y1="18" x2="18" y2="18" stroke="#facc15" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }
@@ -311,7 +311,31 @@ export function HurdlesIcon() {
       <path
         d="M4 20V14M4 14h4M8 20V14"
         fill="none"
-        stroke="#059669"
+        stroke="#111827"
+        strokeWidth="3.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M11 20V14M11 14h4M15 20V14"
+        fill="none"
+        stroke="#111827"
+        strokeWidth="3.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M18 20V14M18 14h4M22 20V14"
+        fill="none"
+        stroke="#111827"
+        strokeWidth="3.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M4 20V14M4 14h4M8 20V14"
+        fill="none"
+        stroke="#dc2626"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -319,7 +343,7 @@ export function HurdlesIcon() {
       <path
         d="M11 20V14M11 14h4M15 20V14"
         fill="none"
-        stroke="#059669"
+        stroke="#dc2626"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -327,7 +351,7 @@ export function HurdlesIcon() {
       <path
         d="M18 20V14M18 14h4M22 20V14"
         fill="none"
-        stroke="#059669"
+        stroke="#dc2626"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
