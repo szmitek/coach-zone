@@ -165,6 +165,63 @@ export function nearestPointOnPath(
   return best as NearestPointResult;
 }
 
+export interface PolylineMark {
+  point: BoardPoint;
+  /** Unit tangent of the segment this mark falls on. */
+  dir: BoardPoint;
+}
+
+/**
+ * Walks the polyline `points` describe and drops evenly-spaced marks along
+ * its total arc length (roughly every `spacing` px - the actual step is
+ * `total / round(total / spacing)` so a mark always lands exactly on both
+ * endpoints). Used to lay out ladder rungs and a hurdle row along a
+ * stretchable 2-point (start -> end) element: since length/angle come
+ * entirely from `points`, dragging either endpoint to resize/rotate the
+ * element is enough to reflow every mark - no extra geometry to persist.
+ */
+export function markPointsAlongPolyline(
+  points: BoardPoint[],
+  spacing: number,
+): PolylineMark[] {
+  if (points.length < 2) return [];
+  const segs: { a: BoardPoint; b: BoardPoint; len: number }[] = [];
+  let total = 0;
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i];
+    const b = points[i + 1];
+    const len = distance(a, b);
+    segs.push({ a, b, len });
+    total += len;
+  }
+  if (total < EPS) return [{ point: points[0], dir: { x: 1, y: 0 } }];
+
+  const steps = Math.max(1, Math.round(total / spacing));
+  const marks: PolylineMark[] = [];
+  let segIndex = 0;
+  let segStart = 0;
+  for (let s = 0; s <= steps; s++) {
+    const d = (s / steps) * total;
+    while (
+      segIndex < segs.length - 1 &&
+      d > segStart + segs[segIndex].len + EPS
+    ) {
+      segStart += segs[segIndex].len;
+      segIndex++;
+    }
+    const seg = segs[segIndex];
+    const len = seg.len || 1;
+    const t = seg.len > EPS ? (d - segStart) / seg.len : 0;
+    const dx = seg.b.x - seg.a.x;
+    const dy = seg.b.y - seg.a.y;
+    marks.push({
+      point: { x: seg.a.x + dx * t, y: seg.a.y + dy * t },
+      dir: { x: dx / len, y: dy / len },
+    });
+  }
+  return marks;
+}
+
 const WAVE_AMPLITUDE = 9;
 const WAVE_LENGTH = 26;
 const WAVE_STEP = 6;

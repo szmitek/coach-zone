@@ -4,7 +4,10 @@ import {
   BallArcIcon,
   BallIcon,
   BlockIcon,
+  HurdlesIcon,
+  LadderIcon,
   OpponentIcon,
+  PartnerIcon,
   PlayerIcon,
   RunArrowIcon,
   ServeIcon,
@@ -35,6 +38,32 @@ export const volleyballConfig: SportBoardConfig = {
       label: "Piłka",
       icon: <BallIcon />,
       kind: { create: "point", elementKind: "ball" },
+    },
+    {
+      id: "partner",
+      label: "Partner",
+      icon: <PartnerIcon />,
+      kind: { create: "point", elementKind: "partner", defaultLabel: "P" },
+    },
+    {
+      id: "ladder",
+      label: "Drabinka",
+      icon: <LadderIcon />,
+      kind: {
+        create: "path",
+        style: { color: "#059669", strokeWidth: 3, headStyle: "none" },
+        maxPoints: 2,
+      },
+    },
+    {
+      id: "hurdles",
+      label: "Płotki",
+      icon: <HurdlesIcon />,
+      kind: {
+        create: "path",
+        style: { color: "#059669", strokeWidth: 3, headStyle: "none" },
+        maxPoints: 2,
+      },
     },
     {
       id: "trajectory",

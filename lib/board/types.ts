@@ -1,4 +1,12 @@
-export type PointElementType = "player" | "opponent" | "ball" | "cone" | "qb";
+export type PointElementType =
+  | "player"
+  | "opponent"
+  | "ball"
+  | "cone"
+  | "qb"
+  | "partner"
+  | "shield"
+  | "gate";
 export type PathHeadStyle = "arrow" | "bar" | "none";
 
 export interface BoardPoint {
@@ -41,6 +49,7 @@ export const LABELABLE_POINT_KINDS: PointElementType[] = [
   "player",
   "opponent",
   "qb",
+  "partner",
 ];
 
 export function isPathElement(

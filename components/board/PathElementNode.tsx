@@ -5,6 +5,7 @@ import { Arrow, Circle, Group, Line } from "react-konva";
 import {
   endTangent,
   flattenPoints,
+  markPointsAlongPolyline,
   nearestPointOnPath,
   smoothPathPoints,
   wavyPathPoints,
@@ -13,6 +14,12 @@ import type { BoardPoint, PathBoardElement } from "@/lib/board/types";
 
 const HANDLE_RADIUS = 9;
 const BLOCK_BAR_HALF_LENGTH = 11;
+const LADDER_RUNG_SPACING = 20;
+const LADDER_RAIL_GAP = 24;
+const LADDER_RUNG_OVERHANG = 5;
+const HURDLE_SPACING = 42;
+const HURDLE_BAR_HALF_WIDTH = 11;
+const HURDLE_LEG_LENGTH = 7;
 
 interface PathElementNodeProps {
   element: PathBoardElement;
@@ -88,7 +95,21 @@ export function PathElementNode({
       onDblClick={insertPoint}
       onDblTap={insertPoint}
     >
-      {headStyle === "arrow" ? (
+      {element.kind === "ladder" ? (
+        <LadderShape
+          points={points}
+          color={color}
+          strokeWidth={strokeWidth}
+          highlight={highlight}
+        />
+      ) : element.kind === "hurdles" ? (
+        <HurdleRow
+          points={points}
+          color={color}
+          strokeWidth={strokeWidth}
+          highlight={highlight}
+        />
+      ) : headStyle === "arrow" ? (
         <Arrow
           points={flat}
           tension={0}
@@ -190,5 +211,146 @@ function BlockBar({
       strokeWidth={strokeWidth}
       lineCap="round"
     />
+  );
+}
+
+type ShadowHighlight = {
+  shadowColor?: string;
+  shadowOpacity?: number;
+  shadowBlur?: number;
+};
+
+/**
+ * Agility ladder: two parallel rails the full length of the element, with
+ * perpendicular rungs at even spacing between them. Marks are re-derived
+ * from `points` on every render, so dragging either endpoint (the generic
+ * path point-handles above) stretches/rotates the whole ladder for free.
+ */
+function LadderShape({
+  points,
+  color,
+  strokeWidth,
+  highlight,
+}: {
+  points: BoardPoint[];
+  color: string;
+  strokeWidth: number;
+  highlight: ShadowHighlight;
+}) {
+  const marks = markPointsAlongPolyline(points, LADDER_RUNG_SPACING);
+  const half = LADDER_RAIL_GAP / 2;
+  const railSide = (side: 1 | -1) =>
+    flattenPoints(
+      marks.map((m) => {
+        const perp = { x: -m.dir.y, y: m.dir.x };
+        return {
+          x: m.point.x + perp.x * half * side,
+          y: m.point.y + perp.y * half * side,
+        };
+      }),
+    );
+
+  return (
+    <Group {...highlight}>
+      <Line
+        points={railSide(1)}
+        stroke={color}
+        strokeWidth={strokeWidth}
+        lineCap="round"
+        lineJoin="round"
+      />
+      <Line
+        points={railSide(-1)}
+        stroke={color}
+        strokeWidth={strokeWidth}
+        lineCap="round"
+        lineJoin="round"
+      />
+      {marks.map((m, i) => {
+        const perp = { x: -m.dir.y, y: m.dir.x };
+        const rungHalf = half + LADDER_RUNG_OVERHANG;
+        return (
+          <Line
+            key={i}
+            points={[
+              m.point.x - perp.x * rungHalf,
+              m.point.y - perp.y * rungHalf,
+              m.point.x + perp.x * rungHalf,
+              m.point.y + perp.y * rungHalf,
+            ]}
+            stroke={color}
+            strokeWidth={Math.max(2, strokeWidth - 1)}
+            lineCap="round"
+            hitStrokeWidth={20}
+          />
+        );
+      })}
+    </Group>
+  );
+}
+
+/**
+ * A row of hurdles: small "H"-shaped marks (crossbar + two legs pointing
+ * along the direction of travel) at even spacing along `points`. Same
+ * stretch-by-endpoint model as the ladder above.
+ */
+function HurdleRow({
+  points,
+  color,
+  strokeWidth,
+  highlight,
+}: {
+  points: BoardPoint[];
+  color: string;
+  strokeWidth: number;
+  highlight: ShadowHighlight;
+}) {
+  const marks = markPointsAlongPolyline(points, HURDLE_SPACING);
+
+  return (
+    <Group {...highlight}>
+      {marks.map((m, i) => {
+        const perp = { x: -m.dir.y, y: m.dir.x };
+        const barA = {
+          x: m.point.x - perp.x * HURDLE_BAR_HALF_WIDTH,
+          y: m.point.y - perp.y * HURDLE_BAR_HALF_WIDTH,
+        };
+        const barB = {
+          x: m.point.x + perp.x * HURDLE_BAR_HALF_WIDTH,
+          y: m.point.y + perp.y * HURDLE_BAR_HALF_WIDTH,
+        };
+        const legA = {
+          x: barA.x + m.dir.x * HURDLE_LEG_LENGTH,
+          y: barA.y + m.dir.y * HURDLE_LEG_LENGTH,
+        };
+        const legB = {
+          x: barB.x + m.dir.x * HURDLE_LEG_LENGTH,
+          y: barB.y + m.dir.y * HURDLE_LEG_LENGTH,
+        };
+        return (
+          <Group key={i}>
+            <Line
+              points={[barA.x, barA.y, barB.x, barB.y]}
+              stroke={color}
+              strokeWidth={strokeWidth}
+              lineCap="round"
+              hitStrokeWidth={20}
+            />
+            <Line
+              points={[barA.x, barA.y, legA.x, legA.y]}
+              stroke={color}
+              strokeWidth={strokeWidth}
+              lineCap="round"
+            />
+            <Line
+              points={[barB.x, barB.y, legB.x, legB.y]}
+              stroke={color}
+              strokeWidth={strokeWidth}
+              lineCap="round"
+            />
+          </Group>
+        );
+      })}
+    </Group>
   );
 }

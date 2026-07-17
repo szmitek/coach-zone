@@ -3,7 +3,10 @@ import {
   BallIcon,
   ConeIcon,
   HandballShotIcon,
+  HurdlesIcon,
+  LadderIcon,
   OpponentIcon,
+  PartnerIcon,
   PassLineIcon,
   PlayerIcon,
   RunArrowIcon,
@@ -42,6 +45,32 @@ export const handballConfig: SportBoardConfig = {
       label: "Pachołek",
       icon: <ConeIcon />,
       kind: { create: "point", elementKind: "cone" },
+    },
+    {
+      id: "partner",
+      label: "Partner",
+      icon: <PartnerIcon />,
+      kind: { create: "point", elementKind: "partner", defaultLabel: "P" },
+    },
+    {
+      id: "ladder",
+      label: "Drabinka",
+      icon: <LadderIcon />,
+      kind: {
+        create: "path",
+        style: { color: "#059669", strokeWidth: 3, headStyle: "none" },
+        maxPoints: 2,
+      },
+    },
+    {
+      id: "hurdles",
+      label: "Płotki",
+      icon: <HurdlesIcon />,
+      kind: {
+        create: "path",
+        style: { color: "#059669", strokeWidth: 3, headStyle: "none" },
+        maxPoints: 2,
+      },
     },
     {
       id: "passLine",
