@@ -26,7 +26,16 @@ export interface PathToolStyle {
 
 export type ToolKind =
   | { create: "point"; elementKind: PointElementType; defaultLabel?: string }
-  | { create: "path"; style: PathToolStyle; curvable?: boolean }
+  | {
+      create: "path";
+      style: PathToolStyle;
+      curvable?: boolean;
+      /** Auto-finishes the path as soon as this many points are placed,
+       * instead of waiting for a double-tap or "Gotowe" - used for
+       * stretchable equipment (ladder, hurdle row) drawn as a single
+       * start -> end gesture rather than a multi-point route. */
+      maxPoints?: number;
+    }
   | {
       create: "fullWidthLine";
       style: PathToolStyle;

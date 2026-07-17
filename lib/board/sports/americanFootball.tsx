@@ -9,11 +9,16 @@ import {
   BallIcon,
   BlockIcon,
   ConeIcon,
+  GateIcon,
+  HurdlesIcon,
+  LadderIcon,
   OpponentIcon,
+  PartnerIcon,
   PlayerIcon,
   QbIcon,
   RunArrowIcon,
   ScrimmageIcon,
+  ShieldIcon,
 } from "@/components/board/icons";
 import type { SportBoardConfig } from "./types";
 
@@ -60,6 +65,44 @@ export const americanFootballConfig: SportBoardConfig = {
       label: "Pachołek",
       icon: <ConeIcon />,
       kind: { create: "point", elementKind: "cone" },
+    },
+    {
+      id: "partner",
+      label: "Partner",
+      icon: <PartnerIcon />,
+      kind: { create: "point", elementKind: "partner", defaultLabel: "P" },
+    },
+    {
+      id: "shield",
+      label: "Tarcza",
+      icon: <ShieldIcon />,
+      kind: { create: "point", elementKind: "shield" },
+    },
+    {
+      id: "gate",
+      label: "Bramka",
+      icon: <GateIcon />,
+      kind: { create: "point", elementKind: "gate" },
+    },
+    {
+      id: "ladder",
+      label: "Drabinka",
+      icon: <LadderIcon />,
+      kind: {
+        create: "path",
+        style: { color: "#059669", strokeWidth: 3, headStyle: "none" },
+        maxPoints: 2,
+      },
+    },
+    {
+      id: "hurdles",
+      label: "Płotki",
+      icon: <HurdlesIcon />,
+      kind: {
+        create: "path",
+        style: { color: "#059669", strokeWidth: 3, headStyle: "none" },
+        maxPoints: 2,
+      },
     },
     {
       id: "route",

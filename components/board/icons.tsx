@@ -241,6 +241,101 @@ export function HandballShotIcon() {
   );
 }
 
+export function PartnerIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-6 w-6">
+      <circle cx="12" cy="12" r="9" fill="#0d9488" stroke="#fff" strokeWidth="1.5" />
+      <text
+        x="12"
+        y="15.5"
+        fontSize="9"
+        fontWeight="bold"
+        textAnchor="middle"
+        fill="#fff"
+      >
+        P
+      </text>
+    </svg>
+  );
+}
+
+export function ShieldIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-6 w-6">
+      <path
+        d="M4 4h16v8c0 6-8 8-8 8s-8-2-8-8z"
+        fill="#059669"
+        stroke="#fff"
+        strokeWidth="1.2"
+        strokeLinejoin="round"
+      />
+      <line x1="12" y1="5" x2="12" y2="18" stroke="#fff" strokeWidth="1.2" opacity="0.7" />
+    </svg>
+  );
+}
+
+export function GateIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-6 w-6">
+      <rect
+        x="4"
+        y="6"
+        width="16"
+        height="10"
+        rx="1.5"
+        fill="none"
+        stroke="#059669"
+        strokeWidth="2.2"
+      />
+      <circle cx="4" cy="16" r="1.8" fill="#059669" />
+      <circle cx="20" cy="16" r="1.8" fill="#059669" />
+    </svg>
+  );
+}
+
+export function LadderIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-6 w-6">
+      <line x1="6" y1="2" x2="6" y2="22" stroke="#059669" strokeWidth="2" strokeLinecap="round" />
+      <line x1="18" y1="2" x2="18" y2="22" stroke="#059669" strokeWidth="2" strokeLinecap="round" />
+      <line x1="6" y1="6" x2="18" y2="6" stroke="#059669" strokeWidth="2" strokeLinecap="round" />
+      <line x1="6" y1="12" x2="18" y2="12" stroke="#059669" strokeWidth="2" strokeLinecap="round" />
+      <line x1="6" y1="18" x2="18" y2="18" stroke="#059669" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function HurdlesIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-6 w-6">
+      <path
+        d="M4 20V14M4 14h4M8 20V14"
+        fill="none"
+        stroke="#059669"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M11 20V14M11 14h4M15 20V14"
+        fill="none"
+        stroke="#059669"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M18 20V14M18 14h4M22 20V14"
+        fill="none"
+        stroke="#059669"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function UndoIcon() {
   return (
     <svg viewBox="0 0 24 24" className="h-5 w-5">

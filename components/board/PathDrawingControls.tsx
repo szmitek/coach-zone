@@ -16,6 +16,10 @@ interface PathDrawingControlsProps {
   /** false when the tool being drawn doesn't support a curve toggle. */
   curveEnabled: boolean;
   onCurveModeChange: (mode: "sharp" | "smooth") => void;
+  /** Overrides the default multi-point-route instructions - used by
+   * two-point stretch tools (ladder, hurdle row) whose gesture is just
+   * "tap start, tap end", not "tap points, then finish". */
+  hint?: string;
 }
 
 export function PathDrawingControls({
@@ -27,6 +31,7 @@ export function PathDrawingControls({
   curveMode,
   curveEnabled,
   onCurveModeChange,
+  hint,
 }: PathDrawingControlsProps) {
   return (
     <div
@@ -37,8 +42,10 @@ export function PathDrawingControls({
     >
       <div className="flex flex-wrap items-center gap-3">
         <span className="text-emerald-800 dark:text-emerald-300">
-          Stukaj kolejne punkty trasy (zaznaczono: {pointCount}). Zakończ
-          dwukrotnym dotknięciem ekranu lub przyciskiem „Gotowe”.
+          {hint ??
+            "Stukaj kolejne punkty trasy (zaznaczono: " +
+              pointCount +
+              "). Zakończ dwukrotnym dotknięciem ekranu lub przyciskiem „Gotowe”."}
         </span>
         {/* Always rendered (never mounted/unmounted based on curveEnabled) so
             the flex-wrap layout - and therefore this bar's height - is

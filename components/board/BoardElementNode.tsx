@@ -1,7 +1,7 @@
 "use client";
 
 import type Konva from "konva";
-import { Circle, Group, RegularPolygon, Text } from "react-konva";
+import { Circle, Group, Line, RegularPolygon, Rect, Text } from "react-konva";
 import { POINT_RADIUS } from "@/lib/board/elements";
 import {
   LABELABLE_POINT_KINDS,
@@ -144,5 +144,62 @@ function PointGlyph({
           strokeWidth={strokeWidth}
         />
       );
+    case "partner":
+      return (
+        <Circle
+          radius={POINT_RADIUS}
+          fill="#0d9488"
+          stroke={stroke}
+          strokeWidth={strokeWidth}
+        />
+      );
+    case "shield": {
+      const r = POINT_RADIUS * 0.95;
+      return (
+        <Group>
+          <Line
+            points={[
+              -r, -r * 0.75,
+              r, -r * 0.75,
+              r, r * 0.15,
+              0, r * 1.05,
+              -r, r * 0.15,
+            ]}
+            closed
+            fill="#059669"
+            stroke={stroke}
+            strokeWidth={strokeWidth}
+            lineJoin="round"
+          />
+          <Line
+            points={[0, -r * 0.55, 0, r * 0.55]}
+            stroke="#ffffff"
+            strokeWidth={1.5}
+            opacity={0.7}
+            listening={false}
+          />
+        </Group>
+      );
+    }
+    case "gate": {
+      const w = POINT_RADIUS * 1.7;
+      const h = POINT_RADIUS * 1.15;
+      return (
+        <Group>
+          <Rect
+            x={-w / 2}
+            y={-h / 2}
+            width={w}
+            height={h}
+            cornerRadius={4}
+            fill="rgba(5, 150, 105, 0.15)"
+            stroke={stroke}
+            strokeWidth={strokeWidth}
+          />
+          <Circle x={-w / 2} y={h / 2} radius={3.5} fill="#059669" stroke="#ffffff" strokeWidth={1} />
+          <Circle x={w / 2} y={h / 2} radius={3.5} fill="#059669" stroke="#ffffff" strokeWidth={1} />
+        </Group>
+      );
+    }
   }
 }

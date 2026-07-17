@@ -262,17 +262,29 @@ export function TacticsBoard({
     setSelectedPointIndex(null);
   }
 
+  function commitPath(
+    toolId: string,
+    style: PathToolStyle,
+    points: BoardPoint[],
+    curved: boolean,
+  ) {
+    const el = createPathElement(toolId, style, points, curved);
+    dispatch({ type: "add", element: el });
+    setSelectedId(el.id);
+    setSelectedPointIndex(null);
+    cancelDrawingPath();
+    setActiveTool("select");
+  }
+
   function finishDrawingPath() {
     if (drawingPath && drawingPath.points.length >= 2) {
-      const el = createPathElement(
+      commitPath(
         drawingPath.toolId,
         drawingPath.style,
         drawingPath.points,
         drawingPath.curved,
       );
-      dispatch({ type: "add", element: el });
-      setSelectedId(el.id);
-      setSelectedPointIndex(null);
+      return;
     }
     cancelDrawingPath();
     setActiveTool("select");
@@ -303,7 +315,13 @@ export function TacticsBoard({
         finishDrawingPath();
         return;
       }
-      setDrawingPath({ ...drawingPath, points: [...drawingPath.points, pos] });
+      const nextPoints = [...drawingPath.points, pos];
+      const maxPoints = tool.kind.maxPoints;
+      if (maxPoints && nextPoints.length >= maxPoints) {
+        commitPath(tool.id, drawingPath.style, nextPoints, drawingPath.curved);
+        return;
+      }
+      setDrawingPath({ ...drawingPath, points: nextPoints });
       lastTapRef.current = { time: now, pos };
       return;
     }
@@ -520,6 +538,12 @@ export function TacticsBoard({
   const drawingTool = drawingPath ? findTool(drawingPath.toolId) : null;
   const drawingToolCurvable =
     drawingTool?.kind.create === "path" && Boolean(drawingTool.kind.curvable);
+  const drawingToolMaxPoints =
+    drawingTool?.kind.create === "path" ? drawingTool.kind.maxPoints : undefined;
+  const drawingHint =
+    drawingToolMaxPoints === 2
+      ? "Dotknij drugi punkt, aby ustawić długość i kąt."
+      : undefined;
 
   return (
     <div className="flex flex-col gap-3">
@@ -609,6 +633,7 @@ export function TacticsBoard({
         curveMode={curveMode}
         curveEnabled={drawingToolCurvable}
         onCurveModeChange={handleCurveModeChange}
+        hint={drawingHint}
       />
 
       <div
