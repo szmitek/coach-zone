@@ -1,81 +1,119 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { LandingShowcaseLoader } from "@/components/showcase/ShowcaseLoader";
 
-const steps = [
+export const metadata: Metadata = {
+  title: "Coach Zone — tablica taktyczna i treningi dla trenerów",
+  description:
+    "Zaplanuj trening, narysuj każdą akcję na tablicy taktycznej i udostępnij drużynie. Bezpłatnie.",
+};
+
+const features = [
   {
     number: "1",
-    title: "Zbuduj bibliotekę ćwiczeń",
+    title: "Tablica taktyczna wielu sportów",
     description:
-      "Dodaj ćwiczenia do swojej biblioteki raz — pogrupowane według kategorii i poziomu trudności — i korzystaj z nich w każdym kolejnym treningu.",
+      "Koniec z Paintem. Rysuj akcje na prawdziwym boisku: futbol amerykański, koszykówka, siatkówka, piłka ręczna, piłka nożna.",
   },
   {
     number: "2",
-    title: "Zbuduj trening",
+    title: "Biblioteka ćwiczeń",
     description:
-      "Wybieraj ćwiczenia z biblioteki i układaj je w plan dopasowany do dzisiejszych zajęć, w dowolnej kolejności.",
+      "Twórz i przechowuj swoje ćwiczenia w jednym miejscu — pogrupowane, z poziomem trudności, gotowe do użycia w każdym kolejnym treningu.",
   },
   {
     number: "3",
-    title: "Eksportuj i udostępniaj",
+    title: "Eksport do PDF",
     description:
-      "Zamień dowolny trening w czytelny PDF i udostępnij go zawodnikom albo sztabowi jednym kliknięciem.",
+      "Gotowy plan treningu w PDF, z polskimi znakami, do wydruku lub wysłania.",
+  },
+  {
+    number: "4",
+    title: "Udostępnianie",
+    description: "Podeślij trening graczom i asystentom jednym linkiem.",
   },
 ];
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
-      <header className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-6">
-        <span className="text-lg font-semibold tracking-tight">Coach Zone</span>
+    <div className="min-h-screen bg-neutral-950 text-neutral-100">
+      <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5 sm:px-6 sm:py-6">
+        <span className="text-sm font-semibold tracking-tight text-neutral-300">
+          Coach Zone
+        </span>
         <Link
           href="/login"
-          className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-500"
+          className="text-sm text-neutral-400 transition-colors hover:text-white"
         >
           Zaloguj się
         </Link>
       </header>
 
       <main>
-        <section className="mx-auto max-w-4xl px-6 pt-16 pb-20 text-center sm:pt-24 sm:pb-28">
-          <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
-            Coach Zone
+        <section className="mx-auto max-w-4xl px-5 pt-6 pb-4 text-center sm:px-6 sm:pt-10">
+          <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">
+            Zaplanuj trening. Narysuj każdą akcję. Udostępnij drużynie.
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-neutral-600 sm:text-xl dark:text-neutral-400">
-            Twórz treningi z biblioteki ćwiczeń, eksportuj je do PDF i
-            udostępniaj swojej drużynie w kilka minut.
+          <p className="mx-auto mt-5 max-w-2xl text-base text-neutral-400 sm:text-lg">
+            Jedna tablica taktyczna dla wielu sportów, biblioteka ćwiczeń i
+            eksport do PDF — zamiast szukania drilli na YouTube i rysowania w
+            Paincie.
           </p>
-          <div className="mt-10 flex justify-center">
+          <div className="mt-8 flex justify-center">
             <Link
-              href="/login"
-              className="rounded-full bg-emerald-600 px-6 py-3 text-base font-medium text-white transition-colors hover:bg-emerald-500"
+              href="/signup"
+              className="rounded-full bg-emerald-600 px-8 py-3 text-base font-semibold text-white transition-colors hover:bg-emerald-500"
             >
-              Zaloguj się
+              Zacznij za darmo
             </Link>
           </div>
         </section>
 
-        <section className="border-t border-neutral-200 dark:border-neutral-800">
-          <div className="mx-auto max-w-6xl px-6 py-16 sm:py-24">
-            <h2 className="text-center text-2xl font-semibold tracking-tight sm:text-3xl">
-              Jak to działa
-            </h2>
-            <div className="mt-12 grid gap-10 sm:grid-cols-3 sm:gap-8">
-              {steps.map((step) => (
-                <div key={step.number} className="text-center sm:text-left">
-                  <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600 text-sm font-semibold text-white sm:mx-0">
-                    {step.number}
+        <section className="px-4 py-6 sm:px-6 sm:py-10">
+          <div className="mx-auto w-full max-w-3xl">
+            <LandingShowcaseLoader className="aspect-[4/3] w-full sm:aspect-[16/9]" />
+          </div>
+        </section>
+
+        <section className="border-t border-neutral-800">
+          <div className="mx-auto max-w-6xl px-5 py-16 sm:px-6 sm:py-24">
+            <div className="grid gap-10 sm:grid-cols-2 sm:gap-12">
+              {features.map((feature) => (
+                <div key={feature.number}>
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-600 text-sm font-semibold text-white">
+                    {feature.number}
                   </div>
-                  <h3 className="mt-4 text-lg font-semibold">{step.title}</h3>
-                  <p className="mt-2 text-neutral-600 dark:text-neutral-400">
-                    {step.description}
-                  </p>
+                  <h2 className="mt-4 text-lg font-semibold tracking-tight">
+                    {feature.title}
+                  </h2>
+                  <p className="mt-2 text-neutral-400">{feature.description}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
+
+        <section className="border-t border-neutral-800">
+          <div className="mx-auto max-w-2xl px-5 py-16 text-center sm:px-6 sm:py-24">
+            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+              Zacznij za darmo
+            </h2>
+            <p className="mt-3 text-neutral-400">
+              Coach Zone jest bezpłatny dla trenerów — bez karty kredytowej.
+            </p>
+            <div className="mt-8 flex justify-center">
+              <Link
+                href="/signup"
+                className="rounded-full bg-emerald-600 px-8 py-3 text-base font-semibold text-white transition-colors hover:bg-emerald-500"
+              >
+                Zacznij za darmo
+              </Link>
+            </div>
+          </div>
+        </section>
       </main>
 
-      <footer className="border-t border-neutral-200 px-6 py-8 text-center text-sm text-neutral-500 dark:border-neutral-800">
+      <footer className="border-t border-neutral-800 px-6 py-8 text-center text-sm text-neutral-500">
         &copy; {new Date().getFullYear()} Coach Zone
       </footer>
     </div>
