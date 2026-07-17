@@ -58,7 +58,7 @@ export const handballConfig: SportBoardConfig = {
       icon: <LadderIcon />,
       kind: {
         create: "path",
-        style: { color: "#059669", strokeWidth: 3, headStyle: "none" },
+        style: { color: "#dc2626", strokeWidth: 3, headStyle: "none" },
         maxPoints: 2,
       },
     },
@@ -68,7 +68,7 @@ export const handballConfig: SportBoardConfig = {
       icon: <HurdlesIcon />,
       kind: {
         create: "path",
-        style: { color: "#059669", strokeWidth: 3, headStyle: "none" },
+        style: { color: "#dc2626", strokeWidth: 3, headStyle: "none" },
         maxPoints: 2,
       },
     },

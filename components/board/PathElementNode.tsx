@@ -21,6 +21,15 @@ const HURDLE_SPACING = 42;
 const HURDLE_BAR_HALF_WIDTH = 11;
 const HURDLE_LEG_LENGTH = 7;
 
+// Equipment renders in real-world equipment colors rather than the tool's
+// UI-accent `color`, and always as a dark outline plus a distinct fill/line
+// color - a single hue can't stay legible on both green grass and the
+// orange/brown basketball parquet, but outline + color together do.
+const EQUIPMENT_OUTLINE_COLOR = "#111827";
+const LADDER_RAIL_COLOR = "#dc2626";
+const LADDER_RUNG_COLOR = "#facc15";
+const HURDLE_COLOR = "#dc2626";
+
 interface PathElementNodeProps {
   element: PathBoardElement;
   selected: boolean;
@@ -98,14 +107,12 @@ export function PathElementNode({
       {element.kind === "ladder" ? (
         <LadderShape
           points={points}
-          color={color}
           strokeWidth={strokeWidth}
           highlight={highlight}
         />
       ) : element.kind === "hurdles" ? (
         <HurdleRow
           points={points}
-          color={color}
           strokeWidth={strokeWidth}
           highlight={highlight}
         />
@@ -228,12 +235,10 @@ type ShadowHighlight = {
  */
 function LadderShape({
   points,
-  color,
   strokeWidth,
   highlight,
 }: {
   points: BoardPoint[];
-  color: string;
   strokeWidth: number;
   highlight: ShadowHighlight;
 }) {
@@ -249,40 +254,68 @@ function LadderShape({
         };
       }),
     );
+  const rail1 = railSide(1);
+  const railNeg1 = railSide(-1);
+  const rungStrokeWidth = Math.max(2, strokeWidth - 1);
 
   return (
     <Group {...highlight}>
       <Line
-        points={railSide(1)}
-        stroke={color}
-        strokeWidth={strokeWidth}
+        points={rail1}
+        stroke={EQUIPMENT_OUTLINE_COLOR}
+        strokeWidth={strokeWidth + 2.5}
         lineCap="round"
         lineJoin="round"
       />
       <Line
-        points={railSide(-1)}
-        stroke={color}
+        points={rail1}
+        stroke={LADDER_RAIL_COLOR}
         strokeWidth={strokeWidth}
         lineCap="round"
         lineJoin="round"
+        listening={false}
+      />
+      <Line
+        points={railNeg1}
+        stroke={EQUIPMENT_OUTLINE_COLOR}
+        strokeWidth={strokeWidth + 2.5}
+        lineCap="round"
+        lineJoin="round"
+      />
+      <Line
+        points={railNeg1}
+        stroke={LADDER_RAIL_COLOR}
+        strokeWidth={strokeWidth}
+        lineCap="round"
+        lineJoin="round"
+        listening={false}
       />
       {marks.map((m, i) => {
         const perp = { x: -m.dir.y, y: m.dir.x };
         const rungHalf = half + LADDER_RUNG_OVERHANG;
+        const rungPoints = [
+          m.point.x - perp.x * rungHalf,
+          m.point.y - perp.y * rungHalf,
+          m.point.x + perp.x * rungHalf,
+          m.point.y + perp.y * rungHalf,
+        ];
         return (
-          <Line
-            key={i}
-            points={[
-              m.point.x - perp.x * rungHalf,
-              m.point.y - perp.y * rungHalf,
-              m.point.x + perp.x * rungHalf,
-              m.point.y + perp.y * rungHalf,
-            ]}
-            stroke={color}
-            strokeWidth={Math.max(2, strokeWidth - 1)}
-            lineCap="round"
-            hitStrokeWidth={20}
-          />
+          <Group key={i}>
+            <Line
+              points={rungPoints}
+              stroke={EQUIPMENT_OUTLINE_COLOR}
+              strokeWidth={rungStrokeWidth + 2}
+              lineCap="round"
+              hitStrokeWidth={20}
+            />
+            <Line
+              points={rungPoints}
+              stroke={LADDER_RUNG_COLOR}
+              strokeWidth={rungStrokeWidth}
+              lineCap="round"
+              listening={false}
+            />
+          </Group>
         );
       })}
     </Group>
@@ -296,16 +329,15 @@ function LadderShape({
  */
 function HurdleRow({
   points,
-  color,
   strokeWidth,
   highlight,
 }: {
   points: BoardPoint[];
-  color: string;
   strokeWidth: number;
   highlight: ShadowHighlight;
 }) {
   const marks = markPointsAlongPolyline(points, HURDLE_SPACING);
+  const outlineWidth = strokeWidth + 2.5;
 
   return (
     <Group {...highlight}>
@@ -327,26 +359,50 @@ function HurdleRow({
           x: barB.x + m.dir.x * HURDLE_LEG_LENGTH,
           y: barB.y + m.dir.y * HURDLE_LEG_LENGTH,
         };
+        const barPoints = [barA.x, barA.y, barB.x, barB.y];
+        const legAPoints = [barA.x, barA.y, legA.x, legA.y];
+        const legBPoints = [barB.x, barB.y, legB.x, legB.y];
         return (
           <Group key={i}>
             <Line
-              points={[barA.x, barA.y, barB.x, barB.y]}
-              stroke={color}
-              strokeWidth={strokeWidth}
+              points={barPoints}
+              stroke={EQUIPMENT_OUTLINE_COLOR}
+              strokeWidth={outlineWidth}
               lineCap="round"
               hitStrokeWidth={20}
             />
             <Line
-              points={[barA.x, barA.y, legA.x, legA.y]}
-              stroke={color}
-              strokeWidth={strokeWidth}
+              points={legAPoints}
+              stroke={EQUIPMENT_OUTLINE_COLOR}
+              strokeWidth={outlineWidth}
               lineCap="round"
             />
             <Line
-              points={[barB.x, barB.y, legB.x, legB.y]}
-              stroke={color}
+              points={legBPoints}
+              stroke={EQUIPMENT_OUTLINE_COLOR}
+              strokeWidth={outlineWidth}
+              lineCap="round"
+            />
+            <Line
+              points={barPoints}
+              stroke={HURDLE_COLOR}
               strokeWidth={strokeWidth}
               lineCap="round"
+              listening={false}
+            />
+            <Line
+              points={legAPoints}
+              stroke={HURDLE_COLOR}
+              strokeWidth={strokeWidth}
+              lineCap="round"
+              listening={false}
+            />
+            <Line
+              points={legBPoints}
+              stroke={HURDLE_COLOR}
+              strokeWidth={strokeWidth}
+              lineCap="round"
+              listening={false}
             />
           </Group>
         );

@@ -144,17 +144,25 @@ function PointGlyph({
           strokeWidth={strokeWidth}
         />
       );
-    case "partner":
+    case "partner": {
+      // Same teal marker, but a dark outline (instead of the usual white
+      // ring) so it doesn't wash out against light court surfaces.
+      const partnerStroke = selected ? SELECTION_COLOR : "#111827";
       return (
         <Circle
           radius={POINT_RADIUS}
           fill="#0d9488"
-          stroke={stroke}
+          stroke={partnerStroke}
           strokeWidth={strokeWidth}
         />
       );
+    }
     case "shield": {
+      // Real contact shield colors: black fill, red outline - both read
+      // clearly against grass and against orange/brown parquet alike.
       const r = POINT_RADIUS * 0.95;
+      const shieldStroke = selected ? SELECTION_COLOR : "#dc2626";
+      const shieldStrokeWidth = selected ? 4 : 3;
       return (
         <Group>
           <Line
@@ -166,14 +174,14 @@ function PointGlyph({
               -r, r * 0.15,
             ]}
             closed
-            fill="#059669"
-            stroke={stroke}
-            strokeWidth={strokeWidth}
+            fill="#111827"
+            stroke={shieldStroke}
+            strokeWidth={shieldStrokeWidth}
             lineJoin="round"
           />
           <Line
             points={[0, -r * 0.55, 0, r * 0.55]}
-            stroke="#ffffff"
+            stroke="#f8fafc"
             strokeWidth={1.5}
             opacity={0.7}
             listening={false}
@@ -182,8 +190,12 @@ function PointGlyph({
       );
     }
     case "gate": {
+      // PVC training gate: white frame/posts with a dark outline so the
+      // white doesn't disappear against light court surfaces.
       const w = POINT_RADIUS * 1.7;
       const h = POINT_RADIUS * 1.15;
+      const gateStroke = selected ? SELECTION_COLOR : "#111827";
+      const gateStrokeWidth = selected ? 4 : 3;
       return (
         <Group>
           <Rect
@@ -192,12 +204,12 @@ function PointGlyph({
             width={w}
             height={h}
             cornerRadius={4}
-            fill="rgba(5, 150, 105, 0.15)"
-            stroke={stroke}
-            strokeWidth={strokeWidth}
+            fill="rgba(248, 250, 252, 0.35)"
+            stroke={gateStroke}
+            strokeWidth={gateStrokeWidth}
           />
-          <Circle x={-w / 2} y={h / 2} radius={3.5} fill="#059669" stroke="#ffffff" strokeWidth={1} />
-          <Circle x={w / 2} y={h / 2} radius={3.5} fill="#059669" stroke="#ffffff" strokeWidth={1} />
+          <Circle x={-w / 2} y={h / 2} radius={3.5} fill="#f8fafc" stroke="#111827" strokeWidth={1.5} />
+          <Circle x={w / 2} y={h / 2} radius={3.5} fill="#f8fafc" stroke="#111827" strokeWidth={1.5} />
         </Group>
       );
     }
