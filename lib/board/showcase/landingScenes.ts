@@ -17,70 +17,104 @@ import type { ShowcaseScene } from "./types";
 // LandingShowcase.
 
 // ---------------------------------------------------------------------------
-// American football: "Run & catch", the QB/WR route-and-catch drill from
-// the coach's own training plans. A WR lines up facing the QB, sprints
-// straight at him, then snaps into a sharp 45-degree break to one side on
-// the QB's signal - the QB throws to the break point. One continuous
-// sequence, no training equipment: the drill doesn't use a shield, blocker,
-// or cones, so none show up here. A second WR queued behind the first runs
-// the same rep right after, the way receivers cycle through the line in
-// the real drill.
+// American football: a real route concept, not a drill. QB drops back
+// while three receivers, spread across the formation, each run a distinct
+// route breaking at a different depth - a shallow slant, an intermediate
+// out, and a deep post - all developing at once, the way a real progression
+// reads. A defender sits in coverage on the receiver the QB ends up
+// targeting. Once the out breaks open, the QB delivers with the real
+// "Podanie" pass-line tool style (dashed, violet, arrowhead) - visually
+// distinct from every solid "Trasa biegu" route around it, including the
+// two still finishing their own breaks when the ball is thrown. No training
+// equipment: every element here is part of the play itself.
 // ---------------------------------------------------------------------------
 const afRoute = toolStyle(americanFootballConfig, "route");
+const afPass = toolStyle(americanFootballConfig, "passLine");
 
-const afQb = { x: 560, y: 300 };
-const afWr1Start = { x: 860, y: 300 };
-const afWr1Break = { x: 680, y: 300 };
-const afWr1Catch = { x: 610, y: 370 };
-const afWr2Start = { x: 940, y: 300 };
-const afWr2Break = { x: 760, y: 300 };
-const afWr2Cut = { x: 690, y: 230 };
+const afQb = { x: 500, y: 300 };
+
+// WR1 (X): shallow slant - short stem, sharp break inside toward the QB's
+// side.
+const afWr1Start = { x: 580, y: 170 };
+const afWr1Stem = { x: 620, y: 170 };
+const afWr1Break = { x: 720, y: 250 };
+
+// WR2 (Z): intermediate out - longer stem, hard break to the sideline.
+// This is the receiver the QB reads open and throws to.
+const afWr2Start = { x: 580, y: 300 };
+const afWr2Stem = { x: 760, y: 300 };
+const afWr2Break = { x: 760, y: 430 };
+
+// WR3 (Y): deep post - the longest stem of the three, bending late toward
+// the middle of the field.
+const afWr3Start = { x: 580, y: 460 };
+const afWr3Stem = { x: 920, y: 460 };
+const afWr3Break = { x: 1030, y: 280 };
+
+// Trailing coverage on WR2, positioned to be beaten by the out's break to
+// the sideline - static, like every other defender across these scenes.
+const afDefender = { x: 660, y: 340 };
 
 export const landingAmericanFootballScene: ShowcaseScene = {
   sportSlug: "american_football",
   fieldModeId: "full",
-  caption: "Wybiegnięcie z przełamaniem i podanie do WR.",
+  caption: "Trzy trasy, jeden odczyt QB i podanie.",
   markers: [
     { id: "qb", kind: "qb", x: afQb.x, y: afQb.y, label: "QB", appearAt: 0 },
     { id: "wr1", kind: "player", x: afWr1Start.x, y: afWr1Start.y, label: "WR", appearAt: 150 },
     { id: "wr2", kind: "player", x: afWr2Start.x, y: afWr2Start.y, label: "WR", appearAt: 250 },
+    { id: "wr3", kind: "player", x: afWr3Start.x, y: afWr3Start.y, label: "WR", appearAt: 350 },
+    { id: "defender", kind: "opponent", x: afDefender.x, y: afDefender.y, appearAt: 450 },
   ],
   paths: [
     {
-      // Straight at the QB, then a decisive polyline break to the side -
-      // no `curved` here, so the cut reads as a sharp angle rather than a
-      // rounded swerve.
-      id: "route1",
-      points: [afWr1Start, afWr1Break, afWr1Catch],
+      // Slant: straight stem, then a decisive polyline cut inside - no
+      // `curved` here, so the break reads as a sharp angle.
+      id: "route-slant",
+      points: [afWr1Start, afWr1Stem, afWr1Break],
       color: afRoute.color,
       strokeWidth: afRoute.strokeWidth,
       headStyle: afRoute.headStyle,
-      startAt: 500,
-      duration: 1300,
+      startAt: 600,
+      duration: 1100,
     },
     {
+      // Out: deeper stem than the slant, then a sharp 90-degree break to
+      // the sideline, past the defender sitting underneath it.
+      id: "route-out",
+      points: [afWr2Start, afWr2Stem, afWr2Break],
+      color: afRoute.color,
+      strokeWidth: afRoute.strokeWidth,
+      headStyle: afRoute.headStyle,
+      startAt: 750,
+      duration: 1250,
+    },
+    {
+      // Post: the deepest stem of the three, still developing when the
+      // ball comes out on the out route - real progressions have routes
+      // finishing after the throw, not before.
+      id: "route-post",
+      points: [afWr3Start, afWr3Stem, afWr3Break],
+      color: afRoute.color,
+      strokeWidth: afRoute.strokeWidth,
+      headStyle: afRoute.headStyle,
+      startAt: 900,
+      duration: 1700,
+    },
+    {
+      // The read: dashed violet pass line from the real "Podanie" tool,
+      // thrown the moment the out route clears its defender.
       id: "pass",
-      points: [afQb, afWr1Catch],
-      color: afRoute.color,
-      strokeWidth: afRoute.strokeWidth,
-      headStyle: afRoute.headStyle,
-      curved: true,
-      startAt: 1950,
-      duration: 650,
-    },
-    {
-      // Next receiver in line runs the same drill right after the catch,
-      // breaking the other way this time.
-      id: "route2",
-      points: [afWr2Start, afWr2Break, afWr2Cut],
-      color: afRoute.color,
-      strokeWidth: afRoute.strokeWidth,
-      headStyle: afRoute.headStyle,
-      startAt: 2750,
-      duration: 1300,
+      points: [afQb, afWr2Break],
+      color: afPass.color,
+      strokeWidth: afPass.strokeWidth,
+      headStyle: afPass.headStyle,
+      dash: afPass.dash,
+      startAt: 2400,
+      duration: 750,
     },
   ],
-  scriptedDuration: 4050,
+  scriptedDuration: 3150,
 };
 
 // ---------------------------------------------------------------------------
