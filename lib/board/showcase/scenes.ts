@@ -9,7 +9,7 @@ import type { ShowcaseScene } from "./types";
 // per-sport tool defs (lib/board/sports/*.tsx) - never invented - so what
 // animates here is styled identically to what the coach draws with that
 // same tool moments later on the real board.
-function toolStyle(config: SportBoardConfig, toolId: string) {
+export function toolStyle(config: SportBoardConfig, toolId: string) {
   const tool = config.tools.find((t) => t.id === toolId);
   if (!tool || tool.kind.create !== "path") {
     throw new Error(`Showcase: tool "${toolId}" not found or not a path tool`);
