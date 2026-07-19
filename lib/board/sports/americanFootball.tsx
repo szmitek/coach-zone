@@ -14,6 +14,7 @@ import {
   LadderIcon,
   OpponentIcon,
   PartnerIcon,
+  PassLineIcon,
   PlayerIcon,
   QbIcon,
   RunArrowIcon,
@@ -112,6 +113,20 @@ export const americanFootballConfig: SportBoardConfig = {
         create: "path",
         style: { color: "#111827", strokeWidth: 4, headStyle: "arrow" },
         curvable: true,
+      },
+    },
+    {
+      id: "passLine",
+      label: "Podanie",
+      icon: <PassLineIcon />,
+      kind: {
+        create: "path",
+        style: {
+          color: "#7c3aed",
+          strokeWidth: 4,
+          headStyle: "arrow",
+          dash: [14, 10],
+        },
       },
     },
     {
