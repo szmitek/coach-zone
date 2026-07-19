@@ -26,6 +26,13 @@ export interface ShowcasePath {
   dash?: number[];
   curved?: boolean;
   wavy?: boolean;
+  /**
+   * Set for training-equipment paths (the real "ladder"/"hurdles" tools,
+   * which are 2-point strips rather than a drawn route) so they render as
+   * the actual rails/rungs or hurdle row PathElementNode draws on the live
+   * board, instead of a plain stroked line.
+   */
+  kind?: "ladder" | "hurdles";
   /** ms into the scene when drawing starts. */
   startAt: number;
   /** how long the reveal animation takes, in ms. */

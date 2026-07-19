@@ -21,6 +21,19 @@ export interface BoardShowcaseEngineProps {
   transitionMs: number;
   loop: boolean;
   showCaptions: boolean;
+  /**
+   * How long, in ms, the next scene is pre-mounted (ticking at opacity 0,
+   * behind the current one) before it becomes the visible front layer -
+   * and how far into its own timeline the very first slot starts. Default
+   * 0 reproduces the original behaviour exactly: every scene starts from a
+   * bare field, and the crossfade at loop-round happens between a fully
+   * built scene and a brand new empty one - a visible "reset" beat. A
+   * positive value means the incoming scene is already partway built by
+   * the time it's revealed, so there's no seam and no empty field on first
+   * paint either. Onboarding leaves this unset; only the landing variant
+   * sets it.
+   */
+  overlapMs?: number;
   className?: string;
 }
 
@@ -28,8 +41,9 @@ export interface BoardShowcaseEngineProps {
  * The one shared animation engine behind both the onboarding and landing
  * showcases. Owns the playback clock and the scene sequence/crossfade;
  * everything sport-specific (field, colors, choreography) comes from
- * `scenes`, and everything about pacing/looping/captions comes from props -
- * so the two call sites only differ in what they pass in here.
+ * `scenes`, and everything about pacing/looping/captions/overlap comes
+ * from props - so the two call sites only differ in what they pass in
+ * here.
  */
 export function BoardShowcaseEngine({
   scenes,
@@ -38,13 +52,14 @@ export function BoardShowcaseEngine({
   transitionMs,
   loop,
   showCaptions,
+  overlapMs = 0,
   className,
 }: BoardShowcaseEngineProps) {
   const pacedScenes = useMemo(() => scenes.map((s) => paceScene(s, pace)), [scenes, pace]);
 
   const [now, setNow] = useState(() => performance.now());
   const [slots, setSlots] = useState<Slot[]>(() => [
-    { key: 0, sceneIndex: 0, startedAt: performance.now() },
+    { key: 0, sceneIndex: 0, startedAt: performance.now() - overlapMs },
   ]);
   const [frontKey, setFrontKey] = useState(0);
   // Deliberately separate from frontKey: frontKey flips at the *start* of
@@ -56,6 +71,10 @@ export function BoardShowcaseEngine({
   const [captionSceneIndex, setCaptionSceneIndex] = useState(0);
   const nextKeyRef = useRef(1);
   const transitioningRef = useRef(false);
+  // Key of a scene already pre-mounted (behind, at opacity 0) ahead of its
+  // actual reveal - null when nothing's been pre-mounted yet, or when
+  // overlapMs is 0 and this mechanism never engages at all.
+  const pendingKeyRef = useRef<number | null>(null);
   // Only cleared by the unmount effect below - deliberately *not* tied to
   // the polling effect's own re-runs. That polling effect re-fires every
   // animation frame (it depends on `now`), and a cleanup returned from it
@@ -87,15 +106,41 @@ export function BoardShowcaseEngine({
     const scene = pacedScenes[front.sceneIndex];
     const elapsed = now - front.startedAt;
     const total = scene.scriptedDuration + holdMs;
-    if (elapsed < total) return;
-
     const atEnd = front.sceneIndex === scenes.length - 1;
-    if (atEnd && !loop) return;
+    const canAdvance = !(atEnd && !loop);
+
+    // Pre-mount the next scene, invisible, `overlapMs` before this one
+    // would otherwise hand off - so by the time it's actually revealed
+    // below it's already partway built instead of starting the crossfade
+    // from an empty field. No-op whenever overlapMs is 0.
+    if (
+      canAdvance &&
+      overlapMs > 0 &&
+      pendingKeyRef.current === null &&
+      elapsed >= total - overlapMs &&
+      elapsed < total
+    ) {
+      const nextIndex = (front.sceneIndex + 1) % scenes.length;
+      const newKey = nextKeyRef.current++;
+      pendingKeyRef.current = newKey;
+      setSlots((prev) => [...prev, { key: newKey, sceneIndex: nextIndex, startedAt: now }]);
+    }
+
+    if (elapsed < total) return;
+    if (!canAdvance) return;
 
     transitioningRef.current = true;
-    const nextIndex = (front.sceneIndex + 1) % scenes.length;
-    const newKey = nextKeyRef.current++;
-    setSlots((prev) => [...prev, { key: newKey, sceneIndex: nextIndex, startedAt: now }]);
+    let newKey: number;
+    let nextIndex: number;
+    if (pendingKeyRef.current !== null) {
+      newKey = pendingKeyRef.current;
+      pendingKeyRef.current = null;
+      nextIndex = slots.find((s) => s.key === newKey)?.sceneIndex ?? (front.sceneIndex + 1) % scenes.length;
+    } else {
+      nextIndex = (front.sceneIndex + 1) % scenes.length;
+      newKey = nextKeyRef.current++;
+      setSlots((prev) => [...prev, { key: newKey, sceneIndex: nextIndex, startedAt: now }]);
+    }
 
     // Let the new slot mount (and paint) at opacity 0 first, so flipping
     // `frontKey` a frame later is what the CSS transition actually
@@ -111,7 +156,7 @@ export function BoardShowcaseEngine({
       transitioningRef.current = false;
       pendingTimeoutRef.current = null;
     }, transitionMs + 80);
-  }, [now, frontKey, slots, pacedScenes, scenes.length, loop, holdMs, transitionMs]);
+  }, [now, frontKey, slots, pacedScenes, scenes.length, loop, holdMs, transitionMs, overlapMs]);
 
   const activeCaption = pacedScenes[captionSceneIndex]?.caption;
 

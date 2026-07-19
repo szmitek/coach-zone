@@ -1,20 +1,28 @@
 "use client";
 
-import { showcaseScenes } from "@/lib/board/showcase/scenes";
+import { landingShowcaseScenes } from "@/lib/board/showcase/landingScenes";
 import { BoardShowcaseEngine } from "./BoardShowcaseEngine";
 
 /**
- * Tighter, caption-free, single looping cycle meant to sit inside a landing
- * page hero - not wired into any page yet (that's a future round), but the
- * engine underneath is the exact same one the onboarding variant uses.
+ * Caption-free, single looping cycle meant to sit inside a landing page
+ * hero. Uses its own denser, busier scenes (lib/board/showcase/landingScenes.ts)
+ * instead of the onboarding ones - onboarding teaches one tool at a time,
+ * this needs to sell in a few seconds, so each scene builds a fuller
+ * picture (multiple players, more than one route/action, training
+ * equipment) with everything staggered rather than sequential.
+ *
+ * `overlapMs` pre-mounts the next scene behind the current one before it
+ * hands off, so the loop never visibly resets to an empty field - the same
+ * engine onboarding uses, just with that one extra knob turned on.
  */
 export function LandingShowcase({ className }: { className?: string }) {
   return (
     <BoardShowcaseEngine
-      scenes={showcaseScenes}
+      scenes={landingShowcaseScenes}
       pace={0.85}
       holdMs={550}
       transitionMs={500}
+      overlapMs={1000}
       loop
       showCaptions={false}
       className={className ?? "h-full w-full"}
