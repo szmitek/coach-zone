@@ -6,18 +6,22 @@ import type { ShowcaseScene } from "./types";
 
 // Landing-only choreography. Onboarding (scenes.ts / showcaseScenes) builds
 // one thing at a time because it's teaching a coach how each tool works -
-// this instead composes a fuller scene per sport (multiple players, more
-// than one route/action, training equipment) with everything staggered so
-// a visitor sees "this is a real tactical tool" within a couple of
-// seconds, not "this draws a line". Same real per-sport tool defs/colors
-// as the onboarding scenes - nothing invented, still pixel-identical to
-// the live board. This file is only ever imported by LandingShowcase.
+// this instead composes one coherent drill per sport, with the staggered
+// build timing making it feel alive. Density here comes from a single
+// continuous action a real coach would run, never from element count: every
+// piece of equipment below sits directly on the path the action goes
+// through, past, or interacts with, in the order it's used. Nothing is
+// dropped onto the field just to look fuller. Same real per-sport tool
+// defs/colors as the onboarding scenes - nothing invented, still
+// pixel-identical to the live board. This file is only ever imported by
+// LandingShowcase.
 
 // ---------------------------------------------------------------------------
-// American football: a full passing-play picture - two receivers running
-// routes on either side, a defender covering one of them, a quick block
-// off the snap, pre-snap cones marking the formation width, and a shield
-// nearby, before the QB's pass connects.
+// American football: a real passing play, nothing more. A blocker pushes
+// through a shield at the snap, two receivers run routes, a defender
+// pre-positions on one of them, and the QB reads the coverage and hits the
+// receiver left open. No ladder/hurdles/cones - this drill doesn't use any,
+// so it doesn't show any.
 // ---------------------------------------------------------------------------
 const afRoute = toolStyle(americanFootballConfig, "route");
 const afBlock = toolStyle(americanFootballConfig, "block");
@@ -27,6 +31,7 @@ const afWr1Start = { x: 560, y: 96 };
 const afWr1End = { x: 900, y: 236 };
 const afWr2Start = { x: 560, y: 430 };
 const afWr2End = { x: 780, y: 378 };
+const afShield = { x: 430, y: 250 };
 
 export const landingAmericanFootballScene: ShowcaseScene = {
   sportSlug: "american_football",
@@ -34,9 +39,7 @@ export const landingAmericanFootballScene: ShowcaseScene = {
   caption: "Pełny obraz akcji ofensywnej.",
   markers: [
     { id: "qb", kind: "qb", x: afQb.x, y: afQb.y, label: "QB", appearAt: 0 },
-    { id: "cone-a", kind: "cone", x: 500, y: 190, appearAt: 40 },
-    { id: "cone-b", kind: "cone", x: 500, y: 450, appearAt: 90 },
-    { id: "shield", kind: "shield", x: 430, y: 250, appearAt: 220 },
+    { id: "shield", kind: "shield", x: afShield.x, y: afShield.y, appearAt: 120 },
     { id: "wr1", kind: "player", x: afWr1Start.x, y: afWr1Start.y, label: "WR", appearAt: 150 },
     { id: "wr2", kind: "player", x: afWr2Start.x, y: afWr2Start.y, label: "WR", appearAt: 150 },
     { id: "defender", kind: "opponent", x: 760, y: 410, appearAt: 480 },
@@ -44,7 +47,7 @@ export const landingAmericanFootballScene: ShowcaseScene = {
   paths: [
     {
       id: "block",
-      points: [{ x: 430, y: 250 }, { x: 480, y: 258 }],
+      points: [afShield, { x: 480, y: 258 }],
       color: afBlock.color,
       strokeWidth: afBlock.strokeWidth,
       headStyle: afBlock.headStyle,
@@ -86,16 +89,20 @@ export const landingAmericanFootballScene: ShowcaseScene = {
 };
 
 // ---------------------------------------------------------------------------
-// Basketball: a ball handler works off an agility ladder and a dribble
-// gate, a defender steps up, then a pass to a teammate sets up the shot.
+// Basketball: one continuous handling sequence - dribble through a cone
+// gate, swerve past a defender who's already stepped up, then a pass and a
+// catch-and-shoot finish. Every marker sits on the ball's actual route.
 // ---------------------------------------------------------------------------
 const bbDribble = toolStyle(basketballConfig, "dribble");
 const bbShot = toolStyle(basketballConfig, "shot");
 const bbPass = toolStyle(basketballConfig, "passLine");
 
-const bbBallStart = { x: 470, y: 270 };
-const bbDribbleEnd = { x: 790, y: 270 };
-const bbTeammate = { x: 760, y: 150 };
+const bbBallStart = { x: 430, y: 270 };
+const bbGateA = { x: 560, y: 235 };
+const bbGateB = { x: 560, y: 305 };
+const bbDefender = { x: 660, y: 270 };
+const bbDribbleEnd = { x: 740, y: 250 };
+const bbTeammate = { x: 820, y: 320 };
 const bbHoop = { x: 866, y: 270 };
 
 export const landingBasketballScene: ShowcaseScene = {
@@ -104,31 +111,24 @@ export const landingBasketballScene: ShowcaseScene = {
   caption: "Tak powstaje cała akcja pod koszem.",
   markers: [
     { id: "player", kind: "player", x: bbBallStart.x, y: bbBallStart.y, appearAt: 0 },
-    { id: "cone-a", kind: "cone", x: 520, y: 340, appearAt: 40 },
-    { id: "cone-b", kind: "cone", x: 520, y: 210, appearAt: 90 },
-    { id: "defender", kind: "opponent", x: 650, y: 220, appearAt: 400 },
-    { id: "teammate", kind: "partner", x: bbTeammate.x, y: bbTeammate.y, label: "P", appearAt: 900 },
+    { id: "cone-a", kind: "cone", x: bbGateA.x, y: bbGateA.y, appearAt: 60 },
+    { id: "cone-b", kind: "cone", x: bbGateB.x, y: bbGateB.y, appearAt: 110 },
+    { id: "defender", kind: "opponent", x: bbDefender.x, y: bbDefender.y, appearAt: 350 },
+    { id: "teammate", kind: "partner", x: bbTeammate.x, y: bbTeammate.y, label: "P", appearAt: 1350 },
   ],
   paths: [
     {
-      id: "ladder",
-      kind: "ladder",
-      points: [{ x: 70, y: 460 }, { x: 220, y: 460 }],
-      color: "#dc2626",
-      strokeWidth: 3,
-      headStyle: "none",
-      startAt: 150,
-      duration: 550,
-    },
-    {
+      // Straight into the gate between the two cones, then swerves above
+      // the defender's spot before settling back down - the dribble tool's
+      // own wavy render sells the change of pace.
       id: "dribble",
-      points: [bbBallStart, { x: 600, y: 200 }, { x: 700, y: 330 }, bbDribbleEnd],
+      points: [bbBallStart, { x: bbGateA.x, y: 270 }, { x: bbDefender.x, y: 220 }, bbDribbleEnd],
       color: bbDribble.color,
       strokeWidth: bbDribble.strokeWidth,
       headStyle: bbDribble.headStyle,
       wavy: true,
-      startAt: 350,
-      duration: 1600,
+      startAt: 200,
+      duration: 1500,
     },
     {
       id: "passLine",
@@ -137,8 +137,8 @@ export const landingBasketballScene: ShowcaseScene = {
       strokeWidth: bbPass.strokeWidth,
       headStyle: bbPass.headStyle,
       dash: bbPass.dash,
-      startAt: 1500,
-      duration: 650,
+      startAt: 1700,
+      duration: 550,
     },
     {
       id: "shot",
@@ -147,97 +147,98 @@ export const landingBasketballScene: ShowcaseScene = {
       strokeWidth: bbShot.strokeWidth,
       headStyle: bbShot.headStyle,
       curved: true,
-      startAt: 2300,
+      startAt: 2250,
       duration: 900,
     },
   ],
-  scriptedDuration: 3200,
+  scriptedDuration: 3150,
 };
 
 // ---------------------------------------------------------------------------
-// Soccer: the slalom drill runs through a full agility circuit - hurdles
-// and a ladder as stations either side of the cones - a defender is beaten,
-// and the move finishes with a pass to a teammate making the run.
+// Soccer: one agility lane, start to finish - the ladder, then the cone
+// slalom, then a defender beaten, then the pass. The run path is a single
+// route that physically passes over the ladder rungs and between every
+// cone, in that order, before swerving past the defender.
 // ---------------------------------------------------------------------------
 const soccerMove = toolStyle(footballConfig, "movement");
 const soccerPass = toolStyle(footballConfig, "passLine");
 
+const soccerStart = { x: 340, y: 340 };
+const ladderEnd = { x: 480, y: 340 };
 const slalomCones = [
-  { x: 650, y: 340 },
-  { x: 720, y: 340 },
-  { x: 790, y: 340 },
-  { x: 860, y: 340 },
+  { x: 540, y: 340 },
+  { x: 610, y: 340 },
+  { x: 680, y: 340 },
+  { x: 750, y: 340 },
 ];
-const slalomStart = { x: 580, y: 340 };
-const slalomEnd = { x: 920, y: 340 };
-const soccerTeammate = { x: 980, y: 260 };
+const slalomExit = { x: 810, y: 340 };
+const soccerDefender = { x: 860, y: 340 };
+const pastDefender = { x: 910, y: 340 };
+const soccerTeammate = { x: 960, y: 260 };
 
 export const landingSoccerScene: ShowcaseScene = {
   sportSlug: "football",
   fieldModeId: "full",
   caption: "Cały tor zwinnościowy w akcji.",
   markers: [
-    { id: "player", kind: "player", x: slalomStart.x, y: slalomStart.y, appearAt: 0 },
+    { id: "player", kind: "player", x: soccerStart.x, y: soccerStart.y, appearAt: 0 },
     ...slalomCones.map((c, i) => ({
       id: `cone-${i}`,
       kind: "cone" as const,
       x: c.x,
       y: c.y,
-      appearAt: 60 + i * 90,
+      appearAt: 600 + i * 90,
     })),
-    { id: "defender", kind: "opponent" as const, x: 700, y: 420, appearAt: 500 },
-    { id: "teammate", kind: "partner" as const, x: soccerTeammate.x, y: soccerTeammate.y, label: "P", appearAt: 1200 },
+    { id: "defender", kind: "opponent" as const, x: soccerDefender.x, y: soccerDefender.y, appearAt: 1600 },
+    { id: "teammate", kind: "partner" as const, x: soccerTeammate.x, y: soccerTeammate.y, label: "P", appearAt: 2400 },
   ],
   paths: [
     {
       id: "ladder",
       kind: "ladder",
-      points: [{ x: 620, y: 520 }, { x: 760, y: 520 }],
+      points: [soccerStart, ladderEnd],
       color: "#dc2626",
       strokeWidth: 3,
       headStyle: "none",
-      startAt: 120,
-      duration: 550,
+      startAt: 100,
+      duration: 500,
     },
     {
-      id: "hurdles",
-      kind: "hurdles",
-      points: [{ x: 620, y: 160 }, { x: 740, y: 160 }],
-      color: "#dc2626",
-      strokeWidth: 3,
-      headStyle: "none",
-      startAt: 250,
-      duration: 550,
-    },
-    {
-      id: "slalom",
+      // Same start point as the ladder equipment above - the run traces
+      // straight over its rungs, then into the slalom weave between every
+      // cone, then swerves past the defender before the path ends where the
+      // pass picks up.
+      id: "run",
       points: [
-        slalomStart,
+        soccerStart,
+        ladderEnd,
         { x: slalomCones[0].x, y: 296 },
         { x: slalomCones[1].x, y: 384 },
         { x: slalomCones[2].x, y: 296 },
         { x: slalomCones[3].x, y: 384 },
-        slalomEnd,
+        slalomExit,
+        { x: soccerDefender.x, y: 290 },
+        pastDefender,
       ],
       color: soccerMove.color,
       strokeWidth: soccerMove.strokeWidth,
       headStyle: soccerMove.headStyle,
       curved: true,
-      startAt: 550,
-      duration: 2100,
+      startAt: 650,
+      duration: 2200,
     },
     {
       id: "passLine",
-      points: [slalomEnd, soccerTeammate],
+      points: [pastDefender, soccerTeammate],
       color: soccerPass.color,
       strokeWidth: soccerPass.strokeWidth,
       headStyle: soccerPass.headStyle,
       dash: soccerPass.dash,
-      startAt: 2750,
+      startAt: 2850,
       duration: 550,
     },
   ],
-  scriptedDuration: 3300,
+  scriptedDuration: 3400,
 };
 
 export const landingShowcaseScenes: ShowcaseScene[] = [
