@@ -17,75 +17,70 @@ import type { ShowcaseScene } from "./types";
 // LandingShowcase.
 
 // ---------------------------------------------------------------------------
-// American football: a real passing play, nothing more. A blocker pushes
-// through a shield at the snap, two receivers run routes, a defender
-// pre-positions on one of them, and the QB reads the coverage and hits the
-// receiver left open. No ladder/hurdles/cones - this drill doesn't use any,
-// so it doesn't show any.
+// American football: "Run & catch", the QB/WR route-and-catch drill from
+// the coach's own training plans. A WR lines up facing the QB, sprints
+// straight at him, then snaps into a sharp 45-degree break to one side on
+// the QB's signal - the QB throws to the break point. One continuous
+// sequence, no training equipment: the drill doesn't use a shield, blocker,
+// or cones, so none show up here. A second WR queued behind the first runs
+// the same rep right after, the way receivers cycle through the line in
+// the real drill.
 // ---------------------------------------------------------------------------
 const afRoute = toolStyle(americanFootballConfig, "route");
-const afBlock = toolStyle(americanFootballConfig, "block");
 
-const afQb = { x: 500, y: 320 };
-const afWr1Start = { x: 560, y: 96 };
-const afWr1End = { x: 900, y: 236 };
-const afWr2Start = { x: 560, y: 430 };
-const afWr2End = { x: 780, y: 378 };
-const afShield = { x: 430, y: 250 };
+const afQb = { x: 560, y: 300 };
+const afWr1Start = { x: 860, y: 300 };
+const afWr1Break = { x: 680, y: 300 };
+const afWr1Catch = { x: 610, y: 370 };
+const afWr2Start = { x: 940, y: 300 };
+const afWr2Break = { x: 760, y: 300 };
+const afWr2Cut = { x: 690, y: 230 };
 
 export const landingAmericanFootballScene: ShowcaseScene = {
   sportSlug: "american_football",
   fieldModeId: "full",
-  caption: "Pełny obraz akcji ofensywnej.",
+  caption: "Wybiegnięcie z przełamaniem i podanie do WR.",
   markers: [
     { id: "qb", kind: "qb", x: afQb.x, y: afQb.y, label: "QB", appearAt: 0 },
-    { id: "shield", kind: "shield", x: afShield.x, y: afShield.y, appearAt: 120 },
     { id: "wr1", kind: "player", x: afWr1Start.x, y: afWr1Start.y, label: "WR", appearAt: 150 },
-    { id: "wr2", kind: "player", x: afWr2Start.x, y: afWr2Start.y, label: "WR", appearAt: 150 },
-    { id: "defender", kind: "opponent", x: 760, y: 410, appearAt: 480 },
+    { id: "wr2", kind: "player", x: afWr2Start.x, y: afWr2Start.y, label: "WR", appearAt: 250 },
   ],
   paths: [
     {
-      id: "block",
-      points: [afShield, { x: 480, y: 258 }],
-      color: afBlock.color,
-      strokeWidth: afBlock.strokeWidth,
-      headStyle: afBlock.headStyle,
-      startAt: 350,
-      duration: 450,
-    },
-    {
-      id: "route2",
-      points: [afWr2Start, { x: 700, y: 430 }, afWr2End],
-      color: afRoute.color,
-      strokeWidth: afRoute.strokeWidth,
-      headStyle: afRoute.headStyle,
-      curved: true,
-      startAt: 550,
-      duration: 1200,
-    },
-    {
+      // Straight at the QB, then a decisive polyline break to the side -
+      // no `curved` here, so the cut reads as a sharp angle rather than a
+      // rounded swerve.
       id: "route1",
-      points: [afWr1Start, { x: 760, y: 96 }, afWr1End],
+      points: [afWr1Start, afWr1Break, afWr1Catch],
       color: afRoute.color,
       strokeWidth: afRoute.strokeWidth,
       headStyle: afRoute.headStyle,
-      curved: true,
-      startAt: 700,
-      duration: 1700,
+      startAt: 500,
+      duration: 1300,
     },
     {
       id: "pass",
-      points: [afQb, afWr1End],
+      points: [afQb, afWr1Catch],
       color: afRoute.color,
       strokeWidth: afRoute.strokeWidth,
       headStyle: afRoute.headStyle,
       curved: true,
-      startAt: 2600,
-      duration: 1000,
+      startAt: 1950,
+      duration: 650,
+    },
+    {
+      // Next receiver in line runs the same drill right after the catch,
+      // breaking the other way this time.
+      id: "route2",
+      points: [afWr2Start, afWr2Break, afWr2Cut],
+      color: afRoute.color,
+      strokeWidth: afRoute.strokeWidth,
+      headStyle: afRoute.headStyle,
+      startAt: 2750,
+      duration: 1300,
     },
   ],
-  scriptedDuration: 3600,
+  scriptedDuration: 4050,
 };
 
 // ---------------------------------------------------------------------------
