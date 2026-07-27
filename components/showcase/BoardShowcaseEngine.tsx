@@ -22,18 +22,25 @@ export interface BoardShowcaseEngineProps {
   loop: boolean;
   showCaptions: boolean;
   /**
-   * How long, in ms, the next scene is pre-mounted (ticking at opacity 0,
-   * behind the current one) before it becomes the visible front layer -
-   * and how far into its own timeline the very first slot starts. Default
-   * 0 reproduces the original behaviour exactly: every scene starts from a
-   * bare field, and the crossfade at loop-round happens between a fully
-   * built scene and a brand new empty one - a visible "reset" beat. A
-   * positive value means the incoming scene is already partway built by
-   * the time it's revealed, so there's no seam and no empty field on first
-   * paint either. Onboarding leaves this unset; only the landing variant
-   * sets it.
+   * Fraction of a scene's own (paced) build duration that it gets
+   * pre-mounted (ticking at opacity 0, behind the current one) before it
+   * becomes the visible front layer - and how far into its own timeline
+   * the very first slot starts. Expressed as a ratio of *that scene's*
+   * build rather than a fixed ms count so every scene reveals at the same
+   * relative point in its own choreography: a fixed ms head start ate a
+   * hugely different fraction of a short, front-loaded build (basketball's
+   * single dominant path was already ~65% drawn at reveal) than of a long
+   * one, even when two scenes' total durations matched exactly - the
+   * imbalance was in how early each scene's visual content lands within
+   * its own timeline, not in total duration alone. Default 0 reproduces
+   * the original behaviour exactly: every scene starts from a bare field,
+   * and the crossfade at loop-round happens between a fully built scene
+   * and a brand new empty one - a visible "reset" beat. A positive value
+   * means the incoming scene is already partway built by the time it's
+   * revealed, so there's no seam and no empty field on first paint either.
+   * Onboarding leaves this unset; only the landing variant sets it.
    */
-  overlapMs?: number;
+  overlapRatio?: number;
   className?: string;
 }
 
@@ -52,14 +59,18 @@ export function BoardShowcaseEngine({
   transitionMs,
   loop,
   showCaptions,
-  overlapMs = 0,
+  overlapRatio = 0,
   className,
 }: BoardShowcaseEngineProps) {
   const pacedScenes = useMemo(() => scenes.map((s) => paceScene(s, pace)), [scenes, pace]);
 
   const [now, setNow] = useState(() => performance.now());
   const [slots, setSlots] = useState<Slot[]>(() => [
-    { key: 0, sceneIndex: 0, startedAt: performance.now() - overlapMs },
+    {
+      key: 0,
+      sceneIndex: 0,
+      startedAt: performance.now() - overlapRatio * scenes[0].scriptedDuration * pace,
+    },
   ]);
   const [frontKey, setFrontKey] = useState(0);
   // Deliberately separate from frontKey: frontKey flips at the *start* of
@@ -73,7 +84,7 @@ export function BoardShowcaseEngine({
   const transitioningRef = useRef(false);
   // Key of a scene already pre-mounted (behind, at opacity 0) ahead of its
   // actual reveal - null when nothing's been pre-mounted yet, or when
-  // overlapMs is 0 and this mechanism never engages at all.
+  // overlapRatio is 0 and this mechanism never engages at all.
   const pendingKeyRef = useRef<number | null>(null);
   // Only cleared by the unmount effect below - deliberately *not* tied to
   // the polling effect's own re-runs. That polling effect re-fires every
@@ -109,21 +120,22 @@ export function BoardShowcaseEngine({
     const atEnd = front.sceneIndex === scenes.length - 1;
     const canAdvance = !(atEnd && !loop);
 
-    // Pre-mount the next scene, invisible, `overlapMs` before this one
-    // would otherwise hand off - so by the time it's actually revealed
-    // below it's already partway built instead of starting the crossfade
-    // from an empty field. No-op whenever overlapMs is 0.
-    if (
-      canAdvance &&
-      overlapMs > 0 &&
-      pendingKeyRef.current === null &&
-      elapsed >= total - overlapMs &&
-      elapsed < total
-    ) {
+    // Pre-mount the next scene, invisible, some point before this one would
+    // otherwise hand off - so by the time it's actually revealed below it's
+    // already partway built instead of starting the crossfade from an empty
+    // field. How far ahead is `overlapRatio` of the *incoming* scene's own
+    // build, not the outgoing one's - a fixed ms head start would eat a much
+    // bigger slice of a scene whose build front-loads its visual content
+    // than of one that spreads it evenly, even at equal total duration. See
+    // the overlapRatio doc comment above. No-op whenever overlapRatio is 0.
+    if (canAdvance && overlapRatio > 0 && pendingKeyRef.current === null) {
       const nextIndex = (front.sceneIndex + 1) % scenes.length;
-      const newKey = nextKeyRef.current++;
-      pendingKeyRef.current = newKey;
-      setSlots((prev) => [...prev, { key: newKey, sceneIndex: nextIndex, startedAt: now }]);
+      const incomingOverlap = overlapRatio * pacedScenes[nextIndex].scriptedDuration;
+      if (elapsed >= total - incomingOverlap && elapsed < total) {
+        const newKey = nextKeyRef.current++;
+        pendingKeyRef.current = newKey;
+        setSlots((prev) => [...prev, { key: newKey, sceneIndex: nextIndex, startedAt: now }]);
+      }
     }
 
     if (elapsed < total) return;
@@ -156,7 +168,7 @@ export function BoardShowcaseEngine({
       transitioningRef.current = false;
       pendingTimeoutRef.current = null;
     }, transitionMs + 80);
-  }, [now, frontKey, slots, pacedScenes, scenes.length, loop, holdMs, transitionMs, overlapMs]);
+  }, [now, frontKey, slots, pacedScenes, scenes.length, loop, holdMs, transitionMs, overlapRatio]);
 
   const activeCaption = pacedScenes[captionSceneIndex]?.caption;
 

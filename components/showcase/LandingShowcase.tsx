@@ -11,9 +11,13 @@ import { BoardShowcaseEngine } from "./BoardShowcaseEngine";
  * picture (multiple players, more than one route/action, training
  * equipment) with everything staggered rather than sequential.
  *
- * `overlapMs` pre-mounts the next scene behind the current one before it
+ * `overlapRatio` pre-mounts the next scene behind the current one before it
  * hands off, so the loop never visibly resets to an empty field - the same
- * engine onboarding uses, just with that one extra knob turned on.
+ * engine onboarding uses, just with that one extra knob turned on. It's a
+ * ratio of each scene's own build (see BoardShowcaseEngine's doc comment)
+ * rather than a fixed ms count, so all three scenes reveal at the same
+ * relative point in their own choreography regardless of how their build
+ * time is distributed.
  */
 export function LandingShowcase({ className }: { className?: string }) {
   return (
@@ -22,7 +26,7 @@ export function LandingShowcase({ className }: { className?: string }) {
       pace={0.85}
       holdMs={550}
       transitionMs={500}
-      overlapMs={1000}
+      overlapRatio={0.15}
       loop
       showCaptions={false}
       className={className ?? "h-full w-full"}
