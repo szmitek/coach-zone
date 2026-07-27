@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { completeOnboarding } from "@/app/app/actions";
+import { Logo } from "@/components/Logo";
 import { OnboardingShowcaseLoader } from "@/components/showcase/ShowcaseLoader";
 
 /**
@@ -29,9 +30,7 @@ export function OnboardingOverlay() {
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-neutral-950 text-white">
       <div className="flex items-center justify-between px-5 pt-5 sm:px-8 sm:pt-8">
-        <span className="text-sm font-semibold tracking-tight text-neutral-300">
-          Coach Zone
-        </span>
+        <Logo size="sm" className="text-neutral-300" />
         <button
           type="button"
           onClick={finish}

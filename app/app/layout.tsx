@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Logo } from "@/components/Logo";
 import { logout } from "./actions";
 
 const navItems = [
@@ -15,8 +16,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       <header className="border-b border-neutral-200 dark:border-neutral-800">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-4 sm:px-6">
           <div className="flex items-center gap-4 sm:gap-8">
-            <Link href="/app" className="text-lg font-semibold tracking-tight">
-              Coach Zone
+            <Link href="/app">
+              <Logo />
             </Link>
             <nav className="flex gap-3 sm:gap-6">
               {navItems.map((item) => (

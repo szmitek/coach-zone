@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/Logo";
 import {
   SECTION_LABELS,
   SECTION_ORDER,
@@ -40,8 +41,8 @@ export function SharedWorkoutView({
     <div className="min-h-screen bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
       <header className="border-b border-neutral-200 dark:border-neutral-800">
         <div className="mx-auto max-w-3xl px-6 py-4">
-          <Link href="/" className="text-lg font-semibold tracking-tight">
-            Coach Zone
+          <Link href="/">
+            <Logo />
           </Link>
         </div>
       </header>
