@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Logo } from "@/components/Logo";
 
 export function AuthShell({
   title,
@@ -15,8 +16,8 @@ export function AuthShell({
   return (
     <div className="flex min-h-screen flex-col bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
       <header className="mx-auto w-full max-w-6xl px-6 py-6">
-        <Link href="/" className="text-lg font-semibold tracking-tight">
-          Coach Zone
+        <Link href="/">
+          <Logo />
         </Link>
       </header>
 

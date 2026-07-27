@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Logo } from "@/components/Logo";
 import { LandingShowcaseLoader } from "@/components/showcase/ShowcaseLoader";
 
 export const metadata: Metadata = {
@@ -38,9 +39,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5 sm:px-6 sm:py-6">
-        <span className="text-sm font-semibold tracking-tight text-neutral-300">
-          Coach Zone
-        </span>
+        <Logo size="sm" className="text-neutral-300" />
         <Link
           href="/login"
           className="text-sm text-neutral-400 transition-colors hover:text-white"
