@@ -10,6 +10,10 @@ export type Difficulty = 1 | 2 | 3 | 4 | 5;
 
 export type WorkoutSection = "warmup" | "main" | "positional" | "cooldown";
 
+// 'official' rows are the null-author backfill; 'private' is the default for
+// anything a coach creates; 'team' is reserved for future team-shared scope.
+export type ExerciseScope = "official" | "private" | "team";
+
 export interface Database {
   public: {
     Tables: {
@@ -87,7 +91,8 @@ export interface Database {
           id: string;
           author_id: string | null;
           category_id: number;
-          sport_id: number;
+          // NULL = universal exercise, belongs to every sport.
+          sport_id: number | null;
           title: string;
           description: string | null;
           steps: string[];
@@ -97,6 +102,7 @@ export interface Database {
           media_url: string | null;
           board_state: Json | null;
           is_public: boolean;
+          scope: ExerciseScope;
           created_at: string;
           updated_at: string;
         };
@@ -104,7 +110,7 @@ export interface Database {
           id?: string;
           author_id?: string | null;
           category_id: number;
-          sport_id: number;
+          sport_id?: number | null;
           title: string;
           description?: string | null;
           steps?: string[];
@@ -114,6 +120,7 @@ export interface Database {
           media_url?: string | null;
           board_state?: Json | null;
           is_public?: boolean;
+          scope?: ExerciseScope;
           created_at?: string;
           updated_at?: string;
         };
@@ -121,7 +128,7 @@ export interface Database {
           id?: string;
           author_id?: string | null;
           category_id?: number;
-          sport_id?: number;
+          sport_id?: number | null;
           title?: string;
           description?: string | null;
           steps?: string[];
@@ -131,6 +138,7 @@ export interface Database {
           media_url?: string | null;
           board_state?: Json | null;
           is_public?: boolean;
+          scope?: ExerciseScope;
           created_at?: string;
           updated_at?: string;
         };
@@ -154,6 +162,68 @@ export interface Database {
             columns: ["sport_id"];
             isOneToOne: false;
             referencedRelation: "sports";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      positions: {
+        Row: {
+          id: string;
+          sport_id: number;
+          code: string;
+          label: string;
+          sort_order: number;
+        };
+        Insert: {
+          id?: string;
+          sport_id: number;
+          code: string;
+          label: string;
+          sort_order?: number;
+        };
+        Update: {
+          id?: string;
+          sport_id?: number;
+          code?: string;
+          label?: string;
+          sort_order?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "positions_sport_id_fkey";
+            columns: ["sport_id"];
+            isOneToOne: false;
+            referencedRelation: "sports";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      exercise_positions: {
+        Row: {
+          exercise_id: string;
+          position_id: string;
+        };
+        Insert: {
+          exercise_id: string;
+          position_id: string;
+        };
+        Update: {
+          exercise_id?: string;
+          position_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "exercise_positions_exercise_id_fkey";
+            columns: ["exercise_id"];
+            isOneToOne: false;
+            referencedRelation: "exercises";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "exercise_positions_position_id_fkey";
+            columns: ["position_id"];
+            isOneToOne: false;
+            referencedRelation: "positions";
             referencedColumns: ["id"];
           },
         ];
@@ -271,6 +341,9 @@ export interface Database {
 export type Exercise = Database["public"]["Tables"]["exercises"]["Row"];
 export type Category = Database["public"]["Tables"]["categories"]["Row"];
 export type Sport = Database["public"]["Tables"]["sports"]["Row"];
+export type Position = Database["public"]["Tables"]["positions"]["Row"];
+export type ExercisePosition =
+  Database["public"]["Tables"]["exercise_positions"]["Row"];
 export type Workout = Database["public"]["Tables"]["workouts"]["Row"];
 export type WorkoutItem = Database["public"]["Tables"]["workout_items"]["Row"];
 

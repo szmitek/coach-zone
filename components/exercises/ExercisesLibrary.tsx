@@ -8,6 +8,8 @@ import type {
   Category,
   Difficulty,
   Exercise,
+  ExercisePosition,
+  Position,
   PublicProfile,
   Sport,
 } from "@/lib/supabase/types";
@@ -54,6 +56,11 @@ export function ExercisesLibrary({
     Difficulty | typeof ALL
   >(ALL);
   const [equipmentFilter, setEquipmentFilter] = useState<string>(ALL);
+  const [positionFilter, setPositionFilter] = useState<string>(ALL);
+  const [positions, setPositions] = useState<Position[]>([]);
+  const [exercisePositions, setExercisePositions] = useState<
+    ExercisePosition[]
+  >([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -93,11 +100,67 @@ export function ExercisesLibrary({
     };
   }, []);
 
+  // Positions and their exercise tags are static reference/join data, fetched
+  // once and joined in memory - same approach as authors above.
+  useEffect(() => {
+    let cancelled = false;
+    const supabase = createClient();
+    Promise.all([
+      supabase.from("positions").select("*"),
+      supabase.from("exercise_positions").select("*"),
+    ]).then(([positionsRes, exercisePositionsRes]) => {
+      if (cancelled) return;
+      if (positionsRes.data) setPositions(positionsRes.data);
+      if (exercisePositionsRes.data)
+        setExercisePositions(exercisePositionsRes.data);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const authorsById = useMemo(() => {
     const map = new Map<string, PublicProfile>();
     for (const author of authors) map.set(author.id, author);
     return map;
   }, [authors]);
+
+  const positionsById = useMemo(() => {
+    const map = new Map<string, Position>();
+    for (const position of positions) map.set(position.id, position);
+    return map;
+  }, [positions]);
+
+  const positionsByExerciseId = useMemo(() => {
+    const map = new Map<string, Position[]>();
+    for (const link of exercisePositions) {
+      const position = positionsById.get(link.position_id);
+      if (!position) continue;
+      const list = map.get(link.exercise_id) ?? [];
+      list.push(position);
+      map.set(link.exercise_id, list);
+    }
+    for (const list of map.values()) {
+      list.sort((a, b) => a.sort_order - b.sort_order);
+    }
+    return map;
+  }, [exercisePositions, positionsById]);
+
+  // Options are sport-dependent so a coach never sees another sport's
+  // positions; the filter itself is hidden when there's nothing to show.
+  const positionOptions = useMemo(() => {
+    if (sportFilter === ALL) return [];
+    return positions
+      .filter((position) => position.sport_id === sportFilter)
+      .sort((a, b) => a.sort_order - b.sort_order);
+  }, [positions, sportFilter]);
+
+  useEffect(() => {
+    if (positionFilter === ALL) return;
+    if (!positionOptions.some((position) => position.id === positionFilter)) {
+      setPositionFilter(ALL);
+    }
+  }, [positionOptions, positionFilter]);
 
   const categoriesById = useMemo(() => {
     const map = new Map<number, Category>();
@@ -143,8 +206,15 @@ export function ExercisesLibrary({
       }
       if (scopeFilter === MINE && exercise.author_id !== currentUserId)
         return false;
-      if (sportFilter !== ALL && exercise.sport_id !== sportFilter)
+      // sport_id === null means the exercise is universal, so it must match
+      // every sport filter, not just "all".
+      if (
+        sportFilter !== ALL &&
+        exercise.sport_id !== sportFilter &&
+        exercise.sport_id !== null
+      ) {
         return false;
+      }
       if (categoryFilter !== ALL && exercise.category_id !== categoryFilter)
         return false;
       if (difficultyFilter !== ALL && exercise.difficulty !== difficultyFilter)
@@ -154,6 +224,12 @@ export function ExercisesLibrary({
         !exercise.equipment.includes(equipmentFilter)
       ) {
         return false;
+      }
+      if (positionFilter !== ALL) {
+        const tags = positionsByExerciseId.get(exercise.id) ?? [];
+        if (!tags.some((position) => position.id === positionFilter)) {
+          return false;
+        }
       }
       return true;
     });
@@ -166,6 +242,8 @@ export function ExercisesLibrary({
     categoryFilter,
     difficultyFilter,
     equipmentFilter,
+    positionFilter,
+    positionsByExerciseId,
   ]);
 
   function clearAll() {
@@ -175,6 +253,7 @@ export function ExercisesLibrary({
     setCategoryFilter(ALL);
     setDifficultyFilter(ALL);
     setEquipmentFilter(ALL);
+    setPositionFilter(ALL);
   }
 
   const activeFilters: Array<{ label: string; onClear: () => void }> = [];
@@ -213,6 +292,12 @@ export function ExercisesLibrary({
     activeFilters.push({
       label: `Sprzęt: ${equipmentFilter}`,
       onClear: () => setEquipmentFilter(ALL),
+    });
+  }
+  if (positionFilter !== ALL) {
+    activeFilters.push({
+      label: `Pozycja: ${positionsById.get(positionFilter)?.label ?? positionFilter}`,
+      onClear: () => setPositionFilter(ALL),
     });
   }
 
@@ -254,7 +339,7 @@ export function ExercisesLibrary({
           />
         </div>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-6">
           <FilterSelect
             id="scope-filter"
             label="Zakres"
@@ -319,6 +404,21 @@ export function ExercisesLibrary({
               ...equipmentOptions.map((item) => ({ value: item, label: item })),
             ]}
           />
+          {positionOptions.length > 0 && (
+            <FilterSelect
+              id="position-filter"
+              label="Pozycja"
+              value={positionFilter}
+              onChange={setPositionFilter}
+              options={[
+                { value: ALL, label: "Wszystkie pozycje" },
+                ...positionOptions.map((position) => ({
+                  value: position.id,
+                  label: position.label,
+                })),
+              ]}
+            />
+          )}
         </div>
 
         {activeFilters.length > 0 && (
@@ -389,7 +489,12 @@ export function ExercisesLibrary({
                 key={exercise.id}
                 exercise={exercise}
                 category={categoriesById.get(exercise.category_id)}
-                sport={sportsById.get(exercise.sport_id)}
+                sport={
+                  exercise.sport_id !== null
+                    ? sportsById.get(exercise.sport_id)
+                    : undefined
+                }
+                positions={positionsByExerciseId.get(exercise.id) ?? []}
                 authorsById={authorsById}
                 currentUserId={currentUserId}
               />

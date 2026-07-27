@@ -5,8 +5,10 @@ import { CategoryBadge } from "@/components/exercises/CategoryBadge";
 import { SportBadge } from "@/components/exercises/SportBadge";
 import { DifficultyIndicator } from "@/components/exercises/DifficultyIndicator";
 import { DeleteExerciseButton } from "@/components/exercises/DeleteExerciseButton";
+import { PositionPills } from "@/components/exercises/PositionPills";
 import { formatDuration } from "@/lib/exercises";
 import { createClient } from "@/lib/supabase/server";
+import type { Position } from "@/lib/supabase/types";
 
 export const dynamic = "force-dynamic";
 
@@ -49,25 +51,47 @@ export default async function ExerciseDetailPage({
     );
   }
 
-  const [{ data: category }, { data: sport }, { data: author }] =
-    await Promise.all([
+  const [
+    { data: category },
+    { data: sport },
+    { data: author },
+    { data: exercisePositions },
+  ] = await Promise.all([
       supabase
         .from("categories")
         .select("*")
         .eq("id", exercise.category_id)
         .maybeSingle(),
-      supabase
-        .from("sports")
-        .select("*")
-        .eq("id", exercise.sport_id)
-        .maybeSingle(),
+      exercise.sport_id !== null
+        ? supabase
+            .from("sports")
+            .select("*")
+            .eq("id", exercise.sport_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
       exercise.author_id
         ? supabase
             .rpc("list_public_profiles")
             .eq("id", exercise.author_id)
             .maybeSingle()
         : Promise.resolve({ data: null }),
+      supabase
+        .from("exercise_positions")
+        .select("position_id")
+        .eq("exercise_id", exercise.id),
     ]);
+
+  const positionIds = (exercisePositions ?? []).map(
+    (link) => link.position_id,
+  );
+  const { data: positions } =
+    positionIds.length > 0
+      ? await supabase
+          .from("positions")
+          .select("*")
+          .in("id", positionIds)
+          .order("sort_order", { ascending: true })
+      : { data: [] as Position[] };
 
   const isOwner = userData.user?.id === exercise.author_id;
   const authorsById = new Map(
@@ -108,6 +132,11 @@ export default async function ExerciseDetailPage({
               </span>
             )}
           </div>
+          {positions && positions.length > 0 && (
+            <div className="mt-2">
+              <PositionPills positions={positions} />
+            </div>
+          )}
         </div>
 
         <div className="flex shrink-0 gap-2">
