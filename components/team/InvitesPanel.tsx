@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { SITE_URL } from "@/lib/site";
+import { siteUrl } from "@/lib/site";
 import type { TeamInvite } from "@/lib/supabase/types";
 
 function formatExpiry(value: string): string {
@@ -75,7 +75,7 @@ export function InvitesPanel({
   }
 
   async function handleCopy(token: string, inviteId: string) {
-    const url = `${SITE_URL}/join/${token}`;
+    const url = siteUrl(`/join/${token}`);
     try {
       await navigator.clipboard.writeText(url);
       setCopiedId(inviteId);
@@ -115,7 +115,7 @@ export function InvitesPanel({
         <ul className="mt-3 space-y-2">
           {activeInvites.map((invite) => {
             const expired = new Date(invite.expires_at).getTime() <= Date.now();
-            const url = `${SITE_URL}/join/${invite.token}`;
+            const url = siteUrl(`/join/${invite.token}`);
             return (
               <li
                 key={invite.id}
