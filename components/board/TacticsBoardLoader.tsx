@@ -19,11 +19,13 @@ export function TacticsBoardLoader({
   sports,
   sportId,
   initialElements,
+  initialFieldModeId,
   handleRef,
 }: {
   sports: Sport[];
   sportId?: number | null;
   initialElements?: BoardElement[];
+  initialFieldModeId?: string | null;
   handleRef?: MutableRefObject<TacticsBoardHandle | null>;
 }) {
   return (
@@ -31,6 +33,7 @@ export function TacticsBoardLoader({
       sports={sports}
       sportId={sportId}
       initialElements={initialElements}
+      initialFieldModeId={initialFieldModeId}
       handleRef={handleRef}
     />
   );

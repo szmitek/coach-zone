@@ -6,9 +6,17 @@ import { SportBadge } from "@/components/exercises/SportBadge";
 import { DifficultyIndicator } from "@/components/exercises/DifficultyIndicator";
 import { DeleteExerciseButton } from "@/components/exercises/DeleteExerciseButton";
 import { PositionPills } from "@/components/exercises/PositionPills";
+import { BoardViewLoader } from "@/components/board/BoardViewLoader";
 import { formatDuration } from "@/lib/exercises";
+import type { BoardElement } from "@/lib/board/types";
 import { createClient } from "@/lib/supabase/server";
-import type { Position } from "@/lib/supabase/types";
+import type { Exercise, Position } from "@/lib/supabase/types";
+
+function boardElementsOf(exercise: Exercise): BoardElement[] | null {
+  return Array.isArray(exercise.board_state)
+    ? (exercise.board_state as unknown as BoardElement[])
+    : null;
+}
 
 export const dynamic = "force-dynamic";
 
@@ -97,6 +105,7 @@ export default async function ExerciseDetailPage({
   const authorsById = new Map(
     author ? [[author.id, author]] : [],
   );
+  const boardElements = boardElementsOf(exercise);
 
   return (
     <main className="mx-auto max-w-2xl px-6 pt-8 pb-20">
@@ -152,15 +161,25 @@ export default async function ExerciseDetailPage({
         </div>
       </div>
 
-      {exercise.media_url && (
-        <div className="mt-6 overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-800">
-          {/* eslint-disable-next-line @next/next/no-img-element -- remote Supabase Storage URL, no next/image domain config in this env */}
-          <img
-            src={exercise.media_url}
-            alt={`Diagram ćwiczenia „${exercise.title}”`}
-            className="w-full"
+      {boardElements ? (
+        <div className="mt-6">
+          <BoardViewLoader
+            sportSlug={sport?.slug}
+            fieldModeId={exercise.board_field_mode}
+            elements={boardElements}
           />
         </div>
+      ) : (
+        exercise.media_url && (
+          <div className="mt-6 overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-800">
+            {/* eslint-disable-next-line @next/next/no-img-element -- remote Supabase Storage URL, no next/image domain config in this env */}
+            <img
+              src={exercise.media_url}
+              alt={`Diagram ćwiczenia „${exercise.title}”`}
+              className="w-full"
+            />
+          </div>
+        )
       )}
 
       {exercise.equipment.length > 0 && (

@@ -103,6 +103,8 @@ export function ExerciseForm({
 
   const boardHandleRef = useRef<TacticsBoardHandle | null>(null);
   const initialBoardElements = useRef(boardElementsOf(duplicateFrom)).current;
+  const initialFieldModeId = useRef(duplicateFrom?.board_field_mode ?? null)
+    .current;
 
   function validate(): FieldErrors {
     const errors: FieldErrors = {};
@@ -175,6 +177,8 @@ export function ExerciseForm({
     const board = boardHandleRef.current;
     const boardElements =
       board && !board.isEmpty() ? board.getElements() : null;
+    const boardFieldMode =
+      board && boardElements ? board.getFieldModeId() : null;
 
     let mediaUrl: string | null = null;
     if (board && boardElements) {
@@ -212,6 +216,7 @@ export function ExerciseForm({
       equipment,
       media_url: mediaUrl,
       board_state: boardElements as unknown as Json,
+      board_field_mode: boardFieldMode,
       is_public: !keepPrivate,
     };
 
@@ -283,6 +288,7 @@ export function ExerciseForm({
               sports={sports}
               sportId={sportId === "" ? null : sportId}
               initialElements={initialBoardElements}
+              initialFieldModeId={initialFieldModeId}
               handleRef={boardHandleRef}
             />
           </div>

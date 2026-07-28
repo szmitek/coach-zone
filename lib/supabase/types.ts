@@ -101,6 +101,10 @@ export interface Database {
           equipment: string[];
           media_url: string | null;
           board_state: Json | null;
+          // Field-view mode (FieldViewMode.id, e.g. "full"/"redzone") the
+          // board_state diagram was authored in. NULL = fall back to the
+          // sport's defaultFieldModeId.
+          board_field_mode: string | null;
           is_public: boolean;
           scope: ExerciseScope;
           created_at: string;
@@ -119,6 +123,7 @@ export interface Database {
           equipment?: string[];
           media_url?: string | null;
           board_state?: Json | null;
+          board_field_mode?: string | null;
           is_public?: boolean;
           scope?: ExerciseScope;
           created_at?: string;
@@ -137,6 +142,7 @@ export interface Database {
           equipment?: string[];
           media_url?: string | null;
           board_state?: Json | null;
+          board_field_mode?: string | null;
           is_public?: boolean;
           scope?: ExerciseScope;
           created_at?: string;
