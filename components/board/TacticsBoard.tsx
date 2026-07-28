@@ -71,6 +71,8 @@ const EXPORT_TARGET_WIDTH = 900;
 export interface TacticsBoardHandle {
   isEmpty(): boolean;
   getElements(): BoardElement[];
+  /** Field-view mode id (FieldViewMode.id) the board is currently showing. */
+  getFieldModeId(): string;
   /** Data URL (PNG) of the current drawing, or null if the board is empty. */
   exportPng(): string | null;
 }
@@ -80,6 +82,8 @@ interface TacticsBoardProps {
   /** Controlled from outside (the exercise's "Dyscyplina" field) - null before a sport is chosen. */
   sportId?: number | null;
   initialElements?: BoardElement[];
+  /** Field mode to open in (e.g. a duplicated exercise's saved board_field_mode) - falls back to the sport's defaultFieldModeId when omitted or unrecognized, same as a brand-new board. */
+  initialFieldModeId?: string | null;
   /** Mutated (not replaced) with the latest imperative handle on every relevant change. */
   handleRef?: MutableRefObject<TacticsBoardHandle | null>;
 }
@@ -88,6 +92,7 @@ export function TacticsBoard({
   sports,
   sportId = null,
   initialElements,
+  initialFieldModeId,
   handleRef,
 }: TacticsBoardProps) {
   const [history, dispatch] = useReducer(
@@ -108,7 +113,12 @@ export function TacticsBoard({
     [activeSport],
   );
 
-  const [fieldModeId, setFieldModeId] = useState(config.defaultFieldModeId);
+  const [fieldModeId, setFieldModeId] = useState(() =>
+    initialFieldModeId &&
+    config.fieldModes.some((m) => m.id === initialFieldModeId)
+      ? initialFieldModeId
+      : config.defaultFieldModeId,
+  );
   const [activeTool, setActiveTool] = useState<ActiveTool>("select");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedPointIndex, setSelectedPointIndex] = useState<number | null>(
@@ -165,6 +175,7 @@ export function TacticsBoard({
     handleRef.current = {
       isEmpty: () => history.present.length === 0,
       getElements: () => history.present,
+      getFieldModeId: () => fieldModeId,
       exportPng: () => {
         const stage = stageRef.current;
         if (!stage || history.present.length === 0) return null;
@@ -175,7 +186,7 @@ export function TacticsBoard({
         return stage.toDataURL({ mimeType: "image/png", pixelRatio });
       },
     };
-  }, [handleRef, history.present, containerSize.width]);
+  }, [handleRef, history.present, containerSize.width, fieldModeId]);
 
   function cancelDrawingPath() {
     setDrawingPath(null);
