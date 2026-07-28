@@ -17,7 +17,14 @@ interface FieldErrors {
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export function LoginForm({ initialError }: { initialError?: string | null }) {
+export function LoginForm({
+  initialError,
+  next,
+}: {
+  initialError?: string | null;
+  /** Where to send the visitor after a successful login, e.g. back to a /join/[token] page. Defaults to /app. */
+  next?: string;
+}) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -59,7 +66,7 @@ export function LoginForm({ initialError }: { initialError?: string | null }) {
       return;
     }
 
-    router.push("/app");
+    router.push(next || "/app");
     router.refresh();
   }
 
@@ -67,7 +74,7 @@ export function LoginForm({ initialError }: { initialError?: string | null }) {
     <form onSubmit={handleSubmit} noValidate className="space-y-4">
       <FormBanner variant="error" message={formError} />
 
-      <GoogleAuthButton />
+      <GoogleAuthButton redirectTo={next} />
 
       <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-500">
         <div className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />

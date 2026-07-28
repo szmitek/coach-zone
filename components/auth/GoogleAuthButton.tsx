@@ -32,12 +32,14 @@ function GoogleIcon() {
   );
 }
 
-export function GoogleAuthButton() {
+export function GoogleAuthButton({ redirectTo }: { redirectTo?: string } = {}) {
   async function handleClick() {
     const supabase = createClient();
+    const callbackUrl = new URL("/auth/callback", window.location.origin);
+    if (redirectTo) callbackUrl.searchParams.set("next", redirectTo);
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: callbackUrl.toString() },
     });
   }
 
