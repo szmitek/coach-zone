@@ -43,3 +43,56 @@ describe("SITE_URL", () => {
     expect(SITE_URL).toBe("https://coach-zone.vercel.app");
   });
 });
+
+describe("toSafeNextPath", () => {
+  it("falls back for null (no next param at all)", async () => {
+    const { toSafeNextPath } = await loadSite("https://coach-zone.vercel.app");
+    expect(toSafeNextPath(null, "/app")).toBe("/app");
+  });
+
+  it("falls back for an empty string, not just null/undefined - the ordinary-signup case where {{ .RedirectTo }} renders empty", async () => {
+    const { toSafeNextPath } = await loadSite("https://coach-zone.vercel.app");
+    expect(toSafeNextPath("", "/app")).toBe("/app");
+  });
+
+  it("passes through an ordinary relative path unchanged", async () => {
+    const { toSafeNextPath } = await loadSite("https://coach-zone.vercel.app");
+    expect(toSafeNextPath("/join/Y7C4sQwBqttW", "/app")).toBe(
+      "/join/Y7C4sQwBqttW",
+    );
+  });
+
+  it("reduces a same-origin absolute URL to its path - what an invite signup's emailRedirectTo produces", async () => {
+    const { toSafeNextPath } = await loadSite("https://coach-zone.vercel.app");
+    expect(
+      toSafeNextPath("https://coach-zone.vercel.app/join/Y7C4sQwBqttW", "/app"),
+    ).toBe("/join/Y7C4sQwBqttW");
+  });
+
+  it("keeps the query string and hash of a same-origin absolute URL", async () => {
+    const { toSafeNextPath } = await loadSite("https://coach-zone.vercel.app");
+    expect(
+      toSafeNextPath("https://coach-zone.vercel.app/w/abc?ref=x#top", "/app"),
+    ).toBe("/w/abc?ref=x#top");
+  });
+
+  it("rejects a cross-origin absolute URL rather than redirecting off-site", async () => {
+    const { toSafeNextPath } = await loadSite("https://coach-zone.vercel.app");
+    expect(toSafeNextPath("https://evil.example/phish", "/app")).toBe("/app");
+  });
+
+  it("rejects a protocol-relative URL", async () => {
+    const { toSafeNextPath } = await loadSite("https://coach-zone.vercel.app");
+    expect(toSafeNextPath("//evil.example/phish", "/app")).toBe("/app");
+  });
+
+  it("rejects a backslash-prefixed path (browsers treat it as protocol-relative)", async () => {
+    const { toSafeNextPath } = await loadSite("https://coach-zone.vercel.app");
+    expect(toSafeNextPath("/\\evil.example", "/app")).toBe("/app");
+  });
+
+  it("defaults the fallback to /", async () => {
+    const { toSafeNextPath } = await loadSite("https://coach-zone.vercel.app");
+    expect(toSafeNextPath(null)).toBe("/");
+  });
+});
