@@ -10,199 +10,34 @@ export type Difficulty = 1 | 2 | 3 | 4 | 5;
 
 export type WorkoutSection = "warmup" | "main" | "positional" | "cooldown";
 
-// 'official' rows are the null-author backfill; 'private' is the default for
-// anything a coach creates; 'team' is reserved for future team-shared scope.
-export type ExerciseScope = "official" | "private" | "team";
+export type TeamRole = "head_coach" | "assistant_coach";
 
-export interface Database {
+export type Database = {
+  __InternalSupabase: {
+    PostgrestVersion: "14.5";
+  };
   public: {
     Tables: {
-      profiles: {
-        Row: {
-          id: string;
-          display_name: string;
-          club_name: string | null;
-          avatar_url: string | null;
-          onboarding_completed: boolean;
-          created_at: string;
-        };
-        Insert: {
-          id: string;
-          display_name: string;
-          club_name?: string | null;
-          avatar_url?: string | null;
-          onboarding_completed?: boolean;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          display_name?: string;
-          club_name?: string | null;
-          avatar_url?: string | null;
-          onboarding_completed?: boolean;
-          created_at?: string;
-        };
-        Relationships: [];
-      };
       categories: {
         Row: {
           id: number;
-          slug: string;
-          name_pl: string;
           name_en: string;
+          name_pl: string;
+          slug: string;
         };
         Insert: {
           id?: number;
-          slug: string;
-          name_pl: string;
           name_en: string;
+          name_pl: string;
+          slug: string;
         };
         Update: {
           id?: number;
-          slug?: string;
-          name_pl?: string;
           name_en?: string;
+          name_pl?: string;
+          slug?: string;
         };
         Relationships: [];
-      };
-      sports: {
-        Row: {
-          id: number;
-          slug: string;
-          name_pl: string;
-          name_en: string;
-        };
-        Insert: {
-          id?: number;
-          slug: string;
-          name_pl: string;
-          name_en: string;
-        };
-        Update: {
-          id?: number;
-          slug?: string;
-          name_pl?: string;
-          name_en?: string;
-        };
-        Relationships: [];
-      };
-      exercises: {
-        Row: {
-          id: string;
-          author_id: string | null;
-          category_id: number;
-          // NULL = universal exercise, belongs to every sport.
-          sport_id: number | null;
-          title: string;
-          description: string | null;
-          steps: string[];
-          duration_min: number | null;
-          difficulty: Difficulty | null;
-          equipment: string[];
-          media_url: string | null;
-          board_state: Json | null;
-          // Field-view mode (FieldViewMode.id, e.g. "full"/"redzone") the
-          // board_state diagram was authored in. NULL = fall back to the
-          // sport's defaultFieldModeId.
-          board_field_mode: string | null;
-          is_public: boolean;
-          scope: ExerciseScope;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          author_id?: string | null;
-          category_id: number;
-          sport_id?: number | null;
-          title: string;
-          description?: string | null;
-          steps?: string[];
-          duration_min?: number | null;
-          difficulty?: Difficulty | null;
-          equipment?: string[];
-          media_url?: string | null;
-          board_state?: Json | null;
-          board_field_mode?: string | null;
-          is_public?: boolean;
-          scope?: ExerciseScope;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          author_id?: string | null;
-          category_id?: number;
-          sport_id?: number | null;
-          title?: string;
-          description?: string | null;
-          steps?: string[];
-          duration_min?: number | null;
-          difficulty?: Difficulty | null;
-          equipment?: string[];
-          media_url?: string | null;
-          board_state?: Json | null;
-          board_field_mode?: string | null;
-          is_public?: boolean;
-          scope?: ExerciseScope;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "exercises_author_id_fkey";
-            columns: ["author_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "exercises_category_id_fkey";
-            columns: ["category_id"];
-            isOneToOne: false;
-            referencedRelation: "categories";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "exercises_sport_id_fkey";
-            columns: ["sport_id"];
-            isOneToOne: false;
-            referencedRelation: "sports";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      positions: {
-        Row: {
-          id: string;
-          sport_id: number;
-          code: string;
-          label: string;
-          sort_order: number;
-        };
-        Insert: {
-          id?: string;
-          sport_id: number;
-          code: string;
-          label: string;
-          sort_order?: number;
-        };
-        Update: {
-          id?: string;
-          sport_id?: number;
-          code?: string;
-          label?: string;
-          sort_order?: number;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "positions_sport_id_fkey";
-            columns: ["sport_id"];
-            isOneToOne: false;
-            referencedRelation: "sports";
-            referencedColumns: ["id"];
-          },
-        ];
       };
       exercise_positions: {
         Row: {
@@ -234,36 +69,366 @@ export interface Database {
           },
         ];
       };
-      workouts: {
+      exercises: {
         Row: {
-          id: string;
-          owner_id: string;
-          title: string;
-          team_name: string | null;
-          scheduled_for: string | null;
-          notes: string | null;
-          share_id: string;
+          author_id: string | null;
+          board_field_mode: string | null;
+          board_state: Json | null;
+          category_id: number;
           created_at: string;
+          description: string | null;
+          difficulty: Difficulty | null;
+          duration_min: number | null;
+          equipment: string[];
+          id: string;
+          is_public: boolean;
+          media_url: string | null;
+          sport_id: number | null;
+          steps: string[];
+          team_id: string | null;
+          title: string;
+          updated_at: string;
         };
         Insert: {
-          id?: string;
-          owner_id: string;
-          title: string;
-          team_name?: string | null;
-          scheduled_for?: string | null;
-          notes?: string | null;
-          share_id?: string;
+          author_id?: string | null;
+          board_field_mode?: string | null;
+          board_state?: Json | null;
+          category_id: number;
           created_at?: string;
+          description?: string | null;
+          difficulty?: Difficulty | null;
+          duration_min?: number | null;
+          equipment?: string[];
+          id?: string;
+          is_public?: boolean;
+          media_url?: string | null;
+          sport_id?: number | null;
+          steps?: string[];
+          team_id?: string | null;
+          title: string;
+          updated_at?: string;
         };
         Update: {
-          id?: string;
-          owner_id?: string;
-          title?: string;
-          team_name?: string | null;
-          scheduled_for?: string | null;
-          notes?: string | null;
-          share_id?: string;
+          author_id?: string | null;
+          board_field_mode?: string | null;
+          board_state?: Json | null;
+          category_id?: number;
           created_at?: string;
+          description?: string | null;
+          difficulty?: Difficulty | null;
+          duration_min?: number | null;
+          equipment?: string[];
+          id?: string;
+          is_public?: boolean;
+          media_url?: string | null;
+          sport_id?: number | null;
+          steps?: string[];
+          team_id?: string | null;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "exercises_author_id_fkey";
+            columns: ["author_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "exercises_category_id_fkey";
+            columns: ["category_id"];
+            isOneToOne: false;
+            referencedRelation: "categories";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "exercises_sport_id_fkey";
+            columns: ["sport_id"];
+            isOneToOne: false;
+            referencedRelation: "sports";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "exercises_team_id_fkey";
+            columns: ["team_id"];
+            isOneToOne: false;
+            referencedRelation: "teams";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      positions: {
+        Row: {
+          code: string;
+          id: string;
+          label: string;
+          sort_order: number;
+          sport_id: number;
+        };
+        Insert: {
+          code: string;
+          id?: string;
+          label: string;
+          sort_order?: number;
+          sport_id: number;
+        };
+        Update: {
+          code?: string;
+          id?: string;
+          label?: string;
+          sort_order?: number;
+          sport_id?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "positions_sport_id_fkey";
+            columns: ["sport_id"];
+            isOneToOne: false;
+            referencedRelation: "sports";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      profiles: {
+        Row: {
+          avatar_url: string | null;
+          club_name: string | null;
+          created_at: string;
+          display_name: string;
+          id: string;
+          onboarding_completed: boolean;
+        };
+        Insert: {
+          avatar_url?: string | null;
+          club_name?: string | null;
+          created_at?: string;
+          display_name: string;
+          id: string;
+          onboarding_completed?: boolean;
+        };
+        Update: {
+          avatar_url?: string | null;
+          club_name?: string | null;
+          created_at?: string;
+          display_name?: string;
+          id?: string;
+          onboarding_completed?: boolean;
+        };
+        Relationships: [];
+      };
+      sports: {
+        Row: {
+          id: number;
+          name_en: string;
+          name_pl: string;
+          slug: string;
+        };
+        Insert: {
+          id?: number;
+          name_en: string;
+          name_pl: string;
+          slug: string;
+        };
+        Update: {
+          id?: number;
+          name_en?: string;
+          name_pl?: string;
+          slug?: string;
+        };
+        Relationships: [];
+      };
+      team_invites: {
+        Row: {
+          created_at: string;
+          created_by: string;
+          expires_at: string;
+          id: string;
+          revoked_at: string | null;
+          team_id: string;
+          token: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by: string;
+          expires_at?: string;
+          id?: string;
+          revoked_at?: string | null;
+          team_id: string;
+          token?: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string;
+          expires_at?: string;
+          id?: string;
+          revoked_at?: string | null;
+          team_id?: string;
+          token?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "team_invites_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "team_invites_team_id_fkey";
+            columns: ["team_id"];
+            isOneToOne: false;
+            referencedRelation: "teams";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      team_members: {
+        Row: {
+          joined_at: string;
+          role: TeamRole;
+          team_id: string;
+          user_id: string;
+        };
+        Insert: {
+          joined_at?: string;
+          role: TeamRole;
+          team_id: string;
+          user_id: string;
+        };
+        Update: {
+          joined_at?: string;
+          role?: TeamRole;
+          team_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "team_members_team_id_fkey";
+            columns: ["team_id"];
+            isOneToOne: false;
+            referencedRelation: "teams";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "team_members_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      teams: {
+        Row: {
+          created_at: string;
+          created_by: string;
+          id: string;
+          name: string;
+          short_name: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by: string;
+          id?: string;
+          name: string;
+          short_name: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string;
+          id?: string;
+          name?: string;
+          short_name?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "teams_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      workout_items: {
+        Row: {
+          assigned_to: string | null;
+          duration_min: number | null;
+          exercise_id: string;
+          id: string;
+          position: number;
+          section: WorkoutSection;
+          workout_id: string;
+        };
+        Insert: {
+          assigned_to?: string | null;
+          duration_min?: number | null;
+          exercise_id: string;
+          id?: string;
+          position: number;
+          section: WorkoutSection;
+          workout_id: string;
+        };
+        Update: {
+          assigned_to?: string | null;
+          duration_min?: number | null;
+          exercise_id?: string;
+          id?: string;
+          position?: number;
+          section?: WorkoutSection;
+          workout_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "workout_items_exercise_id_fkey";
+            columns: ["exercise_id"];
+            isOneToOne: false;
+            referencedRelation: "exercises";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "workout_items_workout_id_fkey";
+            columns: ["workout_id"];
+            isOneToOne: false;
+            referencedRelation: "workouts";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      workouts: {
+        Row: {
+          created_at: string;
+          id: string;
+          notes: string | null;
+          owner_id: string;
+          scheduled_for: string | null;
+          share_id: string;
+          team_id: string | null;
+          team_name: string | null;
+          title: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          notes?: string | null;
+          owner_id: string;
+          scheduled_for?: string | null;
+          share_id?: string;
+          team_id?: string | null;
+          team_name?: string | null;
+          title: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          notes?: string | null;
+          owner_id?: string;
+          scheduled_for?: string | null;
+          share_id?: string;
+          team_id?: string | null;
+          team_name?: string | null;
+          title?: string;
         };
         Relationships: [
           {
@@ -273,76 +438,174 @@ export interface Database {
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
-        ];
-      };
-      workout_items: {
-        Row: {
-          id: string;
-          workout_id: string;
-          exercise_id: string;
-          section: WorkoutSection;
-          position: number;
-          duration_min: number | null;
-          assigned_to: string | null;
-        };
-        Insert: {
-          id?: string;
-          workout_id: string;
-          exercise_id: string;
-          section: WorkoutSection;
-          position: number;
-          duration_min?: number | null;
-          assigned_to?: string | null;
-        };
-        Update: {
-          id?: string;
-          workout_id?: string;
-          exercise_id?: string;
-          section?: WorkoutSection;
-          position?: number;
-          duration_min?: number | null;
-          assigned_to?: string | null;
-        };
-        Relationships: [
           {
-            foreignKeyName: "workout_items_workout_id_fkey";
-            columns: ["workout_id"];
+            foreignKeyName: "workouts_team_id_fkey";
+            columns: ["team_id"];
             isOneToOne: false;
-            referencedRelation: "workouts";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "workout_items_exercise_id_fkey";
-            columns: ["exercise_id"];
-            isOneToOne: false;
-            referencedRelation: "exercises";
+            referencedRelation: "teams";
             referencedColumns: ["id"];
           },
         ];
       };
     };
-    Views: Record<string, never>;
+    Views: {
+      [_ in never]: never;
+    };
     Functions: {
-      get_shared_workout: {
-        Args: { p_share_id: string };
-        Returns: SharedWorkoutPayload | null;
-      };
       duplicate_workout: {
         Args: { p_workout_id: string };
         Returns: Database["public"]["Tables"]["workouts"]["Row"];
       };
+      generate_share_id: { Args: never; Returns: string };
+      get_invite_preview: { Args: { p_token: string }; Returns: InvitePreview | null };
+      get_shared_workout: { Args: { p_share_id: string }; Returns: SharedWorkoutPayload | null };
       is_pseudonym_available: {
         Args: { p_display_name: string };
         Returns: boolean;
       };
+      is_team_head_coach: { Args: { p_team_id: string }; Returns: boolean };
+      is_team_member: { Args: { p_team_id: string }; Returns: boolean };
+      join_team_with_token: { Args: { p_token: string }; Returns: JoinTeamResult };
       list_public_profiles: {
-        Args: Record<string, never>;
-        Returns: PublicProfile[];
+        Args: never;
+        Returns: {
+          display_name: string;
+          id: string;
+        }[];
       };
+      my_team_ids: { Args: never; Returns: string[] };
     };
-    Enums: Record<string, never>;
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
   };
+};
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">];
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
 }
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R;
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R;
+      }
+      ? R
+      : never
+    : never;
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I;
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I;
+      }
+      ? I
+      : never
+    : never;
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U;
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U;
+      }
+      ? U
+      : never
+    : never;
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never;
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never;
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const;
 
 export type Exercise = Database["public"]["Tables"]["exercises"]["Row"];
 export type Category = Database["public"]["Tables"]["categories"]["Row"];
@@ -352,6 +615,9 @@ export type ExercisePosition =
   Database["public"]["Tables"]["exercise_positions"]["Row"];
 export type Workout = Database["public"]["Tables"]["workouts"]["Row"];
 export type WorkoutItem = Database["public"]["Tables"]["workout_items"]["Row"];
+export type Team = Database["public"]["Tables"]["teams"]["Row"];
+export type TeamMember = Database["public"]["Tables"]["team_members"]["Row"];
+export type TeamInvite = Database["public"]["Tables"]["team_invites"]["Row"];
 
 // Shape returned by the list_public_profiles() RPC - the only channel
 // through which a coach can see another coach's attribution (see
@@ -388,3 +654,24 @@ export interface SharedWorkoutPayload {
   workout: Workout;
   items: SharedWorkoutItem[];
 }
+
+// Shape returned by the get_invite_preview() RPC (see
+// supabase/migrations/20260728133850_team_support.sql). Null when the token
+// doesn't match any team_invites row; `valid` reflects revoked_at/expires_at
+// so the join page can distinguish "no such invite" from "invite exists but
+// is dead" before the visitor commits to anything.
+export interface InvitePreview {
+  team_name: string;
+  short_name: string;
+  valid: boolean;
+}
+
+// Shape returned by the join_team_with_token() RPC. Joining twice is a
+// no-op that still reports ok: true (see the migration's ON CONFLICT DO
+// NOTHING), not an error - re-running the join is always safe to call.
+export type JoinTeamResult =
+  | { ok: true; team_id: string }
+  | {
+      ok: false;
+      reason: "not_found" | "expired" | "revoked" | "not_authenticated";
+    };
