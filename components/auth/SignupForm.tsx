@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getAuthErrorMessage } from "@/lib/supabase/errors";
+import { siteUrl } from "@/lib/site";
 import {
   PSEUDONYM_TAKEN_MESSAGE,
   validatePseudonym,
@@ -84,7 +85,14 @@ export function SignupForm({
       password,
       options: {
         data: { pseudonym: trimmedPseudonym },
-        emailRedirectTo: `${window.location.origin}/`,
+        // Only set when signup started from a /join/[token] link: this is
+        // what survives the round trip through the confirmation email and
+        // lets /auth/confirm send the visitor back to finish joining rather
+        // than dropping them at /app. Left unset for an ordinary signup so
+        // Supabase falls back to its configured Site URL, same as before -
+        // see lib/site.ts#toSafeNextPath for how /auth/confirm tells the
+        // two cases apart.
+        ...(next ? { emailRedirectTo: siteUrl(next) } : {}),
       },
     });
     setLoading(false);

@@ -8,6 +8,8 @@ const RAW_SITE_URL =
 
 export const SITE_URL = RAW_SITE_URL.replace(/\/+$/, "");
 
+const SITE_ORIGIN = new URL(RAW_SITE_URL).origin;
+
 // Builds an absolute, shareable URL for `path` (e.g. "/join/abc123") against
 // the app's public base URL. Uses the URL constructor rather than string
 // concatenation/slicing: an absolute `path` always resolves against the
@@ -15,4 +17,41 @@ export const SITE_URL = RAW_SITE_URL.replace(/\/+$/, "");
 // not - can never eat or duplicate a character in the result.
 export function siteUrl(path: string): string {
   return new URL(path, RAW_SITE_URL).toString();
+}
+
+// Validates an untrusted `next` redirect target - e.g. the `next` query
+// param on /auth/confirm, which echoes back whatever emailRedirectTo was
+// passed to supabase.auth.signUp (rendered by the email template via
+// {{ .RedirectTo }}). That makes it attacker-reachable: someone can hand
+// out a confirmation link with next set to an absolute URL on another
+// origin. Accepts a same-origin absolute URL (what emailRedirectTo/siteUrl
+// produces) or an ordinary relative path, and reduces either to a path safe
+// to redirect to. A protocol-relative "//host" or "/\host" path, a
+// different origin, or missing/empty input (an ordinary signup passes no
+// emailRedirectTo at all, so {{ .RedirectTo }} renders as "") all fall back
+// instead of leaving the site.
+export function toSafeNextPath(
+  next: string | null | undefined,
+  fallback = "/",
+): string {
+  if (!next) return fallback;
+
+  if (
+    next.startsWith("/") &&
+    !next.startsWith("//") &&
+    !next.startsWith("/\\")
+  ) {
+    return next;
+  }
+
+  try {
+    const url = new URL(next);
+    if (url.origin === SITE_ORIGIN) {
+      return `${url.pathname}${url.search}${url.hash}`;
+    }
+  } catch {
+    // Not a parseable absolute URL either.
+  }
+
+  return fallback;
 }

@@ -3,8 +3,8 @@ import { InvitesPanel } from "./InvitesPanel";
 import { RemoveMemberButton } from "./RemoveMemberButton";
 
 const ROLE_LABELS: Record<TeamMember["role"], string> = {
-  head_coach: "Head coach",
-  assistant_coach: "Assistant coach",
+  head_coach: "Główny trener",
+  assistant_coach: "Asystent",
 };
 
 export function TeamCard({
