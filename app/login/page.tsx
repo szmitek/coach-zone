@@ -17,9 +17,9 @@ const QUERY_ERROR_MESSAGES: Record<string, string> = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; next?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, next } = await searchParams;
   const initialError = error ? QUERY_ERROR_MESSAGES[error] : undefined;
 
   return (
@@ -27,7 +27,7 @@ export default async function LoginPage({
       title="Witaj ponownie"
       subtitle="Zaloguj się, aby zaplanować kolejny trening."
     >
-      <LoginForm initialError={initialError} />
+      <LoginForm initialError={initialError} next={next} />
     </AuthShell>
   );
 }

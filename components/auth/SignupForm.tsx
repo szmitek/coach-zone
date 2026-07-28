@@ -23,7 +23,12 @@ interface FieldErrors {
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export function SignupForm() {
+export function SignupForm({
+  next,
+}: {
+  /** Where to send the visitor after signup, e.g. back to a /join/[token] page. Defaults to /app. Only reachable when signup grants a session immediately - see the confirmation-sent branch below for the email-confirmation case. */
+  next?: string;
+} = {}) {
   const router = useRouter();
   const [pseudonym, setPseudonym] = useState("");
   const [email, setEmail] = useState("");
@@ -108,7 +113,7 @@ export function SignupForm() {
     }
 
     if (data.session) {
-      router.push("/app");
+      router.push(next || "/app");
       router.refresh();
       return;
     }
@@ -123,12 +128,25 @@ export function SignupForm() {
           variant="success"
           message={`Wysłaliśmy link potwierdzający na adres ${confirmationSentTo}. Otwórz go, aby aktywować konto.`}
         />
-        <Link
-          href="/login"
-          className="inline-block text-sm font-medium text-emerald-600 hover:text-emerald-500"
-        >
-          Powrót do logowania
-        </Link>
+        {next ? (
+          <p className="text-sm text-neutral-600 dark:text-neutral-400">
+            Po potwierdzeniu adresu e-mail zaloguj się, a następnie{" "}
+            <Link
+              href={next}
+              className="font-medium text-emerald-600 hover:text-emerald-500"
+            >
+              wróć pod ten link
+            </Link>
+            , aby dokończyć dołączanie do drużyny.
+          </p>
+        ) : (
+          <Link
+            href="/login"
+            className="inline-block text-sm font-medium text-emerald-600 hover:text-emerald-500"
+          >
+            Powrót do logowania
+          </Link>
+        )}
       </div>
     );
   }
@@ -137,7 +155,7 @@ export function SignupForm() {
     <form onSubmit={handleSubmit} noValidate className="space-y-4">
       <FormBanner variant="error" message={formError} />
 
-      <GoogleAuthButton />
+      <GoogleAuthButton redirectTo={next} />
 
       <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-500">
         <div className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />

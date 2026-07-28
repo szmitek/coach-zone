@@ -8,13 +8,19 @@ export const metadata: Metadata = {
   title: "Zarejestruj się — Coach Zone",
 };
 
-export default function SignupPage() {
+export default async function SignupPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const { next } = await searchParams;
+
   return (
     <AuthShell
       title="Utwórz konto"
       subtitle="Zbuduj bibliotekę ćwiczeń i zacznij planować treningi."
     >
-      <SignupForm />
+      <SignupForm next={next} />
     </AuthShell>
   );
 }
