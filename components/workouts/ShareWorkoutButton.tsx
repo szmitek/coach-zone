@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { SITE_URL } from "@/lib/site";
+import { siteUrl } from "@/lib/site";
 
 export function ShareWorkoutButton({ shareId }: { shareId: string }) {
   const [open, setOpen] = useState(false);
@@ -10,7 +10,7 @@ export function ShareWorkoutButton({ shareId }: { shareId: string }) {
   // Always the stable production origin, never window.location.origin -
   // see lib/site.ts. Same value on server and client, so no mount-effect
   // is needed to avoid a hydration mismatch.
-  const shareUrl = `${SITE_URL}/w/${shareId}`;
+  const shareUrl = siteUrl(`/w/${shareId}`);
 
   async function handleCopy() {
     try {
