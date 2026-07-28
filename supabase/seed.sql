@@ -1,6 +1,6 @@
 -- Coach Zone — official exercise library seed
--- Run AFTER migrations. Official (library) exercises have author_id = NULL
--- and scope = 'official'. Descriptions and steps are in Polish (target
+-- Run AFTER migrations. Official (library) exercises have author_id = NULL.
+-- Descriptions and steps are in Polish (target
 -- users are Polish-speaking coaches); category and sport names are
 -- bilingual (name_pl / name_en).
 --
@@ -43,8 +43,8 @@ insert into public.categories (slug, name_pl, name_en) values
 on conflict (slug) do nothing;
 
 -- ============================================================================
--- Exercises - full official library (author_id is always null, scope is
--- always 'official'). category_slug/sport_slug below are resolved to
+-- Exercises - full official library (author_id is always null).
+-- category_slug/sport_slug below are resolved to
 -- category_id/sport_id via the joins in the insert; sport_slug null stays
 -- null through the left join (universal exercise).
 -- ============================================================================
@@ -161,10 +161,10 @@ with lib (category_slug, sport_slug, title, description, steps, duration_min,
 )
 insert into public.exercises
   (author_id, sport_id, category_id, title, description, steps, duration_min,
-   difficulty, equipment, media_url, is_public, scope, board_state, board_field_mode)
+   difficulty, equipment, media_url, is_public, board_state, board_field_mode)
 select
   null, sp.id, c.id, l.title, l.description, l.steps, l.duration_min,
-  l.difficulty, l.equipment, l.media_url, true, 'official', l.board_state, l.board_field_mode
+  l.difficulty, l.equipment, l.media_url, true, l.board_state, l.board_field_mode
 from lib l
 join public.categories c on c.slug = l.category_slug
 left join public.sports sp on sp.slug = l.sport_slug
