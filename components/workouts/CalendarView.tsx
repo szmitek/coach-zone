@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Workout } from "@/lib/supabase/types";
 import { summarizeWorkoutItems, type WorkoutStats } from "@/lib/workouts";
+import { isInActiveTeamScope } from "@/lib/teams";
 import {
   addWeeks,
   formatWeekRangeLabel,
@@ -17,7 +18,11 @@ import { CalendarDayCard } from "./CalendarDayCard";
 import { UnscheduledWorkoutCard } from "./UnscheduledWorkoutCard";
 import { WorkoutCardSkeleton } from "./WorkoutCardSkeleton";
 
-export function CalendarView() {
+export function CalendarView({
+  activeTeamId,
+}: {
+  activeTeamId: string | null;
+}) {
   const [workouts, setWorkouts] = useState<Workout[] | null>(null);
   const [stats, setStats] = useState<Record<string, WorkoutStats>>({});
   const [loadError, setLoadError] = useState(false);
@@ -72,20 +77,29 @@ export function CalendarView() {
   const today = useMemo(() => new Date(), []);
   const weekDays = useMemo(() => getWeekDays(weekStart), [weekStart]);
 
+  // Reflects the active team: with a team selected, its workouts join the
+  // coach's own; with none, only the coach's own show. RLS already returns
+  // every team the coach belongs to, not just the active one, so this
+  // narrows client-side the same way the exercise library does.
+  const visibleWorkouts = useMemo(
+    () => (workouts ?? []).filter((workout) => isInActiveTeamScope(workout, activeTeamId)),
+    [workouts, activeTeamId],
+  );
+
   const workoutsByDate = useMemo(() => {
     const map = new Map<string, Workout[]>();
-    for (const workout of workouts ?? []) {
+    for (const workout of visibleWorkouts) {
       if (!workout.scheduled_for) continue;
       const list = map.get(workout.scheduled_for) ?? [];
       list.push(workout);
       map.set(workout.scheduled_for, list);
     }
     return map;
-  }, [workouts]);
+  }, [visibleWorkouts]);
 
   const unscheduled = useMemo(
-    () => (workouts ?? []).filter((workout) => !workout.scheduled_for),
-    [workouts],
+    () => visibleWorkouts.filter((workout) => !workout.scheduled_for),
+    [visibleWorkouts],
   );
 
   function handleDateAssigned(workoutId: string, newDate: string) {
