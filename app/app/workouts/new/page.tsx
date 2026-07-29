@@ -25,6 +25,13 @@ export default async function NewWorkoutPage({
     redirect("/login");
   }
 
+  // RLS (is_team_member) already scopes this to the coach's own teams - the
+  // audience selector below only ever needs to offer teams they belong to.
+  const { data: teams } = await supabase
+    .from("teams")
+    .select("id, name")
+    .order("name", { ascending: true });
+
   const { date } = await searchParams;
   const initialScheduledFor = date && DATE_PATTERN.test(date) ? date : undefined;
 
@@ -38,6 +45,7 @@ export default async function NewWorkoutPage({
         <WorkoutBasicsForm
           mode="create"
           userId={userData.user.id}
+          teams={teams ?? []}
           initialScheduledFor={initialScheduledFor}
         />
       </div>

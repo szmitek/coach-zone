@@ -48,6 +48,7 @@ export function ExerciseCard({
           authorId={exercise.author_id}
           currentUserId={currentUserId}
           authorsById={authorsById}
+          teamId={exercise.team_id}
         />
       </div>
 

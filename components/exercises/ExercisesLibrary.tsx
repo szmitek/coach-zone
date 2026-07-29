@@ -14,6 +14,7 @@ import type {
   Sport,
 } from "@/lib/supabase/types";
 import { DIFFICULTY_LABELS, DIFFICULTY_OPTIONS } from "@/lib/exercises";
+import { isInActiveTeamScope } from "@/lib/teams";
 import { ExerciseCard } from "./ExerciseCard";
 import { ExerciseCardSkeleton } from "./ExerciseCardSkeleton";
 
@@ -24,10 +25,12 @@ export function ExercisesLibrary({
   categories,
   sports,
   currentUserId,
+  activeTeamId,
 }: {
   categories: Category[];
   sports: Sport[];
   currentUserId: string | null;
+  activeTeamId: string | null;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -206,6 +209,9 @@ export function ExercisesLibrary({
       }
       if (scopeFilter === MINE && exercise.author_id !== currentUserId)
         return false;
+      // Team-scoped content only shows while its team is the active one;
+      // personal/public exercises (team_id null) are never gated by this.
+      if (!isInActiveTeamScope(exercise, activeTeamId)) return false;
       // sport_id === null means the exercise is universal, so it must match
       // every sport filter, not just "all".
       if (
@@ -238,6 +244,7 @@ export function ExercisesLibrary({
     search,
     scopeFilter,
     currentUserId,
+    activeTeamId,
     sportFilter,
     categoryFilter,
     difficultyFilter,

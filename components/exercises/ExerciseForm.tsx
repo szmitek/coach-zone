@@ -2,11 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { AudienceSelector } from "@/components/AudienceSelector";
 import { FormBanner } from "@/components/auth/FormBanner";
 import { FormField } from "@/components/auth/FormField";
 import { SubmitButton } from "@/components/auth/SubmitButton";
 import type { TacticsBoardHandle } from "@/components/board/TacticsBoard";
 import { TacticsBoardLoader } from "@/components/board/TacticsBoardLoader";
+import { audienceToFields, defaultAudience, type Audience } from "@/lib/audience";
 import { DIFFICULTY_LABELS, DIFFICULTY_OPTIONS } from "@/lib/exercises";
 import type { BoardElement } from "@/lib/board/types";
 import { createClient } from "@/lib/supabase/client";
@@ -22,6 +24,7 @@ import { SaveExerciseDialog } from "./SaveExerciseDialog";
 interface ExerciseFormProps {
   categories: Category[];
   sports: Sport[];
+  teams: Array<{ id: string; name: string }>;
   userId: string;
   /** Set when opened via "Duplikuj" on an existing exercise - prefills every field, including the board. */
   duplicateFrom?: Exercise | null;
@@ -56,6 +59,7 @@ function boardElementsOf(
 export function ExerciseForm({
   categories,
   sports,
+  teams,
   userId,
   duplicateFrom,
 }: ExerciseFormProps) {
@@ -94,7 +98,9 @@ export function ExerciseForm({
     duplicateFrom?.equipment ?? [],
   );
   const [equipmentInput, setEquipmentInput] = useState("");
-  const [keepPrivate, setKeepPrivate] = useState(false);
+  const [audience, setAudience] = useState<Audience>(() =>
+    defaultAudience(teams),
+  );
 
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -217,7 +223,7 @@ export function ExerciseForm({
       media_url: mediaUrl,
       board_state: boardElements as unknown as Json,
       board_field_mode: boardFieldMode,
-      is_public: !keepPrivate,
+      ...audienceToFields(audience),
     };
 
     const { data, error } = await supabase
@@ -450,15 +456,14 @@ export function ExerciseForm({
           )}
         </div>
 
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={keepPrivate}
-            onChange={(e) => setKeepPrivate(e.target.checked)}
-            className="h-4 w-4 rounded border-neutral-300 text-emerald-600 focus:ring-emerald-600/50 dark:border-neutral-700"
-          />
-          Zachowaj jako prywatne (nie udostępniaj innym trenerom)
-        </label>
+        <AudienceSelector
+          legend="Dla kogo jest to ćwiczenie?"
+          teams={teams}
+          value={audience}
+          onChange={setAudience}
+          permanenceNotice="Ćwiczenia są niezmienne — tej decyzji nie da się później zmienić. Żeby ją poprawić, zduplikujesz ćwiczenie i zapiszesz je jako nowe."
+          showPublicOption
+        />
 
         <SubmitButton loading={saving} loadingText="Zapisywanie…">
           Dodaj ćwiczenie
@@ -467,7 +472,13 @@ export function ExerciseForm({
 
       {confirmOpen && (
         <SaveExerciseDialog
-          isPublic={!keepPrivate}
+          audience={audience}
+          teamName={
+            audience.kind === "team"
+              ? (teams.find((team) => team.id === audience.teamId)?.name ??
+                "drużyny")
+              : undefined
+          }
           saving={saving}
           onConfirm={handleConfirmSave}
           onCancel={() => setConfirmOpen(false)}

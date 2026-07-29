@@ -1,11 +1,7 @@
 import type { PublicProfile, Team, TeamInvite, TeamMember } from "@/lib/supabase/types";
+import { ROLE_LABELS } from "@/lib/teams";
 import { InvitesPanel } from "./InvitesPanel";
 import { RemoveMemberButton } from "./RemoveMemberButton";
-
-const ROLE_LABELS: Record<TeamMember["role"], string> = {
-  head_coach: "Główny trener",
-  assistant_coach: "Asystent",
-};
 
 export function TeamCard({
   team,

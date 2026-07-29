@@ -248,6 +248,7 @@ export function ExercisePicker({
                           authorId={exercise.author_id}
                           currentUserId={currentUserId}
                           authorsById={authorsById}
+                          teamId={exercise.team_id}
                         />
                       </div>
                     </div>
