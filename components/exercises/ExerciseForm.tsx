@@ -462,6 +462,7 @@ export function ExerciseForm({
           value={audience}
           onChange={setAudience}
           permanenceNotice="Ćwiczenia są niezmienne — tej decyzji nie da się później zmienić. Żeby ją poprawić, zduplikujesz ćwiczenie i zapiszesz je jako nowe."
+          showPublicOption
         />
 
         <SubmitButton loading={saving} loadingText="Zapisywanie…">

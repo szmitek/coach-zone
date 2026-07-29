@@ -9,6 +9,7 @@ export function AudienceSelector({
   value,
   onChange,
   permanenceNotice,
+  showPublicOption,
 }: {
   legend: string;
   teams: Array<{ id: string; name: string }>;
@@ -16,6 +17,14 @@ export function AudienceSelector({
   onChange: (audience: Audience) => void;
   /** Shown as a plain-language warning right where the choice is made - e.g. exercises are immutable, this is exercise-only. */
   permanenceNotice?: string;
+  /**
+   * Exercises: true, always - public exercises genuinely surface in the
+   * shared library. Workouts: false - workouts.is_public exists as a
+   * column but nothing reads it yet (no SELECT RLS grant, no browsing
+   * view), so offering it would let a coach pick an option that silently
+   * does nothing.
+   */
+  showPublicOption: boolean;
 }) {
   const name = useId();
 
@@ -33,12 +42,16 @@ export function AudienceSelector({
         label: team.name,
         description: "Widoczne dla sztabu tej drużyny.",
       })),
-      {
-        key: "public",
-        audience: { kind: "public" },
-        label: "Biblioteka publiczna",
-        description: "Widoczne dla wszystkich trenerów w Coach Zone.",
-      },
+      ...(showPublicOption
+        ? [
+            {
+              key: "public",
+              audience: { kind: "public" } as Audience,
+              label: "Biblioteka publiczna",
+              description: "Widoczne dla wszystkich trenerów w Coach Zone.",
+            },
+          ]
+        : []),
     ];
 
   return (

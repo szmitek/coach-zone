@@ -159,6 +159,7 @@ export function WorkoutBasicsForm(props: WorkoutBasicsFormProps) {
           teams={props.teams}
           value={audience}
           onChange={setAudience}
+          showPublicOption={false}
         />
       )}
 
