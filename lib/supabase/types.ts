@@ -12,6 +12,14 @@ export type WorkoutSection = "warmup" | "main" | "positional" | "cooldown";
 
 export type TeamRole = "head_coach" | "assistant_coach";
 
+// One entry per team the caller shares with that profile - see
+// list_public_profiles() in
+// supabase/migrations/20260729101241_list_public_profiles_team_roles.sql.
+export interface TeamRoleEntry {
+  team_id: string;
+  role: TeamRole;
+}
+
 export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5";
@@ -192,6 +200,7 @@ export type Database = {
       };
       profiles: {
         Row: {
+          active_team_id: string | null;
           avatar_url: string | null;
           club_name: string | null;
           created_at: string;
@@ -200,6 +209,7 @@ export type Database = {
           onboarding_completed: boolean;
         };
         Insert: {
+          active_team_id?: string | null;
           avatar_url?: string | null;
           club_name?: string | null;
           created_at?: string;
@@ -208,6 +218,7 @@ export type Database = {
           onboarding_completed?: boolean;
         };
         Update: {
+          active_team_id?: string | null;
           avatar_url?: string | null;
           club_name?: string | null;
           created_at?: string;
@@ -215,7 +226,15 @@ export type Database = {
           id?: string;
           onboarding_completed?: boolean;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "profiles_active_team_id_fkey";
+            columns: ["active_team_id"];
+            isOneToOne: false;
+            referencedRelation: "teams";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       sports: {
         Row: {
@@ -400,6 +419,7 @@ export type Database = {
         Row: {
           created_at: string;
           id: string;
+          is_public: boolean;
           notes: string | null;
           owner_id: string;
           scheduled_for: string | null;
@@ -411,6 +431,7 @@ export type Database = {
         Insert: {
           created_at?: string;
           id?: string;
+          is_public?: boolean;
           notes?: string | null;
           owner_id: string;
           scheduled_for?: string | null;
@@ -422,6 +443,7 @@ export type Database = {
         Update: {
           created_at?: string;
           id?: string;
+          is_public?: boolean;
           notes?: string | null;
           owner_id?: string;
           scheduled_for?: string | null;
@@ -471,6 +493,7 @@ export type Database = {
         Returns: {
           display_name: string;
           id: string;
+          team_roles: TeamRoleEntry[];
         }[];
       };
       my_team_ids: { Args: never; Returns: string[] };
@@ -622,10 +645,14 @@ export type TeamInvite = Database["public"]["Tables"]["team_invites"]["Row"];
 // Shape returned by the list_public_profiles() RPC - the only channel
 // through which a coach can see another coach's attribution (see
 // supabase/migrations/20260712100000_coach_pseudonyms.sql). Never carries
-// email, club_name, or avatar_url.
+// email, club_name, or avatar_url. team_roles only ever lists teams shared
+// with the caller (see
+// supabase/migrations/20260729101241_list_public_profiles_team_roles.sql),
+// not every team the profile belongs to.
 export interface PublicProfile {
   id: string;
   display_name: string;
+  team_roles: TeamRoleEntry[];
 }
 
 // Shape returned by the get_shared_workout() RPC (see
