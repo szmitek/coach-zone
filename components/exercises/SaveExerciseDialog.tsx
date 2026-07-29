@@ -1,12 +1,17 @@
 "use client";
 
+import type { Audience } from "@/lib/audience";
+
 export function SaveExerciseDialog({
-  isPublic,
+  audience,
+  teamName,
   saving,
   onConfirm,
   onCancel,
 }: {
-  isPublic: boolean;
+  audience: Audience;
+  /** The team's display name - only read when audience.kind === "team". */
+  teamName?: string;
   saving: boolean;
   onConfirm: () => void;
   onCancel: () => void;
@@ -35,13 +40,20 @@ export function SaveExerciseDialog({
             Aby cokolwiek zmienić, będziesz musiał je zduplikować i zapisać jako
             nowe ćwiczenie.
           </li>
-          {isPublic ? (
+          {audience.kind === "public" && (
             <li>
               Ćwiczenie będzie <strong>publiczne</strong> — trafi do wspólnej
               biblioteki i zobaczą je inni trenerzy. Publicznego ćwiczenia{" "}
               <strong>nie da się usunąć</strong>.
             </li>
-          ) : (
+          )}
+          {audience.kind === "team" && (
+            <li>
+              Ćwiczenie będzie widoczne dla <strong>{teamName}</strong> —
+              zobaczy je Twój sztab szkoleniowy. Nadal będziesz mógł je usunąć.
+            </li>
+          )}
+          {audience.kind === "personal" && (
             <li>
               Ćwiczenie będzie <strong>prywatne</strong> — widoczne tylko dla
               Ciebie. Prywatne ćwiczenie można później usunąć.

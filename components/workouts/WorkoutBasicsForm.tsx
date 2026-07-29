@@ -2,14 +2,21 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { AudienceSelector } from "@/components/AudienceSelector";
 import { FormBanner } from "@/components/auth/FormBanner";
 import { FormField } from "@/components/auth/FormField";
 import { SubmitButton } from "@/components/auth/SubmitButton";
+import { audienceToFields, defaultAudience, type Audience } from "@/lib/audience";
 import { createClient } from "@/lib/supabase/client";
 import type { Workout } from "@/lib/supabase/types";
 
 type WorkoutBasicsFormProps =
-  | { mode: "create"; userId: string; initialScheduledFor?: string }
+  | {
+      mode: "create";
+      userId: string;
+      teams: Array<{ id: string; name: string }>;
+      initialScheduledFor?: string;
+    }
   | {
       mode: "edit";
       workout: Workout;
@@ -38,6 +45,9 @@ export function WorkoutBasicsForm(props: WorkoutBasicsFormProps) {
       (props.mode === "create" ? (props.initialScheduledFor ?? "") : ""),
   );
   const [notes, setNotes] = useState(initial?.notes ?? "");
+  const [audience, setAudience] = useState<Audience>(() =>
+    props.mode === "create" ? defaultAudience(props.teams) : { kind: "personal" },
+  );
 
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -66,7 +76,11 @@ export function WorkoutBasicsForm(props: WorkoutBasicsFormProps) {
     if (props.mode === "create") {
       const { data, error } = await supabase
         .from("workouts")
-        .insert({ ...payload, owner_id: props.userId })
+        .insert({
+          ...payload,
+          owner_id: props.userId,
+          ...audienceToFields(audience),
+        })
         .select("id")
         .single();
 
@@ -138,6 +152,15 @@ export function WorkoutBasicsForm(props: WorkoutBasicsFormProps) {
           className={`mt-1.5 ${fieldClasses()}`}
         />
       </div>
+
+      {props.mode === "create" && (
+        <AudienceSelector
+          legend="Dla kogo jest ten trening?"
+          teams={props.teams}
+          value={audience}
+          onChange={setAudience}
+        />
+      )}
 
       <div className="flex items-center gap-3">
         <div className="flex-1">

@@ -30,6 +30,13 @@ export default async function NewExercisePage({
     redirect("/login");
   }
 
+  // RLS (is_team_member) already scopes this to the coach's own teams - the
+  // audience selector below only ever needs to offer teams they belong to.
+  const { data: teams } = await supabase
+    .from("teams")
+    .select("id, name")
+    .order("name", { ascending: true });
+
   // RLS (public OR own) already scopes this select - if the id doesn't
   // resolve (deleted, or not visible to this coach), duplicateFrom stays
   // null and the form just falls back to a blank create.
@@ -55,6 +62,7 @@ export default async function NewExercisePage({
         <ExerciseForm
           categories={categories ?? []}
           sports={sports ?? []}
+          teams={teams ?? []}
           userId={userData.user.id}
           duplicateFrom={duplicateFrom}
         />
