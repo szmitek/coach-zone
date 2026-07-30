@@ -16,13 +16,7 @@ interface FieldErrors {
 // is the source of truth, this is only a fast client-side check.
 const SHORT_NAME_PATTERN = /^.{2,6}$/;
 
-export function CreateTeamForm({
-  userId,
-  onCreated,
-}: {
-  userId: string;
-  onCreated: () => void;
-}) {
+export function CreateTeamForm({ userId }: { userId: string }) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [shortName, setShortName] = useState("");
@@ -79,11 +73,11 @@ export function CreateTeamForm({
       .eq("id", userId);
 
     setSaving(false);
-    // onCreated() below only refetches this client component's own state -
-    // the header reads profile/team data through the server-rendered
-    // layout, which router.refresh() is what actually invalidates.
+    // /app/team re-fetches its own team list on navigation; router.refresh()
+    // is what invalidates the server-rendered header/switcher so it picks
+    // up the new active_team_id instead of showing the pre-creation state.
+    router.push("/app/team");
     router.refresh();
-    onCreated();
   }
 
   return (
