@@ -77,11 +77,19 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
               </span>
             </Link>
             {userData.user && (
-              <TeamSwitcher
-                userId={userData.user.id}
-                teams={myTeams}
-                activeTeamId={activeTeamId}
-              />
+              <>
+                <TeamSwitcher
+                  userId={userData.user.id}
+                  teams={myTeams}
+                  activeTeamId={activeTeamId}
+                />
+                {/* Marks the switcher as "where I am", set apart from the
+                    nav's "where I can go" - not just another link in the row. */}
+                <span
+                  aria-hidden="true"
+                  className="h-6 w-px shrink-0 bg-neutral-200 dark:bg-neutral-800"
+                />
+              </>
             )}
             <nav className="flex gap-3 sm:gap-6">
               {navItems.map((item) => (

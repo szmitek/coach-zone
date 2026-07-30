@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { FormBanner } from "@/components/auth/FormBanner";
 import { FormField } from "@/components/auth/FormField";
@@ -22,6 +23,7 @@ export function CreateTeamForm({
   userId: string;
   onCreated: () => void;
 }) {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [shortName, setShortName] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -48,18 +50,39 @@ export function CreateTeamForm({
     setSaving(true);
     const supabase = createClient();
     // Only teams gets an insert - a trigger (add_team_creator_as_head_coach)
-    // makes the caller the team's head coach automatically.
-    const { error } = await supabase.from("teams").insert({
-      name: name.trim(),
-      short_name: shortName.trim(),
-      created_by: userId,
-    });
+    // makes the caller the team's head coach automatically. select().single()
+    // reads the row back through that same trigger, same pattern as
+    // ExerciseForm's create path.
+    const { data, error } = await supabase
+      .from("teams")
+      .insert({
+        name: name.trim(),
+        short_name: shortName.trim(),
+        created_by: userId,
+      })
+      .select("id")
+      .single();
 
-    setSaving(false);
-    if (error) {
+    if (error || !data) {
+      setSaving(false);
       setFormError("Nie udało się utworzyć drużyny. Spróbuj ponownie.");
       return;
     }
+
+    // A coach who just created a team is obviously working in it - make it
+    // active. Best-effort: the team itself is already created, so a hiccup
+    // here just leaves the coach to pick a team manually rather than voiding
+    // the thing they actually asked for.
+    await supabase
+      .from("profiles")
+      .update({ active_team_id: data.id })
+      .eq("id", userId);
+
+    setSaving(false);
+    // onCreated() below only refetches this client component's own state -
+    // the header reads profile/team data through the server-rendered
+    // layout, which router.refresh() is what actually invalidates.
+    router.refresh();
     onCreated();
   }
 

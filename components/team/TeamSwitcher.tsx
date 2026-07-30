@@ -14,25 +14,65 @@ interface SwitcherTeam {
   role: TeamRole;
 }
 
-const badgeClasses =
-  "inline-flex shrink-0 items-center gap-1.5 rounded-full border border-neutral-300 px-3 py-1 text-xs font-medium transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900";
-
-function ActiveDot() {
+// The short name's whole job is to read on its own at a glance - in the
+// header control and in every dropdown row alike, at the same size, so the
+// two contexts feel like one control. Fill alone communicates active
+// (emerald) vs not (neutral grey); nothing else needs to.
+function TeamTile({
+  shortName,
+  active,
+}: {
+  shortName: string;
+  active: boolean;
+}) {
   return (
     <span
       aria-hidden="true"
-      className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500"
-    />
+      className={`inline-flex h-8 min-w-8 shrink-0 items-center justify-center rounded-lg px-1.5 text-xs font-bold tracking-tight ${
+        active
+          ? "bg-emerald-500 text-emerald-950"
+          : "bg-neutral-200 text-neutral-600 dark:bg-neutral-700 dark:text-neutral-300"
+      }`}
+    >
+      {shortName}
+    </span>
   );
 }
 
-// Lives to the right of the logo lockup in the app header. Three states:
-// no team (an affordance, not an error - the app works fine without one),
-// exactly one team (a badge with nothing to switch to, so no chevron), and
-// several (a dropdown). Writes profiles.active_team_id directly - it's
-// already owner-only via RLS, no new permission needed - and persists
-// server-side on purpose: a coach opening the app on their phone at the
-// training ground should already be in the right team's context.
+function ChevronIcon() {
+  return (
+    <svg
+      width="10"
+      height="10"
+      viewBox="0 0 10 10"
+      fill="none"
+      aria-hidden="true"
+      className="hidden shrink-0 text-neutral-400 sm:block"
+    >
+      <path
+        d="M2 3.5L5 6.5L8 3.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+// Lives to the right of the logo lockup in the app header, and is meant to
+// read as "where I am" rather than another nav link: a rounded tile carries
+// the short name, the full name sits beside it, and a divider (added by
+// AppLayout) separates the control from the nav links. Two states only -
+// no team (a dashed create affordance) and one-or-more teams (always a
+// dropdown, even for exactly one team, since the dropdown is also the only
+// route to "+ Utwórz drużynę", and a coach running e.g. senior + junior
+// squads off one account needs that route the moment they've made just the
+// first one - a lone team is not "nothing to switch to"). Writes
+// profiles.active_team_id directly - it's already owner-only via RLS, no
+// new permission needed - and persists server-side on purpose: a coach
+// opening the app on their phone at the training ground should already be
+// in the right team's context.
 export function TeamSwitcher({
   userId,
   teams,
@@ -112,18 +152,16 @@ export function TeamSwitcher({
     return (
       <Link
         href="/app/team"
-        className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-600/40 px-3 py-1 text-xs font-medium text-emerald-600 transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+        aria-label="Utwórz drużynę"
+        className="inline-flex shrink-0 items-center gap-2 rounded-xl border-2 border-dashed border-neutral-300 p-1 text-sm font-medium text-neutral-500 transition-colors hover:border-emerald-500/60 hover:text-emerald-600 sm:pr-3 dark:border-neutral-700 dark:text-neutral-400 dark:hover:border-emerald-500/50 dark:hover:text-emerald-500"
       >
-        + Utwórz drużynę
-      </Link>
-    );
-  }
-
-  if (teams.length === 1) {
-    return (
-      <Link href="/app/team" className={badgeClasses}>
-        <ActiveDot />
-        {teams[0].short_name}
+        <span
+          aria-hidden="true"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-current text-base leading-none"
+        >
+          +
+        </span>
+        <span className="hidden sm:inline">Utwórz drużynę</span>
       </Link>
     );
   }
@@ -137,30 +175,25 @@ export function TeamSwitcher({
         onClick={() => setOpen((current) => !current)}
         aria-haspopup="true"
         aria-expanded={open}
-        className={`${badgeClasses} ${open ? "bg-neutral-50 dark:bg-neutral-900" : ""}`}
+        aria-label={
+          activeTeam ? `Aktywna drużyna: ${activeTeam.name}` : "Wybierz drużynę"
+        }
+        className={`flex shrink-0 items-center gap-2 rounded-xl p-1 transition-colors hover:bg-neutral-100 sm:pr-2 dark:hover:bg-neutral-800/60 ${
+          open ? "bg-neutral-100 dark:bg-neutral-800/60" : ""
+        }`}
       >
-        <ActiveDot />
-        {activeTeam?.short_name ?? "Wybierz drużynę"}
-        <svg
-          width="10"
-          height="10"
-          viewBox="0 0 10 10"
-          fill="none"
-          aria-hidden="true"
-          className="shrink-0"
-        >
-          <path
-            d="M2 3.5L5 6.5L8 3.5"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        <TeamTile
+          shortName={activeTeam?.short_name ?? "?"}
+          active={Boolean(activeTeam)}
+        />
+        <span className="hidden max-w-[12rem] truncate text-sm font-semibold text-neutral-900 sm:block dark:text-neutral-100">
+          {activeTeam?.name ?? "Wybierz drużynę"}
+        </span>
+        <ChevronIcon />
       </button>
 
       {open && (
-        <div className="absolute left-0 z-50 mt-2 w-64 rounded-xl border border-neutral-200 bg-white p-1.5 shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
+        <div className="absolute left-0 z-50 mt-2 w-72 rounded-xl border border-neutral-200 bg-white p-1.5 shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
           <ul className="space-y-0.5">
             {teams.map((team) => {
               const isActive = team.id === effectiveActiveId;
@@ -169,16 +202,18 @@ export function TeamSwitcher({
                   <button
                     type="button"
                     onClick={() => handleSelect(team)}
-                    className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800 ${
+                    className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800 ${
                       isActive ? "bg-emerald-50/60 dark:bg-emerald-950/20" : ""
                     }`}
                   >
-                    <span className="flex min-w-0 items-center gap-2">
-                      {isActive && <ActiveDot />}
-                      <span className="truncate font-medium">{team.name}</span>
-                    </span>
-                    <span className="shrink-0 text-xs text-neutral-500 dark:text-neutral-500">
-                      {ROLE_LABELS[team.role]}
+                    <TeamTile shortName={team.short_name} active={isActive} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                        {team.name}
+                      </span>
+                      <span className="block text-xs text-neutral-500 dark:text-neutral-500">
+                        {ROLE_LABELS[team.role]}
+                      </span>
                     </span>
                   </button>
                 </li>
