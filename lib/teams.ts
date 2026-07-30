@@ -7,10 +7,10 @@ export const ROLE_LABELS: Record<TeamRole, string> = {
 
 // The library and calendar (and the switcher itself) all need "which team
 // is active", but active_team_id can be null even when a coach has exactly
-// one team - nothing ever prompts them to choose when there's no real
-// choice (see TeamSwitcher: a lone team gets no chevron, so there is no
-// control that would write active_team_id for it). Treat that sole team as
-// effectively active everywhere this matters, without ever writing it back.
+// one team - TeamSwitcher's dropdown resolves that team as already-active,
+// so selecting its own single row is a no-op that never writes anything
+// back. Treat that sole team as effectively active everywhere this
+// matters, without ever writing it back ourselves either.
 export function resolveActiveTeamId(
   activeTeamId: string | null,
   teams: { id: string }[],
