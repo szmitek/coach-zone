@@ -420,6 +420,7 @@ export type Database = {
           created_at: string;
           id: string;
           is_public: boolean;
+          last_edited_by: string | null;
           notes: string | null;
           owner_id: string;
           scheduled_for: string | null;
@@ -427,11 +428,13 @@ export type Database = {
           team_id: string | null;
           team_name: string | null;
           title: string;
+          updated_at: string;
         };
         Insert: {
           created_at?: string;
           id?: string;
           is_public?: boolean;
+          last_edited_by?: string | null;
           notes?: string | null;
           owner_id: string;
           scheduled_for?: string | null;
@@ -439,11 +442,13 @@ export type Database = {
           team_id?: string | null;
           team_name?: string | null;
           title: string;
+          updated_at?: string;
         };
         Update: {
           created_at?: string;
           id?: string;
           is_public?: boolean;
+          last_edited_by?: string | null;
           notes?: string | null;
           owner_id?: string;
           scheduled_for?: string | null;
@@ -451,8 +456,16 @@ export type Database = {
           team_id?: string | null;
           team_name?: string | null;
           title?: string;
+          updated_at?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "workouts_last_edited_by_fkey";
+            columns: ["last_edited_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "workouts_owner_id_fkey";
             columns: ["owner_id"];
