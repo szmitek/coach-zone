@@ -233,16 +233,37 @@ export function WorkoutBuilder({
   // lands. Resyncs the local baseline so the coach's own very next save
   // doesn't look stale against no one's changes but their own; never a
   // reason to roll back the mutation that already landed.
+  //
+  // This SELECT isn't atomic with the write that provoked it, so it can
+  // land after a foreign session's own claim+write has slipped into the
+  // gap in between - and updated_at alone can't tell "moved because of my
+  // write" from "moved because of my write, then someone else's too".
+  // last_edited_by can: only a claim ever sets it, every claim stamps the
+  // claimant, and nothing else touches it in that gap. If it's not still
+  // us, a foreign claim landed here first. Adopt the name for display, but
+  // deliberately leave the baseline (workoutRef.current.updated_at) at
+  // whatever claimWorkoutVersion last staked - the same shape a rejected
+  // claim already leaves it in - so this session's next claim attempt
+  // keeps failing until a reload brings `items` back in sync with the row,
+  // instead of quietly re-arming on a version we never actually saw.
   async function resyncWorkoutVersion(
     supabase: ReturnType<typeof createClient>,
   ) {
     const { data } = await supabase
       .from("workouts")
-      .select("updated_at")
+      .select("updated_at, last_edited_by")
       .eq("id", workoutRef.current.id)
       .single();
-    if (data)
-      updateWorkout((prev) => ({ ...prev, updated_at: data.updated_at }));
+    if (!data) return;
+    if (data.last_edited_by !== currentUserId) {
+      updateWorkout((prev) => ({
+        ...prev,
+        last_edited_by: data.last_edited_by,
+      }));
+      setConflict(true);
+      return;
+    }
+    updateWorkout((prev) => ({ ...prev, updated_at: data.updated_at }));
   }
 
   // Optimistic-update helper shared by every item mutation: apply the new
