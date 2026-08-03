@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { createMutationQueue } from "@/lib/mutationQueue";
 import type {
   Category,
   Exercise,
@@ -71,6 +72,41 @@ export function WorkoutBuilder({
   const debounceTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(
     new Map(),
   );
+
+  // Live mirrors of `workout`/`items`, read by the claim/resync/mutation
+  // logic below instead of the state variables directly. A mutation queued
+  // behind another one (see mutationQueue below) can execute long after the
+  // click that queued it - by then `workout`/`items` may have moved on via
+  // the earlier mutation's own claim + resync. Reading the closure captured
+  // at click time would see the version as of that click, not as of now,
+  // which is the same self-collision the queue exists to close, just moved
+  // one level up. Updated in lockstep with every state write below so they
+  // never lag behind the state they mirror.
+  const workoutRef = useRef(initialWorkout);
+  const itemsRef = useRef(initialItems);
+
+  function updateWorkout(updater: (prev: Workout) => Workout) {
+    workoutRef.current = updater(workoutRef.current);
+    setWorkout(workoutRef.current);
+  }
+
+  function updateItems(updater: (prev: WorkoutItem[]) => WorkoutItem[]) {
+    itemsRef.current = updater(itemsRef.current);
+    setItems(itemsRef.current);
+  }
+
+  // Every workout_items mutation (add/remove/reorder/move-section, plus the
+  // debounced duration/assigned_to edits below) claims workouts.updated_at,
+  // writes, then resyncs the claimed version - three round trips that must
+  // never interleave with another mutation's. Two claims racing the same
+  // pre-write version both look valid individually; whichever commits
+  // second bumps updated_at out from under the first the moment its own
+  // item write's trigger lands, so whichever resync (or next claim) reads
+  // last sees a version that's already moved on - a conflict against no one
+  // but this same coach's own prior save. Queuing every mutation onto one
+  // chain means each one's resync has fully landed - and workoutRef/itemsRef
+  // fully caught up - before the next one's claim ever reads them.
+  const enqueueMutation = useRef(createMutationQueue()).current;
 
   useEffect(() => {
     const timers = debounceTimers.current;
@@ -179,15 +215,15 @@ export function WorkoutBuilder({
     const { data, error } = await supabase
       .from("workouts")
       .update({ last_edited_by: currentUserId })
-      .eq("id", workout.id)
-      .eq("updated_at", workout.updated_at)
+      .eq("id", workoutRef.current.id)
+      .eq("updated_at", workoutRef.current.updated_at)
       .select("updated_at, last_edited_by")
       .maybeSingle();
     if (error || !data) {
       setConflict(true);
       return false;
     }
-    setWorkout((prev) => ({ ...prev, ...data }));
+    updateWorkout((prev) => ({ ...prev, ...data }));
     return true;
   }
 
@@ -203,62 +239,76 @@ export function WorkoutBuilder({
     const { data } = await supabase
       .from("workouts")
       .select("updated_at")
-      .eq("id", workout.id)
+      .eq("id", workoutRef.current.id)
       .single();
-    if (data) setWorkout((prev) => ({ ...prev, updated_at: data.updated_at }));
+    if (data)
+      updateWorkout((prev) => ({ ...prev, updated_at: data.updated_at }));
   }
 
   // Optimistic-update helper shared by every item mutation: apply the new
   // items array immediately, persist in the background, and roll back to
   // the pre-mutation snapshot if the write fails so the UI never shows
-  // state that isn't actually saved.
-  async function applyMutation(
-    nextItems: WorkoutItem[],
+  // state that isn't actually saved. Queued (see enqueueMutation above) and
+  // fed `itemsRef.current` rather than a snapshot the caller computed at
+  // click time, so a mutation queued behind another always builds on that
+  // one's result instead of clobbering it.
+  function applyMutation(
+    computeNextItems: (current: WorkoutItem[]) => WorkoutItem[],
     persist: () => Promise<{ error: unknown }>,
-  ) {
-    const supabase = createClient();
-    if (!(await claimWorkoutVersion(supabase))) return;
+  ): Promise<void> {
+    return enqueueMutation(async () => {
+      const supabase = createClient();
+      if (!(await claimWorkoutVersion(supabase))) return;
 
-    const previousItems = items;
-    setItems(nextItems);
-    setSaveState("saving");
-    const { error } = await persist();
-    if (error) {
-      setItems(previousItems);
-      setSaveState("error");
-      return;
-    }
-    await resyncWorkoutVersion(supabase);
-    setSaveState("saved");
+      const previousItems = itemsRef.current;
+      updateItems(computeNextItems);
+      setSaveState("saving");
+      const { error } = await persist();
+      if (error) {
+        updateItems(() => previousItems);
+        setSaveState("error");
+        return;
+      }
+      await resyncWorkoutVersion(supabase);
+      setSaveState("saved");
+    });
   }
 
   async function handleAddExercise(
     section: WorkoutSection,
     exercise: Exercise,
   ) {
-    const sectionItems = itemsBySection.get(section) ?? [];
-    const newItem: WorkoutItem = {
-      id: crypto.randomUUID(),
-      workout_id: workout.id,
-      exercise_id: exercise.id,
-      section,
-      position: nextPosition(sectionItems),
-      duration_min: exercise.duration_min ?? DEFAULT_ITEM_DURATION_MIN,
-      assigned_to: null,
-    };
-
     setExercisesById((prev) => ({ ...prev, [exercise.id]: exercise }));
 
-    await applyMutation([...items, newItem], async () => {
-      const supabase = createClient();
-      const { error } = await supabase.from("workout_items").insert(newItem);
-      return { error };
-    });
+    // Built once computeNextItems actually runs (queue permitting), so its
+    // position is based on this section as of then, not as of the click -
+    // see applyMutation.
+    let newItem!: WorkoutItem;
+    await applyMutation(
+      (current) => {
+        const sectionItems = current.filter((item) => item.section === section);
+        newItem = {
+          id: crypto.randomUUID(),
+          workout_id: workoutRef.current.id,
+          exercise_id: exercise.id,
+          section,
+          position: nextPosition(sectionItems),
+          duration_min: exercise.duration_min ?? DEFAULT_ITEM_DURATION_MIN,
+          assigned_to: null,
+        };
+        return [...current, newItem];
+      },
+      async () => {
+        const supabase = createClient();
+        const { error } = await supabase.from("workout_items").insert(newItem);
+        return { error };
+      },
+    );
   }
 
   async function handleRemoveItem(itemId: string) {
     await applyMutation(
-      items.filter((item) => item.id !== itemId),
+      (current) => current.filter((item) => item.id !== itemId),
       async () => {
         const supabase = createClient();
         const { error } = await supabase
@@ -275,57 +325,75 @@ export function WorkoutBuilder({
     activeId: string,
     overId: string,
   ) {
-    const sectionItems = itemsBySection.get(section) ?? [];
-    const oldIndex = sectionItems.findIndex((item) => item.id === activeId);
-    const newIndex = sectionItems.findIndex((item) => item.id === overId);
-    if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return;
+    // Populated by computeNextItems only when a reorder actually applies,
+    // so persist can tell a real move from a same-position no-op.
+    let renumbered: WorkoutItem[] = [];
+    await applyMutation(
+      (current) => {
+        const sectionItems = current
+          .filter((item) => item.section === section)
+          .sort((a, b) => a.position - b.position);
+        const oldIndex = sectionItems.findIndex((item) => item.id === activeId);
+        const newIndex = sectionItems.findIndex((item) => item.id === overId);
+        if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) {
+          return current;
+        }
 
-    const reordered = [...sectionItems];
-    const [moved] = reordered.splice(oldIndex, 1);
-    reordered.splice(newIndex, 0, moved);
-    const renumbered = reordered.map((item, index) => ({
-      ...item,
-      position: index,
-    }));
+        const reordered = [...sectionItems];
+        const [moved] = reordered.splice(oldIndex, 1);
+        reordered.splice(newIndex, 0, moved);
+        renumbered = reordered.map((item, index) => ({
+          ...item,
+          position: index,
+        }));
 
-    const otherItems = items.filter((item) => item.section !== section);
-
-    await applyMutation([...otherItems, ...renumbered], async () => {
-      const supabase = createClient();
-      const results = await Promise.all(
-        renumbered.map((item) =>
-          supabase
-            .from("workout_items")
-            .update({ position: item.position })
-            .eq("id", item.id),
-        ),
-      );
-      const failed = results.find((result) => result.error);
-      return { error: failed?.error ?? null };
-    });
+        const otherItems = current.filter((item) => item.section !== section);
+        return [...otherItems, ...renumbered];
+      },
+      async () => {
+        if (renumbered.length === 0) return { error: null };
+        const supabase = createClient();
+        const results = await Promise.all(
+          renumbered.map((item) =>
+            supabase
+              .from("workout_items")
+              .update({ position: item.position })
+              .eq("id", item.id),
+          ),
+        );
+        const failed = results.find((result) => result.error);
+        return { error: failed?.error ?? null };
+      },
+    );
   }
 
   async function handleMoveToSection(
     itemId: string,
     newSection: WorkoutSection,
   ) {
-    const item = items.find((i) => i.id === itemId);
-    if (!item || item.section === newSection) return;
+    // Populated by computeNextItems only when the move actually applies, so
+    // persist can tell a real move from an already-there no-op.
+    let move: { section: WorkoutSection; position: number } | null = null;
+    await applyMutation(
+      (current) => {
+        const item = current.find((i) => i.id === itemId);
+        if (!item || item.section === newSection) return current;
 
-    const destItems = itemsBySection.get(newSection) ?? [];
-    const position = nextPosition(destItems);
-    const nextItems = items.map((i) =>
-      i.id === itemId ? { ...i, section: newSection, position } : i,
+        const destItems = current.filter((i) => i.section === newSection);
+        const next = { section: newSection, position: nextPosition(destItems) };
+        move = next;
+        return current.map((i) => (i.id === itemId ? { ...i, ...next } : i));
+      },
+      async () => {
+        if (!move) return { error: null };
+        const supabase = createClient();
+        const { error } = await supabase
+          .from("workout_items")
+          .update(move)
+          .eq("id", itemId);
+        return { error };
+      },
     );
-
-    await applyMutation(nextItems, async () => {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from("workout_items")
-        .update({ section: newSection, position })
-        .eq("id", itemId);
-      return { error };
-    });
   }
 
   function scheduleFieldSave(
@@ -337,28 +405,30 @@ export function WorkoutBuilder({
     const existing = debounceTimers.current.get(key);
     if (existing) clearTimeout(existing);
 
-    const timer = setTimeout(async () => {
-      const supabase = createClient();
-      if (!(await claimWorkoutVersion(supabase))) return;
+    const timer = setTimeout(() => {
+      enqueueMutation(async () => {
+        const supabase = createClient();
+        if (!(await claimWorkoutVersion(supabase))) return;
 
-      setSaveState("saving");
-      const { error } = await supabase
-        .from("workout_items")
-        .update(patch)
-        .eq("id", itemId);
-      if (error) {
-        setSaveState("error");
-        return;
-      }
-      await resyncWorkoutVersion(supabase);
-      setSaveState("saved");
+        setSaveState("saving");
+        const { error } = await supabase
+          .from("workout_items")
+          .update(patch)
+          .eq("id", itemId);
+        if (error) {
+          setSaveState("error");
+          return;
+        }
+        await resyncWorkoutVersion(supabase);
+        setSaveState("saved");
+      });
     }, 500);
     debounceTimers.current.set(key, timer);
   }
 
   function handleDurationChange(itemId: string, rawValue: string) {
     if (rawValue === "") {
-      setItems((prev) =>
+      updateItems((prev) =>
         prev.map((item) =>
           item.id === itemId ? { ...item, duration_min: null } : item,
         ),
@@ -370,7 +440,7 @@ export function WorkoutBuilder({
     // duration_min is a Postgres integer column - a fractional value here
     // would round-trip fine through JS but fail the write with a cast error.
     if (!Number.isInteger(parsed) || parsed < 0) return;
-    setItems((prev) =>
+    updateItems((prev) =>
       prev.map((item) =>
         item.id === itemId ? { ...item, duration_min: parsed } : item,
       ),
@@ -379,7 +449,7 @@ export function WorkoutBuilder({
   }
 
   function handleAssignedToChange(itemId: string, value: string) {
-    setItems((prev) =>
+    updateItems((prev) =>
       prev.map((item) =>
         item.id === itemId ? { ...item, assigned_to: value } : item,
       ),
@@ -390,7 +460,7 @@ export function WorkoutBuilder({
   }
 
   function handleBasicsSaved(updated: Workout) {
-    setWorkout(updated);
+    updateWorkout(() => updated);
     setEditingBasics(false);
   }
 
