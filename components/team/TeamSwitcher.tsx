@@ -151,7 +151,7 @@ export function TeamSwitcher({
   if (teams.length === 0) {
     return (
       <Link
-        href="/app/team"
+        href="/app/team/new"
         aria-label="Utwórz drużynę"
         className="inline-flex shrink-0 items-center gap-2 rounded-xl border-2 border-dashed border-neutral-300 p-1 text-sm font-medium text-neutral-500 transition-colors hover:border-emerald-500/60 hover:text-emerald-600 sm:pr-3 dark:border-neutral-700 dark:text-neutral-400 dark:hover:border-emerald-500/50 dark:hover:text-emerald-500"
       >
@@ -221,8 +221,11 @@ export function TeamSwitcher({
             })}
           </ul>
           <div className="mt-1 border-t border-neutral-200 pt-1 dark:border-neutral-800">
+            {/* /app/team/new, not /app/team: this is reachable from a coach
+                who already has teams, and /app/team shows their roster, not
+                a create form. */}
             <Link
-              href="/app/team"
+              href="/app/team/new"
               onClick={() => setOpen(false)}
               className="block rounded-lg px-3 py-2 text-sm font-medium text-emerald-600 hover:bg-neutral-50 dark:hover:bg-neutral-800"
             >

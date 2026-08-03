@@ -20,7 +20,11 @@ type WorkoutBasicsFormProps =
   | {
       mode: "edit";
       workout: Workout;
+      currentUserId: string;
       onSaved: (workout: Workout) => void;
+      /** The plan changed under this coach since the form opened - the write
+       *  was refused rather than risk overwriting it. */
+      onConflict: () => void;
       onCancel: () => void;
     };
 
@@ -79,6 +83,7 @@ export function WorkoutBasicsForm(props: WorkoutBasicsFormProps) {
         .insert({
           ...payload,
           owner_id: props.userId,
+          last_edited_by: props.userId,
           ...audienceToFields(audience),
         })
         .select("id")
@@ -94,16 +99,26 @@ export function WorkoutBasicsForm(props: WorkoutBasicsFormProps) {
       return;
     }
 
+    // Guarded by the same updated_at this form was opened with: a coach
+    // co-editing this plan may have changed something (here or in the
+    // builder) since then, and this write must not land on top of that
+    // unseen change. 0 rows back (no error) means exactly that - the row
+    // is still there, its updated_at just moved on.
     const { data, error } = await supabase
       .from("workouts")
-      .update(payload)
+      .update({ ...payload, last_edited_by: props.currentUserId })
       .eq("id", props.workout.id)
+      .eq("updated_at", props.workout.updated_at)
       .select("*")
-      .single();
+      .maybeSingle();
 
     setLoading(false);
-    if (error || !data) {
+    if (error) {
       setFormError("Nie udało się zapisać zmian. Spróbuj ponownie.");
+      return;
+    }
+    if (!data) {
+      props.onConflict();
       return;
     }
     props.onSaved(data);

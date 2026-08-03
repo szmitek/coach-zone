@@ -4,12 +4,17 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Workout } from "@/lib/supabase/types";
+import { canDeleteWorkout } from "@/lib/workouts";
 import { WorkoutCard } from "./WorkoutCard";
 import { WorkoutCardSkeleton } from "./WorkoutCardSkeleton";
 
 export function WorkoutsList() {
   const [workouts, setWorkouts] = useState<Workout[] | null>(null);
   const [itemCounts, setItemCounts] = useState<Record<string, number>>({});
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [headCoachTeamIds, setHeadCoachTeamIds] = useState<Set<string>>(
+    new Set(),
+  );
   const [loadError, setLoadError] = useState(false);
   const [reloadToken, setReloadToken] = useState(0);
 
@@ -21,25 +26,41 @@ export function WorkoutsList() {
     const supabase = createClient();
 
     async function load() {
-      const { data: workoutsData, error: workoutsError } = await supabase
-        .from("workouts")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const [{ data: userData }, { data: workoutsData, error: workoutsError }] =
+        await Promise.all([
+          supabase.auth.getUser(),
+          supabase
+            .from("workouts")
+            .select("*")
+            .order("created_at", { ascending: false }),
+        ]);
 
       if (cancelled) return;
       if (workoutsError || !workoutsData) {
         setLoadError(true);
         return;
       }
+      setCurrentUserId(userData.user?.id ?? null);
 
       const ids = workoutsData.map((workout) => workout.id);
-      const { data: itemsData, error: itemsError } =
-        ids.length > 0
-          ? await supabase
-              .from("workout_items")
-              .select("workout_id")
-              .in("workout_id", ids)
-          : { data: [], error: null };
+      const [{ data: itemsData, error: itemsError }, { data: membershipsData }] =
+        await Promise.all([
+          ids.length > 0
+            ? supabase
+                .from("workout_items")
+                .select("workout_id")
+                .in("workout_id", ids)
+            : Promise.resolve({ data: [], error: null }),
+          // RLS (is_team_member) already scopes this to teams the caller
+          // belongs to - filtered to their own row so this is "which of my
+          // teams am I head coach of", not a full roster fetch.
+          userData.user
+            ? supabase
+                .from("team_members")
+                .select("team_id, role")
+                .eq("user_id", userData.user.id)
+            : Promise.resolve({ data: [] }),
+        ]);
 
       if (cancelled) return;
       if (itemsError) {
@@ -53,6 +74,13 @@ export function WorkoutsList() {
       }
 
       setItemCounts(counts);
+      setHeadCoachTeamIds(
+        new Set(
+          (membershipsData ?? [])
+            .filter((m) => m.role === "head_coach")
+            .map((m) => m.team_id),
+        ),
+      );
       setWorkouts(workoutsData);
     }
 
@@ -131,6 +159,14 @@ export function WorkoutsList() {
                 key={workout.id}
                 workout={workout}
                 itemCount={itemCounts[workout.id] ?? 0}
+                canDelete={canDeleteWorkout({
+                  ownerId: workout.owner_id,
+                  teamId: workout.team_id,
+                  currentUserId,
+                  isHeadCoach:
+                    workout.team_id !== null &&
+                    headCoachTeamIds.has(workout.team_id),
+                })}
                 onDeleted={() => handleDeleted(workout.id)}
               />
             ))}

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type {
@@ -8,7 +9,6 @@ import type {
   TeamInvite,
   TeamMember,
 } from "@/lib/supabase/types";
-import { CreateTeamForm } from "./CreateTeamForm";
 import { TeamCard } from "./TeamCard";
 
 export function TeamManager({ userId }: { userId: string }) {
@@ -115,14 +115,30 @@ export function TeamManager({ userId }: { userId: string }) {
 
   if (teams.length === 0) {
     return (
-      <div className="max-w-md">
-        <CreateTeamForm userId={userId} onCreated={refresh} />
+      <div className="max-w-md rounded-2xl border border-neutral-200 p-8 text-center dark:border-neutral-800">
+        <p className="text-neutral-600 dark:text-neutral-400">
+          Nie masz jeszcze żadnej drużyny — załóż pierwszą.
+        </p>
+        <Link
+          href="/app/team/new"
+          className="mt-3 inline-block text-sm font-medium text-emerald-600 hover:text-emerald-500"
+        >
+          Załóż pierwszą drużynę →
+        </Link>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <Link
+          href="/app/team/new"
+          className="rounded-full bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-500"
+        >
+          + Nowa drużyna
+        </Link>
+      </div>
       {teams.map((team) => (
         <TeamCard
           key={team.id}

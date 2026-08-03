@@ -7,10 +7,12 @@ import { DuplicateWorkoutButton } from "./DuplicateWorkoutButton";
 export function WorkoutCard({
   workout,
   itemCount,
+  canDelete,
   onDeleted,
 }: {
   workout: Workout;
   itemCount: number;
+  canDelete: boolean;
   onDeleted: () => void;
 }) {
   return (
@@ -34,7 +36,9 @@ export function WorkoutCard({
 
       <div className="mt-4 flex flex-wrap justify-end gap-2">
         <DuplicateWorkoutButton workoutId={workout.id} />
-        <DeleteWorkoutButton workoutId={workout.id} onDeleted={onDeleted} />
+        {canDelete && (
+          <DeleteWorkoutButton workoutId={workout.id} onDeleted={onDeleted} />
+        )}
       </div>
     </div>
   );

@@ -34,11 +34,18 @@ export function WorkoutBuilder({
   initialItems,
   initialExercisesById,
   categories,
+  currentUserId,
+  canDelete,
 }: {
   initialWorkout: Workout;
   initialItems: WorkoutItem[];
   initialExercisesById: Record<string, Exercise>;
   categories: Category[];
+  currentUserId: string;
+  /** Owner or team head coach only - narrower than who can edit, so it's
+   *  computed server-side (see app/app/workouts/[id]/page.tsx) rather than
+   *  guessed here from role data this component doesn't otherwise need. */
+  canDelete: boolean;
 }) {
   const router = useRouter();
 
@@ -50,13 +57,16 @@ export function WorkoutBuilder({
   const [pickerSection, setPickerSection] = useState<WorkoutSection | null>(
     null,
   );
+  // Once a save is refused for being stale, stop offering more local edits
+  // to react to - every subsequent attempt would just refuse again, and the
+  // coach's only real way forward is to see what actually changed.
+  const [conflict, setConflict] = useState(false);
 
   const [libraryExercises, setLibraryExercises] = useState<Exercise[] | null>(
     null,
   );
   const [libraryError, setLibraryError] = useState(false);
   const [authors, setAuthors] = useState<PublicProfile[]>([]);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const debounceTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(
     new Map(),
@@ -93,9 +103,6 @@ export function WorkoutBuilder({
   useEffect(() => {
     let cancelled = false;
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
-      if (!cancelled) setCurrentUserId(data.user?.id ?? null);
-    });
     supabase.rpc("list_public_profiles").then(({ data }) => {
       if (!cancelled && data) setAuthors(data);
     });
@@ -150,14 +157,65 @@ export function WorkoutBuilder({
     [items, exercisesById],
   );
 
-  // Optimistic-update helper shared by every mutation: apply the new items
-  // array immediately, persist in the background, and roll back to the
-  // pre-mutation snapshot if the write fails so the UI never shows state
-  // that isn't actually saved.
+  // workouts.updated_at is a version marker for the whole plan, not just its
+  // own row - a trigger bumps it on every workout_items insert/update/delete
+  // too (see supabase/migrations/20260730100952_workout_items_touch_parent.sql).
+  // Checked immediately before every write: two coaches editing the same
+  // session autosave optimistically, so without this the second write would
+  // silently clobber the first rather than the coach ever finding out.
+  async function isWorkoutStillCurrent(
+    supabase: ReturnType<typeof createClient>,
+  ): Promise<boolean> {
+    const { data } = await supabase
+      .from("workouts")
+      .select("updated_at")
+      .eq("id", workout.id)
+      .single();
+    if (!data || data.updated_at !== workout.updated_at) {
+      setConflict(true);
+      return false;
+    }
+    return true;
+  }
+
+  // Runs after a workout_items write that already succeeded - attribution
+  // only, never a reason to roll back the mutation that just landed. Falls
+  // back to a plain read so the local updated_at baseline still advances
+  // even if this write fails; otherwise our own successful edit would make
+  // the coach's very next save look "stale" against no one's changes but
+  // their own.
+  async function afterSuccessfulItemWrite(
+    supabase: ReturnType<typeof createClient>,
+  ) {
+    const { data, error } = await supabase
+      .from("workouts")
+      .update({ last_edited_by: currentUserId })
+      .eq("id", workout.id)
+      .select("updated_at, last_edited_by")
+      .single();
+    if (!error && data) {
+      setWorkout((prev) => ({ ...prev, ...data }));
+      return;
+    }
+    const { data: fresh } = await supabase
+      .from("workouts")
+      .select("updated_at")
+      .eq("id", workout.id)
+      .single();
+    if (fresh) setWorkout((prev) => ({ ...prev, updated_at: fresh.updated_at }));
+  }
+
+  // Optimistic-update helper shared by every item mutation: apply the new
+  // items array immediately, persist in the background, and roll back to
+  // the pre-mutation snapshot if the write fails so the UI never shows
+  // state that isn't actually saved.
   async function applyMutation(
     nextItems: WorkoutItem[],
     persist: () => Promise<{ error: unknown }>,
   ) {
+    const supabase = createClient();
+    if (!(await isWorkoutStillCurrent(supabase))) return;
+
     const previousItems = items;
     setItems(nextItems);
     setSaveState("saving");
@@ -167,6 +225,7 @@ export function WorkoutBuilder({
       setSaveState("error");
       return;
     }
+    await afterSuccessfulItemWrite(supabase);
     setSaveState("saved");
   }
 
@@ -276,13 +335,20 @@ export function WorkoutBuilder({
     if (existing) clearTimeout(existing);
 
     const timer = setTimeout(async () => {
-      setSaveState("saving");
       const supabase = createClient();
+      if (!(await isWorkoutStillCurrent(supabase))) return;
+
+      setSaveState("saving");
       const { error } = await supabase
         .from("workout_items")
         .update(patch)
         .eq("id", itemId);
-      setSaveState(error ? "error" : "saved");
+      if (error) {
+        setSaveState("error");
+        return;
+      }
+      await afterSuccessfulItemWrite(supabase);
+      setSaveState("saved");
     }, 500);
     debounceTimers.current.set(key, timer);
   }
@@ -330,6 +396,23 @@ export function WorkoutBuilder({
     router.refresh();
   }
 
+  // A hard reload, not router.refresh(): this component's own state (items,
+  // workout) was seeded once from server props and never re-syncs itself
+  // from a refetch, so a refresh would pull fresh data the page never
+  // actually shows. The whole point here is showing the coach what's
+  // actually there now.
+  function handleReload() {
+    window.location.reload();
+  }
+
+  const lastEditedByName =
+    workout.last_edited_by === null
+      ? null
+      : workout.last_edited_by === currentUserId
+        ? "Ty"
+        : (authorsById.get(workout.last_edited_by)?.display_name ??
+          "Inny trener");
+
   return (
     <main className="mx-auto max-w-5xl px-6 pt-8 pb-24">
       <Link
@@ -339,6 +422,25 @@ export function WorkoutBuilder({
         ← Wszystkie treningi
       </Link>
 
+      {conflict && (
+        <div
+          role="alert"
+          className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-400"
+        >
+          <span>
+            Ktoś inny zmienił ten plan w międzyczasie — Twoja ostatnia zmiana
+            nie została zapisana, żeby jej nie nadpisać.
+          </span>
+          <button
+            type="button"
+            onClick={handleReload}
+            className="shrink-0 rounded-full bg-amber-600 px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-amber-500"
+          >
+            Odśwież
+          </button>
+        </div>
+      )}
+
       <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           {editingBasics ? (
@@ -346,7 +448,12 @@ export function WorkoutBuilder({
               <WorkoutBasicsForm
                 mode="edit"
                 workout={workout}
+                currentUserId={currentUserId}
                 onSaved={handleBasicsSaved}
+                onConflict={() => {
+                  setEditingBasics(false);
+                  setConflict(true);
+                }}
                 onCancel={() => setEditingBasics(false)}
               />
             </div>
@@ -358,6 +465,9 @@ export function WorkoutBuilder({
               <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-neutral-600 dark:text-neutral-400">
                 {workout.team_name && <span>{workout.team_name}</span>}
                 <span>{formatScheduledDate(workout.scheduled_for)}</span>
+                {lastEditedByName && (
+                  <span>Ostatnio zmienił: {lastEditedByName}</span>
+                )}
               </div>
               {workout.notes && (
                 <p className="mt-3 max-w-2xl whitespace-pre-line text-sm text-neutral-600 dark:text-neutral-400">
@@ -380,10 +490,12 @@ export function WorkoutBuilder({
           <div className="flex flex-wrap items-start justify-end gap-2">
             <DownloadPdfButton workout={workout} items={pdfItems} />
             <ShareWorkoutButton shareId={workout.share_id} />
-            <DeleteWorkoutButton
-              workoutId={workout.id}
-              onDeleted={handleWorkoutDeleted}
-            />
+            {canDelete && (
+              <DeleteWorkoutButton
+                workoutId={workout.id}
+                onDeleted={handleWorkoutDeleted}
+              />
+            )}
           </div>
         </div>
       </div>

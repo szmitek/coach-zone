@@ -27,6 +27,22 @@ export const SECTION_HINTS: Record<WorkoutSection, string> = {
 // Used when adding an exercise with no duration_min of its own set.
 export const DEFAULT_ITEM_DURATION_MIN = 10;
 
+// Mirrors workouts_delete_own (supabase/migrations/20260730100932_team_workout_coediting.sql):
+// owner, or the team's head coach - narrower than the update/select policies
+// on purpose, since deleting a shared plan is irreversible in a way editing
+// isn't. Kept here and tested so a future RLS change that isn't mirrored
+// here fails loudly instead of quietly showing (or hiding) the wrong button.
+export function canDeleteWorkout(params: {
+  ownerId: string;
+  teamId: string | null;
+  currentUserId: string | null;
+  isHeadCoach: boolean;
+}): boolean {
+  if (params.currentUserId === null) return false;
+  if (params.ownerId === params.currentUserId) return true;
+  return params.teamId !== null && params.isHeadCoach;
+}
+
 // Positions are scoped per section and kept as small non-negative integers,
 // but not assumed contiguous (deleting an item leaves a gap on purpose, to
 // avoid renumbering the rest of the section on every removal). Basing the

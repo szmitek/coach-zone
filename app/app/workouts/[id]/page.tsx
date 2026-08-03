@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { WorkoutBuilder } from "@/components/workouts/WorkoutBuilder";
 import type { Exercise } from "@/lib/supabase/types";
+import { canDeleteWorkout } from "@/lib/workouts";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -17,6 +19,16 @@ export default async function WorkoutBuilderPage({
 }) {
   const { id } = await params;
   const supabase = await createClient();
+
+  const { data: userData } = await supabase.auth.getUser();
+
+  // Middleware already guarantees a user for any /app/* route; this is a
+  // defensive fallback, matching the other /app pages. currentUserId below
+  // has to be a real id - it's written as last_edited_by on every save.
+  if (!userData.user) {
+    redirect("/login");
+  }
+  const currentUserId = userData.user.id;
 
   const [
     { data: workout, error: workoutError },
@@ -56,14 +68,33 @@ export default async function WorkoutBuilderPage({
   const exerciseIds = Array.from(
     new Set((items ?? []).map((item) => item.exercise_id)),
   );
-  const { data: exercises } =
+  // RLS (is_team_member) already scopes this to a team the caller belongs
+  // to - only reachable at all when workout.team_id is set, since that's
+  // the only case canDeleteWorkout below needs a role for.
+  const [{ data: exercises }, { data: membership }] = await Promise.all([
     exerciseIds.length > 0
-      ? await supabase.from("exercises").select("*").in("id", exerciseIds)
-      : { data: [] as Exercise[] };
+      ? supabase.from("exercises").select("*").in("id", exerciseIds)
+      : Promise.resolve({ data: [] as Exercise[] }),
+    workout.team_id
+      ? supabase
+          .from("team_members")
+          .select("role")
+          .eq("team_id", workout.team_id)
+          .eq("user_id", currentUserId)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
 
   const exercisesById = Object.fromEntries(
     (exercises ?? []).map((exercise) => [exercise.id, exercise]),
   );
+
+  const canDelete = canDeleteWorkout({
+    ownerId: workout.owner_id,
+    teamId: workout.team_id,
+    currentUserId,
+    isHeadCoach: membership?.role === "head_coach",
+  });
 
   return (
     <WorkoutBuilder
@@ -71,6 +102,8 @@ export default async function WorkoutBuilderPage({
       initialItems={items ?? []}
       initialExercisesById={exercisesById}
       categories={categories ?? []}
+      currentUserId={currentUserId}
+      canDelete={canDelete}
     />
   );
 }
