@@ -160,49 +160,52 @@ export function WorkoutBuilder({
   // workouts.updated_at is a version marker for the whole plan, not just its
   // own row - a trigger bumps it on every workout_items insert/update/delete
   // too (see supabase/migrations/20260730100952_workout_items_touch_parent.sql).
-  // Checked immediately before every write: two coaches editing the same
-  // session autosave optimistically, so without this the second write would
-  // silently clobber the first rather than the coach ever finding out.
-  async function isWorkoutStillCurrent(
+  // Claimed atomically immediately before every item write, the same way
+  // WorkoutBasicsForm claims it for a basics edit: a conditional update
+  // (.eq("updated_at", known)) rather than a separate read-then-compare.
+  // A plain read-then-compare leaves a gap between "checked" and "wrote"
+  // that a second tab's save can land in - two coaches autosaving close
+  // together could each pass the check before either write lands, which is
+  // exactly the silent-clobber the versioning migration exists to prevent.
+  // Folding the check into the write itself closes that gap: at most one
+  // concurrent claim can match a given updated_at, because Postgres
+  // serializes concurrent updates to the same row. 0 rows back (no error)
+  // means someone else's edit already moved the version on. Also stamps
+  // last_edited_by, since claiming the version and attributing the change
+  // are naturally the same write.
+  async function claimWorkoutVersion(
     supabase: ReturnType<typeof createClient>,
   ): Promise<boolean> {
+    const { data, error } = await supabase
+      .from("workouts")
+      .update({ last_edited_by: currentUserId })
+      .eq("id", workout.id)
+      .eq("updated_at", workout.updated_at)
+      .select("updated_at, last_edited_by")
+      .maybeSingle();
+    if (error || !data) {
+      setConflict(true);
+      return false;
+    }
+    setWorkout((prev) => ({ ...prev, ...data }));
+    return true;
+  }
+
+  // Runs after a workout_items write that already succeeded - the same
+  // touch_parent_workout trigger fires on that write too, so the version
+  // claimWorkoutVersion just staked is already behind again by the time it
+  // lands. Resyncs the local baseline so the coach's own very next save
+  // doesn't look stale against no one's changes but their own; never a
+  // reason to roll back the mutation that already landed.
+  async function resyncWorkoutVersion(
+    supabase: ReturnType<typeof createClient>,
+  ) {
     const { data } = await supabase
       .from("workouts")
       .select("updated_at")
       .eq("id", workout.id)
       .single();
-    if (!data || data.updated_at !== workout.updated_at) {
-      setConflict(true);
-      return false;
-    }
-    return true;
-  }
-
-  // Runs after a workout_items write that already succeeded - attribution
-  // only, never a reason to roll back the mutation that just landed. Falls
-  // back to a plain read so the local updated_at baseline still advances
-  // even if this write fails; otherwise our own successful edit would make
-  // the coach's very next save look "stale" against no one's changes but
-  // their own.
-  async function afterSuccessfulItemWrite(
-    supabase: ReturnType<typeof createClient>,
-  ) {
-    const { data, error } = await supabase
-      .from("workouts")
-      .update({ last_edited_by: currentUserId })
-      .eq("id", workout.id)
-      .select("updated_at, last_edited_by")
-      .single();
-    if (!error && data) {
-      setWorkout((prev) => ({ ...prev, ...data }));
-      return;
-    }
-    const { data: fresh } = await supabase
-      .from("workouts")
-      .select("updated_at")
-      .eq("id", workout.id)
-      .single();
-    if (fresh) setWorkout((prev) => ({ ...prev, updated_at: fresh.updated_at }));
+    if (data) setWorkout((prev) => ({ ...prev, updated_at: data.updated_at }));
   }
 
   // Optimistic-update helper shared by every item mutation: apply the new
@@ -214,7 +217,7 @@ export function WorkoutBuilder({
     persist: () => Promise<{ error: unknown }>,
   ) {
     const supabase = createClient();
-    if (!(await isWorkoutStillCurrent(supabase))) return;
+    if (!(await claimWorkoutVersion(supabase))) return;
 
     const previousItems = items;
     setItems(nextItems);
@@ -225,7 +228,7 @@ export function WorkoutBuilder({
       setSaveState("error");
       return;
     }
-    await afterSuccessfulItemWrite(supabase);
+    await resyncWorkoutVersion(supabase);
     setSaveState("saved");
   }
 
@@ -336,7 +339,7 @@ export function WorkoutBuilder({
 
     const timer = setTimeout(async () => {
       const supabase = createClient();
-      if (!(await isWorkoutStillCurrent(supabase))) return;
+      if (!(await claimWorkoutVersion(supabase))) return;
 
       setSaveState("saving");
       const { error } = await supabase
@@ -347,7 +350,7 @@ export function WorkoutBuilder({
         setSaveState("error");
         return;
       }
-      await afterSuccessfulItemWrite(supabase);
+      await resyncWorkoutVersion(supabase);
       setSaveState("saved");
     }, 500);
     debounceTimers.current.set(key, timer);
