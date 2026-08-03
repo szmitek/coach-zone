@@ -118,7 +118,7 @@ export function LoginForm({
       <p className="text-center text-sm text-neutral-600 dark:text-neutral-400">
         Nie masz konta?{" "}
         <Link
-          href="/signup"
+          href={next ? `/signup?next=${encodeURIComponent(next)}` : "/signup"}
           className="font-medium text-emerald-600 hover:text-emerald-500"
         >
           Zarejestruj się

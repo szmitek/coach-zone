@@ -220,7 +220,7 @@ export function SignupForm({
       <p className="text-center text-sm text-neutral-600 dark:text-neutral-400">
         Masz już konto?{" "}
         <Link
-          href="/login"
+          href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"}
           className="font-medium text-emerald-600 hover:text-emerald-500"
         >
           Zaloguj się
