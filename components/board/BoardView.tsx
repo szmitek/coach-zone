@@ -14,6 +14,14 @@ interface BoardViewProps {
   /** Exercise's stored board_field_mode - null falls back to the sport's defaultFieldModeId, same as a brand-new board. */
   fieldModeId?: string | null;
   elements: BoardElement[];
+  /**
+   * Renders at a fixed size instead of filling the container's width -
+   * the board is scaled down to fit inside both bounds (whichever is
+   * tighter) while keeping the field's aspect ratio. Meant for compact
+   * thumbnails; omit both for the normal responsive full-width behavior.
+   */
+  maxWidth?: number;
+  maxHeight?: number;
 }
 
 /**
@@ -22,18 +30,26 @@ interface BoardViewProps {
  * every interactive handler), so an exercise's diagram renders
  * pixel-identical on the detail page without loading the full editor.
  */
-export function BoardView({ sportSlug, fieldModeId, elements }: BoardViewProps) {
+export function BoardView({
+  sportSlug,
+  fieldModeId,
+  elements,
+  maxWidth,
+  maxHeight,
+}: BoardViewProps) {
   const config = getSportConfig(sportSlug);
   const resolvedModeId = fieldModeId ?? config.defaultFieldModeId;
   const fieldMode =
     config.fieldModes.find((m) => m.id === resolvedModeId) ??
     config.fieldModes[0];
   const dims = { width: fieldMode.width, height: fieldMode.height };
+  const fixedSize = maxWidth !== undefined || maxHeight !== undefined;
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
+    if (fixedSize) return;
     const el = containerRef.current;
     if (!el) return;
     const observer = new ResizeObserver((entries) => {
@@ -44,20 +60,44 @@ export function BoardView({ sportSlug, fieldModeId, elements }: BoardViewProps) 
     });
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [fixedSize]);
 
-  const scale = containerSize.width > 0 ? containerSize.width / dims.width : 1;
+  const fixedScale = fixedSize
+    ? Math.min(
+        maxWidth !== undefined ? maxWidth / dims.width : Infinity,
+        maxHeight !== undefined ? maxHeight / dims.height : Infinity,
+      )
+    : 1;
+  const fixedWidth = dims.width * fixedScale;
+  const fixedHeight = dims.height * fixedScale;
+
+  const scale = fixedSize
+    ? fixedScale
+    : containerSize.width > 0
+      ? containerSize.width / dims.width
+      : 1;
+  const stageWidth = fixedSize ? fixedWidth : containerSize.width;
+  const stageHeight = fixedSize ? fixedHeight : containerSize.height;
+  const ready = fixedSize || containerSize.width > 0;
 
   return (
     <div
       ref={containerRef}
-      className="w-full overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-950"
-      style={{ aspectRatio: `${dims.width} / ${dims.height}` }}
+      className={
+        fixedSize
+          ? "shrink-0 overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-950"
+          : "w-full overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-950"
+      }
+      style={
+        fixedSize
+          ? { width: fixedWidth, height: fixedHeight }
+          : { aspectRatio: `${dims.width} / ${dims.height}` }
+      }
     >
-      {containerSize.width > 0 && (
+      {ready && (
         <Stage
-          width={containerSize.width}
-          height={containerSize.height}
+          width={stageWidth}
+          height={stageHeight}
           scaleX={scale}
           scaleY={scale}
           listening={false}
