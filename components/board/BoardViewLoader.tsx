@@ -16,16 +16,22 @@ export function BoardViewLoader({
   sportSlug,
   fieldModeId,
   elements,
+  maxWidth,
+  maxHeight,
 }: {
   sportSlug?: string | null;
   fieldModeId?: string | null;
   elements: BoardElement[];
+  maxWidth?: number;
+  maxHeight?: number;
 }) {
   return (
     <BoardView
       sportSlug={sportSlug}
       fieldModeId={fieldModeId}
       elements={elements}
+      maxWidth={maxWidth}
+      maxHeight={maxHeight}
     />
   );
 }
