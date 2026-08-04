@@ -7,16 +7,9 @@ import { DifficultyIndicator } from "@/components/exercises/DifficultyIndicator"
 import { DeleteExerciseButton } from "@/components/exercises/DeleteExerciseButton";
 import { PositionPills } from "@/components/exercises/PositionPills";
 import { BoardViewLoader } from "@/components/board/BoardViewLoader";
-import { formatDuration } from "@/lib/exercises";
-import type { BoardElement } from "@/lib/board/types";
+import { boardElementsOf, formatDuration } from "@/lib/exercises";
 import { createClient } from "@/lib/supabase/server";
-import type { Exercise, Position } from "@/lib/supabase/types";
-
-function boardElementsOf(exercise: Exercise): BoardElement[] | null {
-  return Array.isArray(exercise.board_state)
-    ? (exercise.board_state as unknown as BoardElement[])
-    : null;
-}
+import type { Position } from "@/lib/supabase/types";
 
 export const dynamic = "force-dynamic";
 

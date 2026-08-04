@@ -1,4 +1,5 @@
-import type { Difficulty } from "@/lib/supabase/types";
+import type { BoardElement } from "@/lib/board/types";
+import type { Difficulty, Exercise } from "@/lib/supabase/types";
 
 export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
   1: "Bardzo łatwy",
@@ -34,4 +35,10 @@ export function categoryBadgeClasses(slug: string): string {
 
 export function formatDuration(minutes: number | null): string {
   return minutes ? `${minutes} min` : "—";
+}
+
+export function boardElementsOf(exercise: Exercise): BoardElement[] | null {
+  return Array.isArray(exercise.board_state)
+    ? (exercise.board_state as unknown as BoardElement[])
+    : null;
 }
