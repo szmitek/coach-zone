@@ -4,17 +4,20 @@ import { useEffect, useMemo, useState } from "react";
 import { AuthorBadge } from "@/components/exercises/AuthorBadge";
 import { CategoryBadge } from "@/components/exercises/CategoryBadge";
 import { DifficultyIndicator } from "@/components/exercises/DifficultyIndicator";
+import { ExercisePreview } from "@/components/exercises/ExercisePreview";
 import {
   DIFFICULTY_LABELS,
   DIFFICULTY_OPTIONS,
   formatDuration,
 } from "@/lib/exercises";
+import { createClient } from "@/lib/supabase/client";
 import { SECTION_LABELS } from "@/lib/workouts";
 import type {
   Category,
   Difficulty,
   Exercise,
   PublicProfile,
+  Sport,
   WorkoutSection,
 } from "@/lib/supabase/types";
 
@@ -48,6 +51,8 @@ export function ExercisePicker({
   >(ALL);
   const [equipmentFilter, setEquipmentFilter] = useState<string>(ALL);
   const [justAddedId, setJustAddedId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [sports, setSports] = useState<Sport[]>([]);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -57,11 +62,32 @@ export function ExercisePicker({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
+  // Only needed to resolve each exercise's sport slug for the expanded preview's board.
+  useEffect(() => {
+    let cancelled = false;
+    const supabase = createClient();
+    supabase
+      .from("sports")
+      .select("*")
+      .then(({ data }) => {
+        if (!cancelled && data) setSports(data);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const categoriesById = useMemo(() => {
     const map = new Map<number, Category>();
     for (const category of categories) map.set(category.id, category);
     return map;
   }, [categories]);
+
+  const sportsById = useMemo(() => {
+    const map = new Map<number, Sport>();
+    for (const sport of sports) map.set(sport.id, sport);
+    return map;
+  }, [sports]);
 
   const equipmentOptions = useMemo(() => {
     const values = new Set<string>();
@@ -99,6 +125,10 @@ export function ExercisePicker({
     setTimeout(() => {
       setJustAddedId((current) => (current === exercise.id ? null : current));
     }, 1200);
+  }
+
+  function toggleExpanded(exerciseId: string) {
+    setExpandedId((current) => (current === exerciseId ? null : exerciseId));
   }
 
   return (
@@ -224,41 +254,71 @@ export function ExercisePicker({
             <ul className="space-y-2">
               {filtered.map((exercise) => {
                 const category = categoriesById.get(exercise.category_id);
+                const isExpanded = expandedId === exercise.id;
+                const previewId = `exercise-preview-${exercise.id}`;
                 return (
                   <li
                     key={exercise.id}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 p-3 dark:border-neutral-800"
+                    className="rounded-xl border border-neutral-200 dark:border-neutral-800"
                   >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold">
-                        {exercise.title}
-                      </p>
-                      <div className="mt-1 flex flex-wrap items-center gap-2">
-                        {category && (
-                          <CategoryBadge
-                            name={category.name_pl}
-                            slug={category.slug}
-                          />
-                        )}
-                        <DifficultyIndicator difficulty={exercise.difficulty} />
-                        <span className="text-xs text-neutral-500 dark:text-neutral-500">
-                          {formatDuration(exercise.duration_min)}
+                    <div className="flex items-center justify-between gap-3 p-3">
+                      <button
+                        type="button"
+                        onClick={() => toggleExpanded(exercise.id)}
+                        aria-expanded={isExpanded}
+                        aria-controls={previewId}
+                        className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                      >
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm font-semibold">
+                            {exercise.title}
+                          </span>
+                          <span className="mt-1 flex flex-wrap items-center gap-2">
+                            {category && (
+                              <CategoryBadge
+                                name={category.name_pl}
+                                slug={category.slug}
+                              />
+                            )}
+                            <DifficultyIndicator
+                              difficulty={exercise.difficulty}
+                            />
+                            <span className="text-xs text-neutral-500 dark:text-neutral-500">
+                              {formatDuration(exercise.duration_min)}
+                            </span>
+                            <AuthorBadge
+                              authorId={exercise.author_id}
+                              currentUserId={currentUserId}
+                              authorsById={authorsById}
+                              teamId={exercise.team_id}
+                            />
+                          </span>
                         </span>
-                        <AuthorBadge
-                          authorId={exercise.author_id}
-                          currentUserId={currentUserId}
-                          authorsById={authorsById}
-                          teamId={exercise.team_id}
+                        <ChevronIcon expanded={isExpanded} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleAdd(exercise)}
+                        className="shrink-0 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-emerald-500"
+                      >
+                        {justAddedId === exercise.id ? "Dodano ✓" : "Dodaj"}
+                      </button>
+                    </div>
+                    {isExpanded && (
+                      <div
+                        id={previewId}
+                        className="border-t border-neutral-200 p-3 dark:border-neutral-800"
+                      >
+                        <ExercisePreview
+                          exercise={exercise}
+                          sportSlug={
+                            exercise.sport_id !== null
+                              ? sportsById.get(exercise.sport_id)?.slug
+                              : undefined
+                          }
                         />
                       </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleAdd(exercise)}
-                      className="shrink-0 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-emerald-500"
-                    >
-                      {justAddedId === exercise.id ? "Dodano ✓" : "Dodaj"}
-                    </button>
+                    )}
                   </li>
                 );
               })}
@@ -267,5 +327,26 @@ export function ExercisePicker({
         </div>
       </div>
     </div>
+  );
+}
+
+function ChevronIcon({ expanded }: { expanded: boolean }) {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 10 10"
+      fill="none"
+      aria-hidden="true"
+      className={`shrink-0 text-neutral-400 transition-transform ${expanded ? "rotate-180" : ""}`}
+    >
+      <path
+        d="M2 3.5L5 6.5L8 3.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
