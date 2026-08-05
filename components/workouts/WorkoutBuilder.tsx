@@ -582,6 +582,12 @@ export function WorkoutBuilder({
         <div className="flex shrink-0 flex-col items-end gap-3">
           <SaveIndicator state={saveState} />
           <div className="flex flex-wrap items-start justify-end gap-2">
+            <Link
+              href={`/app/workouts/${workout.id}/train`}
+              className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-500"
+            >
+              Rozpocznij trening
+            </Link>
             <DownloadPdfButton workout={workout} items={pdfItems} />
             <ShareWorkoutButton shareId={workout.share_id} />
             {canDelete && (
