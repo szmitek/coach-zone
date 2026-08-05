@@ -92,7 +92,7 @@ export function ExercisePreview({
         aria-label={boardExpanded ? "Zwiń diagram" : "Powiększ diagram"}
         className={
           boardExpanded
-            ? "block w-full cursor-zoom-out rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600/50"
+            ? "group relative block w-full cursor-zoom-out rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600/50"
             : "group relative shrink-0 cursor-zoom-in self-start rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600/50"
         }
       >
@@ -103,11 +103,9 @@ export function ExercisePreview({
           maxWidth={boardExpanded ? undefined : THUMBNAIL_MAX_WIDTH}
           maxHeight={boardExpanded ? undefined : THUMBNAIL_MAX_HEIGHT}
         />
-        {!boardExpanded && (
-          <span className="pointer-events-none absolute bottom-1.5 right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white transition-colors group-hover:bg-black/70">
-            <ExpandIcon />
-          </span>
-        )}
+        <span className="pointer-events-none absolute bottom-1.5 right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white transition-colors group-hover:bg-black/70">
+          {boardExpanded ? <CollapseIcon /> : <ExpandIcon />}
+        </span>
       </button>
     </div>
   );
@@ -124,6 +122,26 @@ function ExpandIcon() {
     >
       <path
         d="M1 5V1h4M11 7v4H7M1 1l4 4M11 11l-4-4"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function CollapseIcon() {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 12 12"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M5 1V5H1M11 7H7v4M1 1l4 4M11 11l-4-4"
         stroke="currentColor"
         strokeWidth="1.4"
         strokeLinecap="round"
