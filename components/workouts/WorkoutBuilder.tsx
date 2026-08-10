@@ -579,9 +579,9 @@ export function WorkoutBuilder({
           )}
         </div>
 
-        <div className="flex shrink-0 flex-col items-end gap-3">
+        <div className="flex w-full shrink-0 flex-col items-end gap-3 sm:w-auto">
           <SaveIndicator state={saveState} />
-          <div className="flex flex-wrap items-start justify-end gap-2">
+          <div className="flex w-full flex-wrap items-start justify-end gap-2 sm:w-auto">
             <Link
               href={`/app/workouts/${workout.id}/train`}
               className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-500"

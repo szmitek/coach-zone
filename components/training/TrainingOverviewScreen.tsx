@@ -37,7 +37,7 @@ export function TrainingOverviewScreen({
   onOpenGroup: (key: string) => void;
   onNext: () => void;
 }) {
-  const { status, remainingMs, durationMin, start, setMinutes } =
+  const { status, remainingMs, durationMin, start, pause, resume, setMinutes } =
     useTrainingTimer(blockKey, block.suggestedDurationMin, fireTrainingSignal);
   const [editing, setEditing] = useState(false);
   const [draftMinutes, setDraftMinutes] = useState(String(durationMin));
@@ -59,13 +59,8 @@ export function TrainingOverviewScreen({
     start();
   }
 
-  function handlePrzerwa() {
-    armTrainingSignal();
-    fireTrainingSignal();
-  }
-
   return (
-    <div className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-neutral-950 text-white">
+    <div className="fixed inset-x-0 top-0 z-50 flex h-dvh flex-col overflow-y-auto bg-neutral-950 text-white">
       <header className="flex items-center justify-between gap-3 px-4 pt-[max(1.25rem,env(safe-area-inset-top))]">
         <Link
           href={`/app/workouts/${workoutId}`}
@@ -151,17 +146,19 @@ export function TrainingOverviewScreen({
               Start
             </button>
           )}
-          <button
-            type="button"
-            onClick={handlePrzerwa}
-            className="flex-1 rounded-2xl border-2 border-white/30 py-4 text-xl font-bold text-white transition-colors active:bg-white/10"
-          >
-            Przerwa
-          </button>
+          {(status === "running" || status === "paused") && (
+            <button
+              type="button"
+              onClick={status === "running" ? pause : resume}
+              className="flex-1 rounded-2xl border-2 border-white/30 py-4 text-xl font-bold text-white transition-colors active:bg-white/10"
+            >
+              {status === "running" ? "Pauza" : "Wznów"}
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="mt-8 flex-1 space-y-3 px-5 pb-5">
+      <div className="mt-8 flex flex-1 flex-col justify-center space-y-3 px-5 pb-5">
         {block.groups.map((group) => (
           <TrainingGroupCard
             key={group.key}

@@ -8,7 +8,7 @@ export function TrainingCompleteScreen({
   workoutTitle: string;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 bg-neutral-950 px-6 text-center text-white">
+    <div className="fixed inset-x-0 top-0 z-50 flex h-dvh flex-col items-center justify-center gap-3 bg-neutral-950 px-6 text-center text-white">
       <p className="text-sm font-semibold tracking-wide text-emerald-400 uppercase">
         Trening zakończony
       </p>
