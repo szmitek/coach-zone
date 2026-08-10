@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { computeTimerTick } from "@/lib/trainingMode";
 
-export type TrainingTimerStatus = "idle" | "running" | "completed";
+export type TrainingTimerStatus = "idle" | "running" | "paused" | "completed";
 
 const TICK_MS = 1000;
 
@@ -15,6 +15,13 @@ const TICK_MS = 1000;
  * on every tick (interval or visibilitychange), compares that target
  * against Date.now() via computeTimerTick - correct regardless of how many
  * ticks were actually delivered while hidden.
+ *
+ * pause() freezes remainingMs and drops the target instead of just halting
+ * the interval, so a backgrounded tab has nothing left to recompute while
+ * paused. resume() mints a brand-new target from that frozen value rather
+ * than shifting the old target by however long the pause lasted - it never
+ * needs to know how long the phone was locked for, so pausing and
+ * backgrounding can never fight each other.
  *
  * Resets to idle on every new blockKey: the timer never auto-runs, each
  * block needs its own explicit Start tap while the coach sets out cones.
@@ -79,6 +86,31 @@ export function useTrainingTimer(
     tick();
   }, [durationMin, tick]);
 
+  // Only meaningful while running - callers are expected to gate this on
+  // status === "running" the same way the overview screen's tap target does.
+  const pause = useCallback(() => {
+    if (status !== "running") return;
+    const targetAt = targetAtRef.current;
+    if (targetAt !== null) {
+      const { remainingMs: frozenRemaining } = computeTimerTick({
+        targetAt,
+        now: Date.now(),
+        alreadyFired: firedRef.current,
+      });
+      setRemainingMs(frozenRemaining);
+    }
+    targetAtRef.current = null;
+    setStatus("paused");
+  }, [status]);
+
+  // Only meaningful while paused - callers are expected to gate this on
+  // status === "paused" the same way the overview screen's tap target does.
+  const resume = useCallback(() => {
+    if (status !== "paused") return;
+    targetAtRef.current = Date.now() + remainingMs;
+    setStatus("running");
+  }, [status, remainingMs]);
+
   // Only meaningful before Start - callers are expected to gate this on
   // status === "idle" the same way the overview screen's tap target does.
   const setMinutes = useCallback((minutes: number) => {
@@ -86,5 +118,5 @@ export function useTrainingTimer(
     setRemainingMs(minutes * 60_000);
   }, []);
 
-  return { status, remainingMs, durationMin, start, setMinutes };
+  return { status, remainingMs, durationMin, start, pause, resume, setMinutes };
 }

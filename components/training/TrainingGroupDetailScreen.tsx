@@ -25,7 +25,7 @@ export function TrainingGroupDetailScreen({
     exercise.boardElements !== null && exercise.boardElements.length > 0;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-neutral-950 text-white">
+    <div className="fixed inset-x-0 top-0 z-50 flex h-dvh flex-col overflow-y-auto bg-neutral-950 text-white">
       <header className="flex items-center gap-3 px-5 pt-[max(1.25rem,env(safe-area-inset-top))] pb-2">
         <button
           type="button"

@@ -1,16 +1,15 @@
 "use client";
 
 // The coach-facing whistle: a short beep pattern plus a vibration buzz
-// where supported. Reused for two triggers - a block's timer hitting 00:00,
-// and a manual "Przerwa" tap - same signal either way.
+// where supported. Fires when a block's timer hits 00:00.
 //
 // Autoplay policies block a *new* AudioContext (or a suspended one) from
 // making sound unless it's created/resumed inside a user gesture. The timer
 // completion fires later from a setInterval/visibilitychange callback,
 // which is never itself a gesture - so armTrainingSignal() must be called
-// from the Start/Przerwa tap handlers to create (or resume) the shared
-// context while there's still a real gesture on the stack, and
-// fireTrainingSignal() just reuses whatever that produced.
+// from the Start tap handler to create (or resume) the shared context while
+// there's still a real gesture on the stack, and fireTrainingSignal() just
+// reuses whatever that produced.
 let sharedAudioContext: AudioContext | null = null;
 
 function getAudioContextConstructor(): typeof AudioContext | null {

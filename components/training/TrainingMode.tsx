@@ -27,7 +27,7 @@ export function TrainingMode({
 
   if (plan.length === 0) {
     return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-neutral-950 px-6 text-center text-white">
+      <div className="fixed inset-x-0 top-0 z-50 flex h-dvh flex-col items-center justify-center gap-4 bg-neutral-950 px-6 text-center text-white">
         <h1 className="text-2xl font-bold tracking-tight text-balance">
           {workoutTitle}
         </h1>
