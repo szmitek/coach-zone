@@ -11,11 +11,7 @@ import { TacticsBoardLoader } from "@/components/board/TacticsBoardLoader";
 import { audienceEquals, defaultAudience, type Audience } from "@/lib/audience";
 import type { BoardElement } from "@/lib/board/types";
 import { pickDefaultSportId } from "@/lib/board/sports/registry";
-import {
-  DEFAULT_PLAY_FIELD_MODE,
-  UNIT_LABELS,
-  UNIT_OPTIONS,
-} from "@/lib/plays";
+import { UNIT_LABELS, UNIT_OPTIONS } from "@/lib/plays";
 import { createClient } from "@/lib/supabase/client";
 import type { Json, Play, PlayUnit, Sport } from "@/lib/supabase/types";
 
@@ -92,9 +88,10 @@ export function PlayForm(props: PlayFormProps) {
 
   const boardHandleRef = useRef<TacticsBoardHandle | null>(null);
   const initialBoardElements = useRef(boardElementsOf(initial)).current;
-  const initialFieldModeId = useRef(
-    initial?.board_field_mode ?? DEFAULT_PLAY_FIELD_MODE,
-  ).current;
+  // No override here: null/undefined lets the board fall back to the
+  // active sport's own defaultFieldModeId (same as BoardView's fieldModeId
+  // ?? config.defaultFieldModeId), same as a play never forces a diagram.
+  const initialFieldModeId = useRef(initial?.board_field_mode).current;
   // No sport picker in phase 1 - resolved the same way the board itself
   // defaults a sport, and fixed for the life of this form.
   const sportId = useRef(
@@ -270,8 +267,8 @@ export function PlayForm(props: PlayFormProps) {
       <div>
         <span className={labelClasses}>Diagram (opcjonalnie)</span>
         <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-500">
-          Domyślnie tablica pokazuje przybliżony fragment boiska wokół linii
-          rozpoczęcia akcji — widok możesz zmienić. Zagrywkę można zapisać też
+          Tablica otwiera się w domyślnym widoku boiska dla tej dyscypliny —
+          widok możesz zmienić w dowolnym momencie. Zagrywkę można zapisać też
           bez rysunku, jako samą nazwę i notatki.
         </p>
         <div className="mt-3">
