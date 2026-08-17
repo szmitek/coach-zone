@@ -1,6 +1,8 @@
 import {
   AF_FULL_HEIGHT,
   AF_FULL_WIDTH,
+  AF_PLAY_HEIGHT,
+  AF_PLAY_WIDTH,
   AF_REDZONE_HEIGHT,
   AF_REDZONE_WIDTH,
   AmericanFootballField,
@@ -33,7 +35,15 @@ export const americanFootballConfig: SportBoardConfig = {
       width: AF_REDZONE_WIDTH,
       height: AF_REDZONE_HEIGHT,
     },
+    {
+      id: "play",
+      label: "Zagrywka",
+      width: AF_PLAY_WIDTH,
+      height: AF_PLAY_HEIGHT,
+    },
   ],
+  // Exercises keep defaulting to "full" here - plays override their own
+  // default to "play" in PlayForm (see DEFAULT_PLAY_FIELD_MODE in lib/plays).
   defaultFieldModeId: "full",
   FieldComponent: AmericanFootballField,
   tools: [

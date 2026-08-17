@@ -12,6 +12,9 @@ const ENDZONE_COLOR = "#15532d";
 const TOTAL_YARDS = 120; // 100-yard field + two 10-yard end zones
 const ENDZONE_YARDS = 10;
 const REDZONE_WORKING_YARDS = 25; // yards of live field kept in view past the goal line
+const FIELD_WIDTH_YARDS = 160 / 3; // 53 1/3 yd sideline-to-sideline
+const PLAY_LOS_FRACTION = 0.75; // how far down the canvas the LOS sits - lower third, most height left above it for routes
+const PLAY_REFERENCE_YARDS = 30; // depth reference grid drawn above the LOS; routes may run on past it onto clean turf
 
 export const AF_FULL_WIDTH = 1200;
 export const AF_FULL_HEIGHT = 520;
@@ -23,6 +26,11 @@ export const AF_REDZONE_WIDTH = Math.round(
 );
 export const AF_REDZONE_HEIGHT = AF_FULL_HEIGHT;
 
+// Portrait play-diagram canvas: tall enough for a route tree above the LOS
+// while the field's full width still runs edge-to-edge horizontally.
+export const AF_PLAY_WIDTH = 620;
+export const AF_PLAY_HEIGHT = 820;
+
 export function AmericanFootballField({
   modeId,
   width,
@@ -33,6 +41,8 @@ export function AmericanFootballField({
       <Rect x={0} y={0} width={width} height={height} fill={TURF_COLOR} />
       {modeId === "redzone" ? (
         <RedZoneSection width={width} height={height} />
+      ) : modeId === "play" ? (
+        <PlayField width={width} height={height} />
       ) : (
         <FullField width={width} height={height} />
       )}
@@ -274,6 +284,80 @@ function RedZoneSection({ width, height }: { width: number; height: number }) {
       />
       {marks}
       <GoalPost x={MARGIN} centerY={height / 2} dir={-1} />
+    </Group>
+  );
+}
+
+// A zoomed line-of-scrimmage canvas for drawing a single play, not the full
+// field rotated: no end zones, no goalposts. Downfield is up - the LOS sits
+// low in the frame so a formation has room below it and routes have most of
+// the canvas to run into above it. The field's full WIDTH (not its length)
+// runs edge-to-edge horizontally, so the yard-line/hash-mark grain is
+// rotated 90° from FullField/RedZoneSection: yard lines are horizontal
+// (constant y) and hash marks sit at two vertical insets.
+function PlayField({ width, height }: { width: number; height: number }) {
+  const playW = width - MARGIN * 2;
+  const playH = height - MARGIN * 2;
+  const pxPerYard = playW / FIELD_WIDTH_YARDS;
+  const hashInset = playW * 0.3;
+  const losY = MARGIN + playH * PLAY_LOS_FRACTION;
+
+  const marks = [];
+  for (let yard = 0; yard <= PLAY_REFERENCE_YARDS; yard += 5) {
+    const y = losY - yard * pxPerYard;
+    if (y - MARGIN < 20) break;
+    if (yard !== 0) {
+      marks.push(
+        <Line
+          key={`pl-${yard}`}
+          points={[MARGIN, y, width - MARGIN, y]}
+          stroke={LINE_COLOR}
+          strokeWidth={LINE_WIDTH * 0.7}
+          opacity={0.75}
+        />,
+        <Text
+          key={`pn-${yard}`}
+          x={MARGIN + 6}
+          y={y - 18}
+          text={String(yard)}
+          fontSize={16}
+          fontStyle="bold"
+          fill={LINE_COLOR}
+        />,
+      );
+    }
+    marks.push(
+      <Line
+        key={`ph1-${yard}`}
+        points={[MARGIN + hashInset, y - 4, MARGIN + hashInset, y + 4]}
+        stroke={LINE_COLOR}
+        strokeWidth={2}
+      />,
+      <Line
+        key={`ph2-${yard}`}
+        points={[
+          width - MARGIN - hashInset,
+          y - 4,
+          width - MARGIN - hashInset,
+          y + 4,
+        ]}
+        stroke={LINE_COLOR}
+        strokeWidth={2}
+      />,
+    );
+  }
+
+  return (
+    <Group>
+      {marks}
+      {/* Line of scrimmage - drawn last so it stays crisp above the fainter
+          reference grid, at full LINE_WIDTH like the other modes' goal
+          line / major yard lines. */}
+      <Line
+        points={[MARGIN, losY, width - MARGIN, losY]}
+        stroke={LINE_COLOR}
+        strokeWidth={LINE_WIDTH}
+      />
     </Group>
   );
 }

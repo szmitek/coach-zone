@@ -11,7 +11,7 @@ import { TacticsBoardLoader } from "@/components/board/TacticsBoardLoader";
 import { audienceEquals, defaultAudience, type Audience } from "@/lib/audience";
 import type { BoardElement } from "@/lib/board/types";
 import { pickDefaultSportId } from "@/lib/board/sports/registry";
-import { UNIT_LABELS, UNIT_OPTIONS } from "@/lib/plays";
+import { DEFAULT_PLAY_FIELD_MODE, UNIT_LABELS, UNIT_OPTIONS } from "@/lib/plays";
 import { createClient } from "@/lib/supabase/client";
 import type { Json, Play, PlayUnit, Sport } from "@/lib/supabase/types";
 
@@ -88,10 +88,15 @@ export function PlayForm(props: PlayFormProps) {
 
   const boardHandleRef = useRef<TacticsBoardHandle | null>(null);
   const initialBoardElements = useRef(boardElementsOf(initial)).current;
-  // No override here: null/undefined lets the board fall back to the
-  // active sport's own defaultFieldModeId (same as BoardView's fieldModeId
-  // ?? config.defaultFieldModeId), same as a play never forces a diagram.
-  const initialFieldModeId = useRef(initial?.board_field_mode).current;
+  // A brand-new play opens on its own DEFAULT_PLAY_FIELD_MODE ("play" - the
+  // portrait LOS-zoom canvas), not the sport's defaultFieldModeId, which
+  // still serves exercises. Editing an existing play keeps honouring
+  // whatever mode it was actually saved with, falling back to the sport
+  // default (same as BoardView's fieldModeId ?? config.defaultFieldModeId)
+  // for plays saved before this mode existed.
+  const initialFieldModeId = useRef(
+    props.mode === "create" ? DEFAULT_PLAY_FIELD_MODE : initial?.board_field_mode,
+  ).current;
   // No sport picker in phase 1 - resolved the same way the board itself
   // defaults a sport, and fixed for the life of this form.
   const sportId = useRef(
@@ -267,9 +272,10 @@ export function PlayForm(props: PlayFormProps) {
       <div>
         <span className={labelClasses}>Diagram (opcjonalnie)</span>
         <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-500">
-          Tablica otwiera się w domyślnym widoku boiska dla tej dyscypliny —
-          widok możesz zmienić w dowolnym momencie. Zagrywkę można zapisać też
-          bez rysunku, jako samą nazwę i notatki.
+          {props.mode === "create"
+            ? "Tablica otwiera się w pionowym widoku „Zagrywka”, dopasowanym do rysowania tras — w każdej chwili możesz przełączyć na całe boisko lub strefę końcową."
+            : "Tablica otwiera się w zapisanym widoku boiska — widok możesz zmienić w dowolnym momencie."}{" "}
+          Zagrywkę można zapisać też bez rysunku, jako samą nazwę i notatki.
         </p>
         <div className="mt-3">
           <TacticsBoardLoader
