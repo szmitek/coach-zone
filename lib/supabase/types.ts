@@ -12,6 +12,8 @@ export type WorkoutSection = "warmup" | "main" | "positional" | "cooldown";
 
 export type TeamRole = "head_coach" | "assistant_coach";
 
+export type PlayUnit = "offense" | "defense" | "special_teams";
+
 // One entry per team the caller shares with that profile - see
 // list_public_profiles() in
 // supabase/migrations/20260729101241_list_public_profiles_team_roles.sql.
@@ -159,6 +161,72 @@ export type Database = {
           },
           {
             foreignKeyName: "exercises_team_id_fkey";
+            columns: ["team_id"];
+            isOneToOne: false;
+            referencedRelation: "teams";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      plays: {
+        Row: {
+          board_field_mode: string | null;
+          board_state: Json | null;
+          created_at: string;
+          formation: string | null;
+          id: string;
+          last_edited_by: string | null;
+          name: string;
+          notes: string | null;
+          owner_id: string;
+          play_number: number | null;
+          sport_id: number;
+          team_id: string | null;
+          unit: PlayUnit;
+          updated_at: string;
+        };
+        Insert: {
+          board_field_mode?: string | null;
+          board_state?: Json | null;
+          created_at?: string;
+          formation?: string | null;
+          id?: string;
+          last_edited_by?: string | null;
+          name: string;
+          notes?: string | null;
+          owner_id?: string;
+          play_number?: number | null;
+          sport_id: number;
+          team_id?: string | null;
+          unit?: PlayUnit;
+          updated_at?: string;
+        };
+        Update: {
+          board_field_mode?: string | null;
+          board_state?: Json | null;
+          created_at?: string;
+          formation?: string | null;
+          id?: string;
+          last_edited_by?: string | null;
+          name?: string;
+          notes?: string | null;
+          owner_id?: string;
+          play_number?: number | null;
+          sport_id?: number;
+          team_id?: string | null;
+          unit?: PlayUnit;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "plays_sport_id_fkey";
+            columns: ["sport_id"];
+            isOneToOne: false;
+            referencedRelation: "sports";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "plays_team_id_fkey";
             columns: ["team_id"];
             isOneToOne: false;
             referencedRelation: "teams";
@@ -654,6 +722,7 @@ export type WorkoutItem = Database["public"]["Tables"]["workout_items"]["Row"];
 export type Team = Database["public"]["Tables"]["teams"]["Row"];
 export type TeamMember = Database["public"]["Tables"]["team_members"]["Row"];
 export type TeamInvite = Database["public"]["Tables"]["team_invites"]["Row"];
+export type Play = Database["public"]["Tables"]["plays"]["Row"];
 
 // Shape returned by the list_public_profiles() RPC - the only channel
 // through which a coach can see another coach's attribution (see

@@ -30,7 +30,10 @@ import {
   isDuplicateStageEvent,
   type LastStageEvent,
 } from "@/lib/board/tapGuard";
-import { getSportConfig } from "@/lib/board/sports/registry";
+import {
+  getSportConfig,
+  pickDefaultSportId,
+} from "@/lib/board/sports/registry";
 import type { PathToolStyle, ToolDef } from "@/lib/board/sports/types";
 import {
   isPathElement,
@@ -52,11 +55,6 @@ interface DrawingPath {
   style: PathToolStyle;
   points: BoardPoint[];
   curved: boolean;
-}
-
-function pickDefaultSportId(sports: Sport[]): number | null {
-  const preferred = sports.find((s) => s.slug === "american_football");
-  return preferred?.id ?? sports[0]?.id ?? null;
 }
 
 function initHistory(elements: BoardElement[]): BoardHistoryState {

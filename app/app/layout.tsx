@@ -10,6 +10,7 @@ import { logout } from "./actions";
 const navItems = [
   { href: "/app/exercises", label: "Ćwiczenia" },
   { href: "/app/workouts", label: "Treningi" },
+  { href: "/app/plays", label: "Zagrywki" },
   { href: "/app/calendar", label: "Kalendarz" },
   { href: "/app/team", label: "Drużyna" },
   { href: "/app/settings", label: "Ustawienia" },
