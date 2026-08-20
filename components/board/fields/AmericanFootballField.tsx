@@ -13,8 +13,10 @@ const TOTAL_YARDS = 120; // 100-yard field + two 10-yard end zones
 const ENDZONE_YARDS = 10;
 const REDZONE_WORKING_YARDS = 25; // yards of live field kept in view past the goal line
 const FIELD_WIDTH_YARDS = 160 / 3; // 53 1/3 yd sideline-to-sideline
-const PLAY_LOS_FRACTION = 0.75; // how far down the canvas the LOS sits - lower third, most height left above it for routes
+const PLAY_LOS_FRACTION = 0.65; // how far down the canvas the LOS sits - the lower third stays open below it for the backfield/QB, the rest above is route space
 const PLAY_REFERENCE_YARDS = 30; // depth reference grid drawn above the LOS; routes may run on past it onto clean turf
+const PLAY_DEPTH_LINE_STEP_YARDS = 10; // spacing between the faint depth lines - sparse background texture, not a numbered ladder
+const PLAY_HASH_INSET_RATIO = 1 / 3; // dashed vertical hash columns sit this far in from each side - i.e. at 1/3 and 2/3 of the width
 
 export const AF_FULL_WIDTH = 1200;
 export const AF_FULL_HEIGHT = 520;
@@ -26,10 +28,11 @@ export const AF_REDZONE_WIDTH = Math.round(
 );
 export const AF_REDZONE_HEIGHT = AF_FULL_HEIGHT;
 
-// Portrait play-diagram canvas: tall enough for a route tree above the LOS
-// while the field's full width still runs edge-to-edge horizontally.
-export const AF_PLAY_WIDTH = 620;
-export const AF_PLAY_HEIGHT = 820;
+// Landscape play-card canvas, modelled on a real hand-drawn play card: wider
+// than tall (~3:2) so the LOS reads as a wide anchor with routes fanning up
+// above it, not a tall narrow strip.
+export const AF_PLAY_WIDTH = 780;
+export const AF_PLAY_HEIGHT = 520;
 
 export function AmericanFootballField({
   modeId,
@@ -288,75 +291,68 @@ function RedZoneSection({ width, height }: { width: number; height: number }) {
   );
 }
 
-// A zoomed line-of-scrimmage canvas for drawing a single play, not the full
-// field rotated: no end zones, no goalposts. Downfield is up - the LOS sits
-// low in the frame so a formation has room below it and routes have most of
-// the canvas to run into above it. The field's full WIDTH (not its length)
-// runs edge-to-edge horizontally, so the yard-line/hash-mark grain is
-// rotated 90° from FullField/RedZoneSection: yard lines are horizontal
-// (constant y) and hash marks sit at two vertical insets.
+// A landscape play-card canvas for drawing a single play, styled after a
+// real hand-drawn play card rather than a zoomed slice of FullField: no end
+// zones, no goalposts, no yard numbers. Downfield is up - the LOS is a bold
+// horizontal anchor low in the frame, a formation has room below it, and
+// routes run up into the space above it. Two dashed vertical hash columns
+// run the full height as the card's signature texture, with only a few
+// faint horizontal depth lines behind them for route-depth reference.
 function PlayField({ width, height }: { width: number; height: number }) {
   const playW = width - MARGIN * 2;
   const playH = height - MARGIN * 2;
   const pxPerYard = playW / FIELD_WIDTH_YARDS;
-  const hashInset = playW * 0.3;
   const losY = MARGIN + playH * PLAY_LOS_FRACTION;
 
-  const marks = [];
-  for (let yard = 0; yard <= PLAY_REFERENCE_YARDS; yard += 5) {
+  const depthLines = [];
+  for (
+    let yard = PLAY_DEPTH_LINE_STEP_YARDS;
+    yard <= PLAY_REFERENCE_YARDS;
+    yard += PLAY_DEPTH_LINE_STEP_YARDS
+  ) {
     const y = losY - yard * pxPerYard;
     if (y - MARGIN < 20) break;
-    if (yard !== 0) {
-      marks.push(
-        <Line
-          key={`pl-${yard}`}
-          points={[MARGIN, y, width - MARGIN, y]}
-          stroke={LINE_COLOR}
-          strokeWidth={LINE_WIDTH * 0.7}
-          opacity={0.75}
-        />,
-        <Text
-          key={`pn-${yard}`}
-          x={MARGIN + 6}
-          y={y - 18}
-          text={String(yard)}
-          fontSize={16}
-          fontStyle="bold"
-          fill={LINE_COLOR}
-        />,
-      );
-    }
-    marks.push(
+    depthLines.push(
       <Line
-        key={`ph1-${yard}`}
-        points={[MARGIN + hashInset, y - 4, MARGIN + hashInset, y + 4]}
+        key={`pl-${yard}`}
+        points={[MARGIN, y, width - MARGIN, y]}
         stroke={LINE_COLOR}
-        strokeWidth={2}
-      />,
-      <Line
-        key={`ph2-${yard}`}
-        points={[
-          width - MARGIN - hashInset,
-          y - 4,
-          width - MARGIN - hashInset,
-          y + 4,
-        ]}
-        stroke={LINE_COLOR}
-        strokeWidth={2}
+        strokeWidth={1.5}
+        opacity={0.35}
       />,
     );
   }
 
+  const hashX1 = MARGIN + playW * PLAY_HASH_INSET_RATIO;
+  const hashX2 = MARGIN + playW * (1 - PLAY_HASH_INSET_RATIO);
+
   return (
     <Group>
-      {marks}
-      {/* Line of scrimmage - drawn last so it stays crisp above the fainter
-          reference grid, at full LINE_WIDTH like the other modes' goal
-          line / major yard lines. */}
+      {depthLines}
+      {/* Dashed hash columns - the play card's defining mark - run the full
+          height so they read as constant background grain rather than
+          per-yard ticks. */}
+      <Line
+        points={[hashX1, MARGIN, hashX1, height - MARGIN]}
+        stroke={LINE_COLOR}
+        strokeWidth={2}
+        opacity={0.6}
+        dash={[12, 8]}
+      />
+      <Line
+        points={[hashX2, MARGIN, hashX2, height - MARGIN]}
+        stroke={LINE_COLOR}
+        strokeWidth={2}
+        opacity={0.6}
+        dash={[12, 8]}
+      />
+      {/* Line of scrimmage - the anchor the whole play sits on. Thicker
+          than every other line here, and drawn last so it stays crisp
+          on top. */}
       <Line
         points={[MARGIN, losY, width - MARGIN, losY]}
         stroke={LINE_COLOR}
-        strokeWidth={LINE_WIDTH}
+        strokeWidth={LINE_WIDTH * 2}
       />
     </Group>
   );
